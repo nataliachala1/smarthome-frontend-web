@@ -75,7 +75,6 @@ Smart Home cubre exclusivamente **energia electrica residencial**.
 - Multiples hogares por usuario.
 - Hogares compartidos.
 - Membresias con estados `PENDING`, `ACTIVE`, `REVOKED`, `LEFT`.
-- Zonas dentro del hogar.
 - Dispositivos electricos IoT.
 - Shelly 1PM Gen4 como dispositivo fisico de referencia, sin acoplar el producto exclusivamente a Shelly.
 - MQTT entre dispositivo y backend.
@@ -93,11 +92,8 @@ Smart Home cubre exclusivamente **energia electrica residencial**.
 - Frecuencia.
 - Temperatura cuando el dispositivo la entregue.
 - Historicos de consumo y telemetria.
-- Graficos por dia, semana, mes y ano.
-- Tarifas electricas con vigencia historica.
 - Costos aproximados.
 - Reportes.
-- Recomendaciones de ahorro basadas en reglas, patrones e historicos.
 - Alertas.
 - Notificaciones `UNREAD`, `READ`, `DISMISSED`.
 - WebSocket backend -> cliente.
@@ -107,6 +103,17 @@ Smart Home cubre exclusivamente **energia electrica residencial**.
 - Auditoria.
 - Backup/restore para `SYSTEM_ADMIN`, como operacion real de infraestructura/backend, no como simulacion del cliente.
 - Integracion con asistente de voz como RF de prioridad media; solo debe exponerse en frontend cuando exista contrato real de backend para esa integracion.
+
+## RF eliminadas del alcance vigente y no reutilizables
+
+- Tarifas electricas con vigencia historica.
+- Desactivacion del hogar.
+- Consultar recomendaciones.
+- Configurar recomendaciones.
+- Modo offline.
+- Zona de hogar.
+- Configurar notificaciones.
+- Forzar sincronizacion manual.
 
 ## Fuera del alcance actual y prohibido volver a introducir
 
@@ -121,12 +128,6 @@ Smart Home cubre exclusivamente **energia electrica residencial**.
 - Blacklist compleja de JWT.
 - Gestion avanzada de sesiones persistentes.
 - Almacenamiento de JWT en PostgreSQL.
-- Cola de comandos offline.
-- Crear hogares offline.
-- Registrar dispositivos offline.
-- Controlar dispositivos offline.
-- Sincronizacion bidireccional compleja offline.
-- Resolucion de conflictos offline.
 - Redis/BullMQ como dependencia obligatoria del funcionamiento principal actual.
 - MQTT directo desde el navegador.
 - Acceso directo del frontend a PostgreSQL.
@@ -613,10 +614,7 @@ La UI puede ofrecer feedback inmediato, pero la regla final la valida NestJS. No
 - crear hogar;
 - seleccionar hogar activo;
 - modificar hogar si el rol lo permite;
-- desactivar/reactivar hogar;
-- gestionar zonas;
 - gestionar miembros;
-- gestionar tarifa electrica;
 - mostrar rol del usuario dentro del hogar;
 - estados loading/empty/error;
 - confirmacion de acciones de impacto.
@@ -626,12 +624,8 @@ La UI puede ofrecer feedback inmediato, pero la regla final la valida NestJS. No
 | Accion | OWNER | MEMBER | GUEST |
 |---|---:|---:|---:|
 | Consultar hogar | Si | Si | Si |
-| Consultar zonas | Si | Si | Si |
-| Crear/modificar zonas | Si | No | No |
-| Configurar tarifa | Si | No | No |
 | Invitar/revocar miembros | Si | No | No |
 | Cambiar roles | Si | No | No |
-| Desactivar hogar | Si | No | No |
 
 ## Estrato
 
@@ -666,39 +660,13 @@ La UI nunca debe asumir autorizacion basandose en un `homeId` manipulable por UR
 
 ---
 
-# 8.4 Zonas
+# 8.4 Dispositivos
 
-La terminologia oficial es **zona**, no `area`.
-
-Debe permitir:
-
-- listar zonas de un hogar;
-- crear/modificar zonas solo OWNER;
-- ver dispositivos de la zona;
-- mover dispositivo entre zonas validas del mismo hogar.
-
-No debe existir una opcion que permita seleccionar zonas de otro hogar.
+El alcance vigente no incluye zonas de hogar ni tarifas eléctricas. El módulo debe centrarse en el dispositivo y su contexto de hogar.
 
 ---
 
-# 8.5 Tarifas electricas
-
-La pantalla debe trabajar con tarifa por kWh y vigencia historica.
-
-## Frontend
-
-- mostrar tarifa vigente;
-- permitir a OWNER registrar nueva vigencia;
-- mostrar historial cuando el endpoint lo permita;
-- moneda configurable regionalmente, con **COP como contexto por defecto de la instalacion colombiana**, sin hardcodear EUR;
-- aclarar que el costo es aproximado;
-- no sobrescribir silenciosamente una tarifa historica.
-
-Eliminar referencias como `2.0TD`, tarifa valle espanola o modelos tarifarios que no existen en Smart Home.
-
----
-
-# 8.6 Dispositivos
+# 8.5 Dispositivos
 
 La pantalla actual usa arrays hardcodeados y cambia `on/off` solo en estado local.
 
@@ -833,9 +801,9 @@ Costo estimado     $ ...
 - los agregados usan la metrica incremental correcta;
 - mostrar timestamp/ultima actualizacion;
 - marcar datos stale si no llega telemetria reciente;
-- filtros por hogar, zona y dispositivo;
+- filtros por hogar y dispositivo;
 - rangos dia, semana, mes, ano;
-- costo segun tarifa vigente/historica calculado por backend;
+- costo calculado por backend cuando exista regla vigente;
 - grafica responsive.
 
 El backend/base de datos, no React, define el calculo oficial de agregados de negocio.
@@ -857,7 +825,6 @@ Eliminar textos genericos heredados como:
 Filtros permitidos por contrato:
 
 - hogar;
-- zona;
 - dispositivo;
 - rango temporal;
 - comparacion de periodos.
@@ -868,8 +835,7 @@ Resultados:
 - potencia relevante/agregada cuando corresponda;
 - costo estimado;
 - tendencia;
-- dispositivos de mayor consumo;
-- ahorro potencial cuando exista recomendacion.
+- dispositivos de mayor consumo.
 
 Exportacion CSV/PDF **solo si existe requisito/endpoint real**. No se debe agregar una funcion de exportacion simplemente porque sea comun en dashboards.
 
@@ -877,24 +843,7 @@ Exportacion CSV/PDF **solo si existe requisito/endpoint real**. No se debe agreg
 
 # 8.11 Recomendaciones
 
-La recomendacion no se genera en React.
-
-El frontend consume recomendaciones persistidas/generadas por backend.
-
-Debe representar:
-
-- texto/titulo;
-- motivo;
-- impacto;
-- ahorro potencial en kWh;
-- ahorro monetario cuando exista;
-- hogar/dispositivo relacionado;
-- estado definido por backend;
-- fecha.
-
-OWNER puede configurar recomendaciones por hogar segun RF4.6.
-
-No introducir modelos ML, prediccion avanzada ni IA generativa.
+El alcance vigente no incluye recomendaciones ni configuracion de recomendaciones. No se debe exponer este flujo en el frontend ni definirlo como requisito funcional.
 
 ---
 
@@ -1104,7 +1053,7 @@ src/shared/realtime/
 
 ## Server state
 
-Hogares, miembros, zonas, dispositivos, consumo, notificaciones y recomendaciones provienen del backend.
+Hogares, miembros, dispositivos, consumo y notificaciones provienen del backend.
 
 Se recomienda una capa de server-state (por ejemplo TanStack Query) para:
 
@@ -1519,12 +1468,9 @@ Conservar no significa mantener el codigo exacto: debe migrarse a TypeScript y a
 | Roles globales | mostrar UI permitida | validar `SYSTEM_ADMIN/USER` | rol persistente/constraints |
 | Hogar | selector y CRUD permitido | casos de uso y reglas OWNER | `home`, RLS, FK |
 | Membresia | invitaciones/roles | validar transiciones | `home_member`, estados, RLS |
-| Zona | CRUD UI | validar hogar/rol | `zone`, FK |
 | Dispositivo | mostrar/control/config | MQTT/control/autorizacion | metadata/config/historico |
 | Telemetria | visualizar | normalizar MQTT | lectura particionada/raw diagnostica |
 | Consumo | graficas/filtros | agregados/costos | historicos/materialized views si aplican |
-| Tarifa | formulario/historial | validar vigencia | tarifa historica sin solapamiento |
-| Recomendacion | visualizar/configurar | reglas de negocio | persistencia |
 | Alerta | visualizar contexto | generar | historial |
 | Notificacion | centro + WebSocket | persistir/publicar | `UNREAD/READ/DISMISSED` |
 | Preferencias | tema/idioma/region | guardar segun contrato | `config` |
@@ -1822,7 +1768,7 @@ SRS v2.0
 
 Cualquier componente que no pueda trazarse de forma razonable a esa cadena debe revisarse antes de permanecer en el producto.
 
-La correccion mas importante frente a la auditoria anterior es que **no se implementaran MFA/2FA, OAuth, refresh token obligatorio ni operaciones de negocio offline**. En cambio, deben reforzarse los elementos que si son estructurales del producto vigente: hogares compartidos, roles contextuales, zonas, tarifas historicas, IoT electrico, Shelly como referencia desacoplada, horarios, umbrales, telemetria normalizada, consumo correcto, WebSocket, notificaciones, recomendaciones, RLS, soft delete y auditoria.
+La correccion mas importante frente a la auditoria anterior es que **no se implementaran MFA/2FA, OAuth, refresh token obligatorio, modo offline, configuracion de notificaciones, sincronizacion manual ni recomendaciones**. En cambio, deben reforzarse los elementos que si son estructurales del producto vigente: hogares compartidos, roles contextuales, IoT electrico, Shelly como referencia desacoplada, horarios, umbrales, telemetria normalizada, consumo correcto, WebSocket, RLS, soft delete y auditoria.
 
 Este documento debe utilizarse como checklist de refactor e integracion del frontend y actualizarse unicamente cuando cambie formalmente el SRS, el modelo de base de datos o el contrato del backend.
 

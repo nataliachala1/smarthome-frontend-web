@@ -22,12 +22,14 @@ export const LoginPage = () => {
   const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState('');
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setFormError('');
+    setRegistrationMessage('');
     setIsSubmitting(true);
 
     try {
@@ -60,7 +62,11 @@ export const LoginPage = () => {
         return;
       }
 
-        await register(nameTrim, email, password);
+        await register(nameTrim, email.trim(), password);
+        setRegistrationMessage('Registro exitoso. Revisa tu correo para activar la cuenta antes de iniciar sesión.');
+        setIsRegistering(false);
+        setPassword('');
+        setConfirmPassword('');
       } else {
         await login(email.trim(), password);
       }
@@ -112,6 +118,7 @@ export const LoginPage = () => {
             )}
 
             {formError && <div className="text-sm text-[#dc2626]">{formError}</div>}
+            {registrationMessage && <div className="text-sm text-emerald-600">{registrationMessage}</div>}
 
             <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Procesando... ' : ''}

@@ -8,7 +8,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   initialized: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<authApi.RegisterResponse>;
   logout: () => void;
 }
 
@@ -35,12 +35,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const saveSession = (response: authApi.AuthResponse) => {
-    const token = response.access_token || response.accessToken || response.token;
-    if (!token || !response.user) {
+    if (!response.accessToken || !response.user) {
       throw new Error('La respuesta de autenticacion no tiene el formato esperado.');
     }
     localStorage.setItem('user', JSON.stringify(response.user));
-    localStorage.setItem('token', token);
+    localStorage.setItem('token', response.accessToken);
     setUser(response.user);
     setIsAuthenticated(true);
   };
@@ -50,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (name: string, email: string, password: string) => {
-    saveSession(await authApi.register({ name, email, password }));
+    return authApi.register({ name, email, password });
   };
 
   const logout = () => {

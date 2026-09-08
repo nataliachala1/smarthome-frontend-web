@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createDevice, listDeviceTypes, listDevices, type Device, type DeviceType } from '../../../shared/api/devices.api';
+import { listHomes, type Home } from '../../../shared/api/homes.api';
 
 const Devices = () => {
   const { t } = useTranslation();
 
-  const [devicesList, setDevicesList] = useState([]);
+  const [devicesList, setDevicesList] = useState<Device[]>([]);
+  const [homes, setHomes] = useState<Home[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [selectedHomeId, setSelectedHomeId] = useState(() => localStorage.getItem('activeHomeId') || '');
+  const [loadError, setLoadError] = useState('');
 
   // 2. Estados para la barra de Smart Suggestion
   const [showSuggestion, setShowSuggestion] = useState(true);
@@ -13,18 +19,33 @@ const Devices = () => {
   // 3. Estados para el modal "Agregar Dispositivo"
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newLocation, setNewLocation] = useState('SALA DE ESTAR');
+  const [newDeviceType, setNewDeviceType] = useState('');
   const [newPower, setNewPower] = useState('');
 
-  // Función para alternar encendido/apagado usando el Toggle Switch
-  const toggleDeviceActive = (id) => {
-    setDevicesList((prevList) =>
-      prevList.map((device) =>
-        device.id === id
-          ? { ...device, active: !device.active, consumption: !device.active ? '0.1 kWh' : '0.0 kWh' }
-          : device
-      )
-    );
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [availableHomes, availableTypes] = await Promise.all([listHomes(), listDeviceTypes()]);
+        setHomes(availableHomes);
+        setDeviceTypes(availableTypes);
+        const homeId = selectedHomeId && availableHomes.some((home) => home.id === selectedHomeId)
+          ? selectedHomeId
+          : availableHomes[0]?.id || '';
+        setSelectedHomeId(homeId);
+        if (homeId) {
+          const availableDevices = await listDevices(homeId);
+          setDevicesList(availableDevices);
+          setNewDeviceType((current) => current || availableTypes[0]?.id || '');
+        }
+      } catch (cause) {
+        setLoadError(cause instanceof Error ? cause.message : 'No fue posible cargar los dispositivos.');
+      }
+    })();
+  }, [selectedHomeId]);
+
+  const toggleDeviceActive = (id: string) => {
+    // El backend todavía no expone un endpoint de control; no simulamos el estado local.
+    setLoadError(`El dispositivo ${id} no tiene una operación de encendido disponible en el backend.`);
   };
 
   // Función para manejar el botón "Optimizar Ahora"
@@ -33,31 +54,46 @@ const Devices = () => {
   };
 
   // Función para guardar un nuevo dispositivo
-  const handleAddDevice = (e) => {
+  const handleAddDevice = async (e) => {
     e.preventDefault();
-    if (!newName.trim() || !newPower.trim()) return;
-
-    const newDevice = {
-      id: Date.now(),
-      name: newName,
-      location: newLocation.toUpperCase(),
-      power: `${newPower} W`,
-      consumption: '0.0 kWh',
-      active: false,
-    };
-
-    setDevicesList([...devicesList, newDevice]);
+    if (!selectedHomeId || !newName.trim() || !newDeviceType) return;
+    try {
+      const device = await createDevice(selectedHomeId, {
+        deviceTypeId: newDeviceType,
+        name: newName.trim(),
+      });
+      setDevicesList((current) => [...current, device]);
+    } catch (cause) {
+      setLoadError(cause instanceof Error ? cause.message : 'No fue posible crear el dispositivo.');
+      return;
+    }
     setNewName('');
     setNewPower('');
     setIsModalOpen(false);
   };
 
-  const activeCount = devicesList.filter((d) => d.active).length;
+  const activeCount = devicesList.filter((d) => d.isOn).length;
   const totalCount = devicesList.length;
 
   return (
     <div className="p-6 min-h-screen bg-[#f4f5f9] dark:bg-[#0f111a] font-sans antialiased text-gray-900 dark:text-white transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-6">
+        {loadError && (
+          <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {loadError}
+          </div>
+        )}
+        {homes.length > 1 && (
+          <label className="block text-xs font-bold text-gray-500">
+            Hogar
+            <select value={selectedHomeId} onChange={(e) => {
+              localStorage.setItem('activeHomeId', e.target.value);
+              setSelectedHomeId(e.target.value);
+            }} className="ml-2 rounded-lg border px-2 py-1">
+              {homes.map((home) => <option key={home.id} value={home.id}>{home.name}</option>)}
+            </select>
+          </label>
+        )}
 
         {/* ================= ENCABEZADO CORREGIDO (IMAGE_28279A.PNG) ================= */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#151824] p-4 rounded-2xl border border-gray-100 dark:border-gray-800/40 shadow-sm">
@@ -192,35 +228,35 @@ const Devices = () => {
             <div
               key={device.id}
               className={`p-5 rounded-3xl transition-all duration-300 relative flex flex-col justify-between h-64 border ${
-                device.active
+                device.isOn
                   ? 'bg-gradient-to-br from-[#0c4eff] to-[#0038cb] text-white shadow-lg border-transparent'
                   : 'bg-white dark:bg-[#151824] text-gray-900 dark:text-white border-gray-100 dark:border-gray-800/70 shadow-sm'
               }`}
             >
               {/* Indicador de Estado Superior Derecho */}
               <div className="flex justify-end items-start w-full">
-                <span className={`w-2 h-2 rounded-full ${device.active ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${device.isOn ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
               </div>
 
               {/* Info Cuerpo */}
               <div className="mt-2">
-                <h3 className={`text-lg font-bold tracking-tight ${device.active ? 'text-white' : 'text-gray-800 dark:text-white'}`}>
+                <h3 className={`text-lg font-bold tracking-tight $                {device.isOn ? 'text-white' : 'text-gray-800 dark:text-white'}`}>
                   {device.name}
                 </h3>
-                <span className={`text-[9px] font-bold tracking-wider uppercase block mt-0.5 ${device.active ? 'text-white/60' : 'text-gray-400'}`}>
-                  {device.location}
+                <span className={`text-[9px] font-bold tracking-wider uppercase block mt-0.5 ${device.isOn ? 'text-white/60' : 'text-gray-400'}`}>
+                  {device.name}
                 </span>
               </div>
 
               {/* Parámetros técnicos */}
               <div className="flex justify-between items-center border-t border-dashed pt-4 mt-4 border-white/20 dark:border-gray-800/60">
                 <div>
-                  <p className={`text-[10px] font-medium ${device.active ? 'text-white/70' : 'text-gray-400'}`}>Potencia</p>
-                  <p className="text-xs font-bold">{device.power}</p>
+                  <p className={`text-[10px] font-medium ${device.isOn ? 'text-white/70' : 'text-gray-400'}`}>Potencia</p>
+                  <p className="text-xs font-bold">{device.currentPowerW ?? 0} W</p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-[10px] font-medium ${device.active ? 'text-white/70' : 'text-gray-400'}`}>Consumo</p>
-                  <p className="text-xs font-bold font-mono">{device.consumption}</p>
+                  <p className={`text-[10px] font-medium ${device.isOn ? 'text-white/70' : 'text-gray-400'}`}>Estado</p>
+                  <p className="text-xs font-bold font-mono">{device.connectivityStatus}</p>
                 </div>
               </div>
 
@@ -229,12 +265,12 @@ const Devices = () => {
                 <button
                   onClick={() => toggleDeviceActive(device.id)}
                   className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
-                    device.active ? 'bg-white' : 'bg-gray-200 dark:bg-gray-700'
+                    device.isOn ? 'bg-white' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-full shadow-sm transform transition-transform duration-200 ${
-                      device.active ? 'translate-x-5 bg-[#0038cb]' : 'translate-x-0 bg-white'
+                      device.isOn ? 'translate-x-5 bg-[#0038cb]' : 'translate-x-0 bg-white'
                     }`}
                   ></div>
                 </button>
@@ -263,29 +299,16 @@ const Devices = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1">Ubicación</label>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Tipo de dispositivo</label>
                 <select
-                  value={newLocation}
-                  onChange={(e) => setNewLocation(e.target.value)}
+                  required
+                  value={newDeviceType}
+                  onChange={(e) => setNewDeviceType(e.target.value)}
                   className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
                 >
-                  <option value="SALA DE ESTAR">Sala de Estar</option>
-                  <option value="COCINA">Cocina</option>
-                  <option value="BAÑO">Baño</option>
-                  <option value="LAVANDERÍA">Lavandería</option>
-                  <option value="DORMITORIO">Dormitorio</option>
+                  <option value="" disabled>Selecciona un tipo</option>
+                  {deviceTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
                 </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1">Potencia nominal (Watts)</label>
-                <input
-                  type="number"
-                  required
-                  value={newPower}
-                  onChange={(e) => setNewPower(e.target.value)}
-                  placeholder="Ej. 800"
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
-                />
               </div>
               <div className="flex gap-2 pt-2">
                 <button
