@@ -31,29 +31,83 @@ const AuthLogo = () => (
   </div>
 );
 
-export const LoginPage = () => {
+export const RegisterPage = () => {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [formError, setFormError] = useState('');
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setFormError('');
+    setRegistrationMessage('');
+
+    const nameTrim = name.trim();
+    const emailTrim = email.trim();
+
+    const nameValid = /^[A-Za-zÀ-ÿ\s]+$/.test(nameTrim);
+
+    if (!nameValid) {
+      setFormError(
+        'El nombre no puede contener números ni caracteres especiales',
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFormError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (password.length < 8) {
+      setFormError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setFormError('La contraseña debe incluir al menos una letra mayúscula');
+      return;
+    }
+
+    if (!/\d/.test(password)) {
+      setFormError('La contraseña debe incluir al menos un número');
+      return;
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setFormError(
+        'La contraseña debe incluir al menos un carácter especial',
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await login(email.trim(), password);
+      await register(nameTrim, emailTrim, password);
+
+      setRegistrationMessage(
+        'Registro exitoso. Revisa tu correo para activar la cuenta antes de iniciar sesión.',
+      );
+
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (error) {
       setFormError(
         error instanceof Error
           ? error.message
-          : 'No fue posible iniciar sesión.',
+          : 'No fue posible completar el registro.',
       );
     } finally {
       setIsSubmitting(false);
@@ -68,18 +122,31 @@ export const LoginPage = () => {
           <div className="mb-8 text-center">
             <div className="flex items-center justify-center gap-4">
               <AuthLogo />
-
               <h1 className="text-[#1866C1] text-3xl font-semibold">
                 {t('app.name')}
               </h1>
             </div>
 
             <p className="mt-4 text-sm text-[#666666] dark:text-[#a3a3a3]">
-              Inicia sesión para administrar tu hogar inteligente
+              Crea tu cuenta de Smart Home
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            <Input
+              label={t('auth.name')}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              validate={(value) =>
+                /^[A-Za-zÀ-ÿ\s]+$/.test(String(value || '').trim())
+                  ? ''
+                  : 'El nombre no puede contener números ni caracteres especiales'
+              }
+              validateOn="change"
+            />
 
             <Input
               label={t('auth.email')}
@@ -97,9 +164,29 @@ export const LoginPage = () => {
               required
             />
 
+            <Input
+              label={t('auth.confirmPassword')}
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              validate={(value) =>
+                String(value) === password
+                  ? ''
+                  : 'Las contraseñas no coinciden'
+              }
+              validateOn="change"
+            />
+
             {formError && (
               <div className="text-sm text-[#dc2626]">
                 {formError}
+              </div>
+            )}
+
+            {registrationMessage && (
+              <div className="text-sm text-emerald-600">
+                {registrationMessage}
               </div>
             )}
 
@@ -109,37 +196,18 @@ export const LoginPage = () => {
               className="w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Iniciando sesión...' : t('auth.login')}
+              {isSubmitting ? 'Registrando...' : t('auth.register')}
             </Button>
 
           </form>
 
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => navigate('/resend-activation')}
-              className="text-sm text-[#666666] dark:text-[#a3a3a3] hover:underline"
-            >
-              ¿No recibiste el correo de activación?
-            </button>
-          </div>
-
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              className="text-sm text-[#666666] dark:text-[#a3a3a3] hover:underline"
-            >
-              {t('auth.forgotPassword')}
-            </button>
-          </div>
-
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/login')}
               className="text-sm text-[#1866C1] hover:underline"
             >
-              ¿No tienes cuenta? Regístrate
+              ¿Ya tienes cuenta? Inicia sesión
             </button>
           </div>
 

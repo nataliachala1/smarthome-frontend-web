@@ -42,8 +42,24 @@ export const login = (credentials: LoginCredentials) =>
 export const register = (payload: RegisterPayload) =>
   apiClient<RegisterResponse>('/auth/register', { method: 'POST', body: payload });
 
+export interface ActivateAccountResponse {
+  activated: boolean;
+}
+
 export const activateAccount = (token: string) =>
-  apiClient<{ message?: string }>('/auth/activate', { method: 'POST', body: { token } });
+  apiClient<ActivateAccountResponse>('/auth/activate', {
+    method: 'POST',
+    body: { token },
+  });
+
+export interface ResendActivationResponse {
+  sent: boolean;
+}
+
 export const resendActivation = (email: string) =>
-  apiClient<{ message?: string }>('/auth/resend-activation', { method: 'POST', body: { email } });
-export const getCurrentUser = () => apiClient<CurrentUser>('/auth/me');
+  apiClient<ResendActivationResponse>('/auth/resend-activation', {
+    method: 'POST',
+    body: { email },
+  });
+  
+  export const getCurrentUser = () => apiClient<CurrentUser>('/auth/me');

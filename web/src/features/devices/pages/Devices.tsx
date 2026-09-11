@@ -1,337 +1,558 @@
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { createDevice, listDeviceTypes, listDevices, type Device, type DeviceType } from '../../../shared/api/devices.api';
-import { listHomes, type Home } from '../../../shared/api/homes.api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  controlDevice,
+  createDevice,
+  listDevices,
+  listDeviceTypes,
+  type Device,
+  type DeviceType,
+} from '../../../shared/api/devices.api';
+import { getHome, type Home } from '../../../shared/api/homes.api';
+import { Button } from '../../../components/ui/Button';
+import { Input } from '../../../components/ui/Input';
+import { Card, CardContent } from '../../../components/ui/Card';
+import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
 
-const Devices = () => {
-  const { t } = useTranslation();
+interface DeviceStatusUpdatedEvent {
+  id: string;
+  homeId: string;
+  connectivityStatus: 'ONLINE' | 'OFFLINE';
+  isOn: boolean;
+  currentPowerW: number | null;
+  updatedAt: string;
+}
 
-  const [devicesList, setDevicesList] = useState<Device[]>([]);
-  const [homes, setHomes] = useState<Home[]>([]);
+export const Devices = () => {
+  const navigate = useNavigate();
+  const { homeId } = useParams<{ homeId: string }>();
+
+  const [home, setHome] = useState<Home | null>(null);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
-  const [selectedHomeId, setSelectedHomeId] = useState(() => localStorage.getItem('activeHomeId') || '');
-  const [loadError, setLoadError] = useState('');
 
-  // 2. Estados para la barra de Smart Suggestion
-  const [showSuggestion, setShowSuggestion] = useState(true);
-  const [isOptimized, setIsOptimized] = useState(false);
+  const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // 3. Estados para el modal "Agregar Dispositivo"
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [newName, setNewName] = useState('');
-  const [newDeviceType, setNewDeviceType] = useState('');
-  const [newPower, setNewPower] = useState('');
+  const [newDeviceTypeId, setNewDeviceTypeId] = useState('');
+  const [manufacturerDeviceId, setManufacturerDeviceId] = useState('');
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [availableHomes, availableTypes] = await Promise.all([listHomes(), listDeviceTypes()]);
-        setHomes(availableHomes);
-        setDeviceTypes(availableTypes);
-        const homeId = selectedHomeId && availableHomes.some((home) => home.id === selectedHomeId)
-          ? selectedHomeId
-          : availableHomes[0]?.id || '';
-        setSelectedHomeId(homeId);
-        if (homeId) {
-          const availableDevices = await listDevices(homeId);
-          setDevicesList(availableDevices);
-          setNewDeviceType((current) => current || availableTypes[0]?.id || '');
-        }
-      } catch (cause) {
-        setLoadError(cause instanceof Error ? cause.message : 'No fue posible cargar los dispositivos.');
-      }
-    })();
-  }, [selectedHomeId]);
-
-  const toggleDeviceActive = (id: string) => {
-    // El backend todavía no expone un endpoint de control; no simulamos el estado local.
-    setLoadError(`El dispositivo ${id} no tiene una operación de encendido disponible en el backend.`);
-  };
-
-  // Función para manejar el botón "Optimizar Ahora"
-  const handleOptimizeNow = () => {
-    setIsOptimized(true);
-  };
-
-  // Función para guardar un nuevo dispositivo
-  const handleAddDevice = async (e) => {
-    e.preventDefault();
-    if (!selectedHomeId || !newName.trim() || !newDeviceType) return;
-    try {
-      const device = await createDevice(selectedHomeId, {
-        deviceTypeId: newDeviceType,
-        name: newName.trim(),
-      });
-      setDevicesList((current) => [...current, device]);
-    } catch (cause) {
-      setLoadError(cause instanceof Error ? cause.message : 'No fue posible crear el dispositivo.');
+  const loadDevicesPage = useCallback(async () => {
+    if (!homeId) {
+      setError('No se encontró el hogar seleccionado.');
+      setIsLoading(false);
       return;
     }
-    setNewName('');
-    setNewPower('');
-    setIsModalOpen(false);
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const [homeResponse, devicesResponse, typesResponse] =
+        await Promise.all([
+          getHome(homeId),
+          listDevices(homeId),
+          listDeviceTypes(),
+        ]);
+
+      setHome(homeResponse);
+      setDevices(devicesResponse);
+      setDeviceTypes(typesResponse);
+
+      setNewDeviceTypeId((current) =>
+        current || typesResponse[0]?.id || '',
+      );
+
+      localStorage.setItem('activeHomeId', homeId);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible cargar los dispositivos.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [homeId]);
+
+  useEffect(() => {
+    void loadDevicesPage();
+  }, [loadDevicesPage]);
+
+  useEffect(() => {
+    const socket = getRealtimeSocket();
+
+    if (!socket || !homeId) {
+      return;
+    }
+
+    const handleConnected = (payload: { userId: string }) => {
+      console.log('Realtime conectado:', payload);
+    };
+
+    const handleRealtimeError = (payload: { message: string }) => {
+      console.error('Realtime error:', payload);
+    };
+
+    const handleDeviceStatusUpdated = (
+      payload: DeviceStatusUpdatedEvent,
+    ) => {
+      console.log('device.status.updated recibido:', payload);
+
+      if (payload.homeId !== homeId) {
+        return;
+      }
+
+      setDevices((currentDevices) =>
+        currentDevices.map((device) =>
+          device.id === payload.id
+            ? {
+                ...device,
+                connectivityStatus: payload.connectivityStatus,
+                isOn: payload.isOn,
+                currentPowerW: payload.currentPowerW,
+                updatedAt: payload.updatedAt,
+              }
+            : device,
+        ),
+      );
+    };
+
+    socket.on('realtime.connected', handleConnected);
+    socket.on('realtime.error', handleRealtimeError);
+    socket.on('device.status.updated', handleDeviceStatusUpdated);
+
+    return () => {
+      socket.off('realtime.connected', handleConnected);
+      socket.off('realtime.error', handleRealtimeError);
+      socket.off('device.status.updated', handleDeviceStatusUpdated);
+    };
+  }, [homeId]);
+
+  const filteredDevices = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    if (!term) {
+      return devices;
+    }
+
+    return devices.filter((device) =>
+      device.name.toLowerCase().includes(term),
+    );
+  }, [devices, search]);
+
+  const onlineCount = devices.filter(
+    (device) => device.connectivityStatus === 'ONLINE',
+  ).length;
+
+  const offlineCount = devices.filter(
+    (device) => device.connectivityStatus === 'OFFLINE',
+  ).length;
+
+  const onCount = devices.filter(
+    (device) => device.isOn,
+  ).length;
+
+  const handleCreateDevice = async () => {
+    if (!homeId) return;
+
+    const name = newName.trim();
+
+    if (!name || !newDeviceTypeId) {
+      setError(
+        'Debes ingresar el nombre y seleccionar un tipo de dispositivo.',
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    setError('');
+
+    try {
+      await createDevice(homeId, {
+        deviceTypeId: newDeviceTypeId,
+        name,
+        manufacturerDeviceId:
+          manufacturerDeviceId.trim() || undefined,
+        transportType: 'WIFI',
+        messagingProtocol: 'MQTT',
+      });
+
+      setNewName('');
+      setManufacturerDeviceId('');
+      setIsCreating(false);
+
+      await loadDevicesPage();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible registrar el dispositivo.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const activeCount = devicesList.filter((d) => d.isOn).length;
-  const totalCount = devicesList.length;
+  const handleControlDevice = async (device: Device) => {
+    if (!homeId) return;
+
+    setError('');
+
+    try {
+      await controlDevice(
+        homeId,
+        device.id,
+        device.isOn ? 'TURN_OFF' : 'TURN_ON',
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible controlar el dispositivo.',
+      );
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+          Cargando dispositivos...
+        </div>
+      </main>
+    );
+  }
+
+  if (error && !home) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+          <p>{error}</p>
+
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="mt-3 font-semibold underline"
+          >
+            Volver al Dashboard
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="p-6 min-h-screen bg-[#f4f5f9] dark:bg-[#0f111a] font-sans antialiased text-gray-900 dark:text-white transition-colors duration-300">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {loadError && (
-          <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            {loadError}
-          </div>
-        )}
-        {homes.length > 1 && (
-          <label className="block text-xs font-bold text-gray-500">
-            Hogar
-            <select value={selectedHomeId} onChange={(e) => {
-              localStorage.setItem('activeHomeId', e.target.value);
-              setSelectedHomeId(e.target.value);
-            }} className="ml-2 rounded-lg border px-2 py-1">
-              {homes.map((home) => <option key={home.id} value={home.id}>{home.name}</option>)}
-            </select>
-          </label>
-        )}
+    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+      <div className="mx-auto max-w-7xl space-y-7">
 
-        {/* ================= ENCABEZADO CORREGIDO (IMAGE_28279A.PNG) ================= */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#151824] p-4 rounded-2xl border border-gray-100 dark:border-gray-800/40 shadow-sm">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#1e1e2f] dark:text-white m-0">
-              {t('Mis Dispositivos')}
+            <button
+              type="button"
+              onClick={() =>
+                navigate(`/homes/${homeId}/dashboard`)
+              }
+              className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            >
+              ← Volver al hogar
+            </button>
+
+            <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+              Dispositivos
             </h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              Gestiona y controla todos tus equipos IoT en tiempo real.
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {home?.name}
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            {/* BARRA DE BÚSQUEDA REDONDEADA */}
-            <div className="relative flex-1 sm:flex-none">
-              <input
-                type="text"
-                placeholder="Buscar en reportes..."
-                className="w-full sm:w-60 bg-gray-50 dark:bg-gray-800/40 text-xs pl-4 pr-12 py-2.5 rounded-full border border-gray-200/60 dark:border-gray-800 focus:outline-none focus:border-[#4c3ff7] transition-colors placeholder-gray-400 text-gray-700 dark:text-gray-200"
-              />
-              <button 
-                type="button" 
-                aria-label={t('common.search')}
-                className="absolute right-1 top-1 bg-[#4c3ff7] hover:bg-[#3b31db] text-white p-1.5 rounded-full shadow-sm transition-all flex items-center justify-center w-7 h-7"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => {
+              setIsCreating((current) => !current);
+              setError('');
+            }}
+          >
+            + Agregar dispositivo
+          </Button>
+        </header>
 
-            {/* CAMPANITA DE NOTIFICACIONES */}
-            <div className="relative">
-              <button
-                type="button"
-                aria-label={t('nav.notifications')}
-                className="p-2.5 bg-white dark:bg-[#151824] text-gray-500 dark:text-gray-400 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm hover:scale-105 transition-all relative flex items-center justify-center w-10 h-10"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-[#151824]">
-                  1
-                </span>
-              </button>
-            </div>
-
-            {/* BOTÓN AGREGAR DISPOSITIVO */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#1e56ff] hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1"
-            >
-              <span className="text-base font-bold">+</span> Agregar Dispositivo
-            </button>
-          </div>
-        </div>
-
-        {/* ================= BARRA DE SMART SUGGESTION ================= */}
-        {showSuggestion && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h4 className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-                <span>💡</span> Smart Suggestion
-              </h4>
-              <p className="text-[11px] font-medium text-amber-700/90 dark:text-gray-400 mt-1 max-w-xl">
-                {isOptimized 
-                  ? '¡El Calentador de Agua ha sido configurado en modo ecológico correctamente!' 
-                  : 'Detectamos que el Calentador de Agua consume el 40% de tu energía total. ¿Deseas programar un horario de bajo consumo?'}
-              </p>
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleOptimizeNow}
-                disabled={isOptimized}
-                className={`flex-1 sm:flex-none whitespace-nowrap text-[11px] font-bold px-4 py-2 rounded-lg transition-all ${
-                  isOptimized 
-                    ? 'bg-emerald-600 text-white cursor-default' 
-                    : 'bg-amber-950 text-white dark:bg-amber-500 dark:text-amber-950 hover:opacity-90'
-                }`}
-              >
-                {isOptimized ? '✓ Optimizado' : 'Optimizar Ahora'}
-              </button>
-              <button
-                onClick={() => setShowSuggestion(false)}
-                className="flex-1 sm:flex-none whitespace-nowrap bg-white/80 dark:bg-transparent border border-gray-200 dark:border-gray-700 text-xs font-bold px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-50"
-              >
-                {isOptimized ? 'Cerrar' : 'Más tarde'}
-              </button>
-            </div>
+        {error && (
+          <div
+            role="alert"
+            className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
+          >
+            {error}
           </div>
         )}
 
-        {/* ================= TARJETAS DE RESUMEN ================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* TARJETA 1 */}
-          <div className="bg-white dark:bg-[#151824] p-5 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/50 text-[#1e56ff] rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Consumo Total Hoy</span>
-                <p className="text-2xl font-extrabold text-[#1e1e2f] dark:text-white tracking-tight mt-0.5">14.3 kWh</p>
-              </div>
-            </div>
-            <span className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> EN VIVO
-            </span>
-          </div>
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* TARJETA 2 */}
-          <div className="bg-white dark:bg-[#151824] p-5 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-gray-50 dark:bg-gray-800 text-gray-500 rounded-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z" />
-              </svg>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dispositivos Activos</span>
-              <p className="text-2xl font-extrabold text-[#1e1e2f] dark:text-white tracking-tight mt-0.5">
-                {activeCount < 10 ? `0${activeCount}` : activeCount} <span className="text-sm font-bold text-gray-400">/ {totalCount}</span>
+          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+            <CardContent className="p-5">
+              <p className="text-sm text-gray-500">
+                Total
               </p>
-            </div>
-          </div>
-        </div>
 
-        {/* ================= GRILLA DE DISPOSITIVOS ================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {devicesList.map((device) => (
-            <div
-              key={device.id}
-              className={`p-5 rounded-3xl transition-all duration-300 relative flex flex-col justify-between h-64 border ${
-                device.isOn
-                  ? 'bg-gradient-to-br from-[#0c4eff] to-[#0038cb] text-white shadow-lg border-transparent'
-                  : 'bg-white dark:bg-[#151824] text-gray-900 dark:text-white border-gray-100 dark:border-gray-800/70 shadow-sm'
-              }`}
-            >
-              {/* Indicador de Estado Superior Derecho */}
-              <div className="flex justify-end items-start w-full">
-                <span className={`w-2 h-2 rounded-full ${device.isOn ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
-              </div>
+              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+                {devices.length}
+              </p>
+            </CardContent>
+          </Card>
 
-              {/* Info Cuerpo */}
-              <div className="mt-2">
-                <h3 className={`text-lg font-bold tracking-tight $                {device.isOn ? 'text-white' : 'text-gray-800 dark:text-white'}`}>
-                  {device.name}
-                </h3>
-                <span className={`text-[9px] font-bold tracking-wider uppercase block mt-0.5 ${device.isOn ? 'text-white/60' : 'text-gray-400'}`}>
-                  {device.name}
-                </span>
-              </div>
+          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+            <CardContent className="p-5">
+              <p className="text-sm text-gray-500">
+                Online
+              </p>
 
-              {/* Parámetros técnicos */}
-              <div className="flex justify-between items-center border-t border-dashed pt-4 mt-4 border-white/20 dark:border-gray-800/60">
-                <div>
-                  <p className={`text-[10px] font-medium ${device.isOn ? 'text-white/70' : 'text-gray-400'}`}>Potencia</p>
-                  <p className="text-xs font-bold">{device.currentPowerW ?? 0} W</p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-[10px] font-medium ${device.isOn ? 'text-white/70' : 'text-gray-400'}`}>Estado</p>
-                  <p className="text-xs font-bold font-mono">{device.connectivityStatus}</p>
-                </div>
-              </div>
+              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+                {onlineCount}
+              </p>
+            </CardContent>
+          </Card>
 
-              {/* Switch de Encendido */}
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => toggleDeviceActive(device.id)}
-                  className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
-                    device.isOn ? 'bg-white' : 'bg-gray-200 dark:bg-gray-700'
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full shadow-sm transform transition-transform duration-200 ${
-                      device.isOn ? 'translate-x-5 bg-[#0038cb]' : 'translate-x-0 bg-white'
-                    }`}
-                  ></div>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+            <CardContent className="p-5">
+              <p className="text-sm text-gray-500">
+                Offline
+              </p>
 
-      </div>
+              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+                {offlineCount}
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* ================= MODAL AGREGAR DISPOSITIVO ================= */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#151824] rounded-2xl max-w-md w-full p-6 border border-gray-100 dark:border-gray-800 shadow-xl">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Añadir Nuevo Equipo IoT</h3>
-            <form onSubmit={handleAddDevice} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1">Nombre</label>
-                <input
+          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+            <CardContent className="p-5">
+              <p className="text-sm text-gray-500">
+                Encendidos
+              </p>
+
+              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+                {onCount}
+              </p>
+            </CardContent>
+          </Card>
+
+        </section>
+
+        {isCreating && (
+          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+            <CardContent className="p-6">
+
+              <h2 className="text-lg font-semibold text-[#1b254b] dark:text-white">
+                Registrar dispositivo
+              </h2>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+
+                <Input
+                  label="Nombre del dispositivo"
                   type="text"
-                  required
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Ej. Cafetera Smart"
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1">Tipo de dispositivo</label>
-                <select
                   required
-                  value={newDeviceType}
-                  onChange={(e) => setNewDeviceType(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
-                >
-                  <option value="" disabled>Selecciona un tipo</option>
-                  {deviceTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
-                </select>
+                />
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tipo de dispositivo
+                  </label>
+
+                  <select
+                    value={newDeviceTypeId}
+                    onChange={(e) =>
+                      setNewDeviceTypeId(e.target.value)
+                    }
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-[#151824]"
+                  >
+                    {deviceTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Input
+                  label="Identificador del fabricante"
+                  type="text"
+                  value={manufacturerDeviceId}
+                  onChange={(e) =>
+                    setManufacturerDeviceId(e.target.value)
+                  }
+                />
+
               </div>
-              <div className="flex gap-2 pt-2">
-                <button
+
+              <div className="mt-5 flex gap-3">
+                <Button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-bold bg-gray-50 dark:bg-gray-800 text-gray-500 rounded-xl hover:bg-gray-100"
+                  variant="primary"
+                  disabled={isSaving}
+                  onClick={() => void handleCreateDevice()}
+                >
+                  {isSaving
+                    ? 'Guardando...'
+                    : 'Registrar dispositivo'}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isSaving}
+                  onClick={() => {
+                    setIsCreating(false);
+                    setNewName('');
+                    setManufacturerDeviceId('');
+                  }}
                 >
                   Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#1e56ff] text-white rounded-xl hover:bg-blue-700"
-                >
-                  Guardar Nodo
-                </button>
+                </Button>
               </div>
-            </form>
+
+            </CardContent>
+          </Card>
+        )}
+
+        <section>
+
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+            <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+              Dispositivos del hogar
+            </h2>
+
+            <div className="w-full sm:w-72">
+              <Input
+                label=""
+                type="text"
+                placeholder="Buscar dispositivo..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
           </div>
-        </div>
-      )}
-    </div>
+
+          {filteredDevices.length === 0 ? (
+            <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+              No se encontraron dispositivos.
+            </div>
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+
+              {filteredDevices.map((device) => (
+                <Card
+                  key={device.id}
+                  className="rounded-2xl border border-gray-100 dark:border-gray-800"
+                >
+                  <CardContent className="p-6">
+
+                    <div className="flex items-start justify-between gap-3">
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-[#1b254b] dark:text-white">
+                          {device.name}
+                        </h3>
+
+                        <span
+                          className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                            device.connectivityStatus === 'ONLINE'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
+                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+                          }`}
+                        >
+                          {device.connectivityStatus}
+                        </span>
+                      </div>
+
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          device.isOn
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300'
+                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+                        }`}
+                      >
+                        {device.isOn ? 'Encendido' : 'Apagado'}
+                      </span>
+
+                    </div>
+
+                    <div className="mt-5 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+
+                      <p>
+                        Potencia actual:{' '}
+                        <span className="font-semibold text-[#1b254b] dark:text-white">
+                          {device.currentPowerW ?? 0} W
+                        </span>
+                      </p>
+
+                      {device.manufacturerDeviceId && (
+                        <p>
+                          Identificador:{' '}
+                          <span className="font-medium text-[#1b254b] dark:text-white">
+                            {device.manufacturerDeviceId}
+                          </span>
+                        </p>
+                      )}
+
+                    </div>
+
+                    <div className="mt-6 space-y-3">
+
+                      <Button
+                        type="button"
+                        variant="primary"
+                        className="w-full"
+                        disabled={
+                          device.connectivityStatus !== 'ONLINE'
+                        }
+                        onClick={() =>
+                          void handleControlDevice(device)
+                        }
+                      >
+                        {device.isOn
+                          ? 'Apagar'
+                          : 'Encender'}
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() =>
+                          navigate(
+                            `/homes/${homeId}/devices/${device.id}`,
+                          )
+                        }
+                      >
+                        Ver detalle
+                      </Button>
+
+                    </div>
+
+                  </CardContent>
+                </Card>
+              ))}
+
+            </div>
+          )}
+
+        </section>
+
+      </div>
+    </main>
   );
 };
 
-export { Devices };
 export default Devices;

@@ -44,11 +44,16 @@ export const apiClient = async <T = unknown>(path: string, options: ApiClientOpt
       clearSession();
       if (window.location.pathname !== '/login') window.location.assign('/login');
     }
-    const message = response.status === 403
-      ? 'No tienes permisos para realizar esta accion.'
-      : typeof payload === 'object' && payload?.message
-        ? payload.message
-        : `Solicitud fallida (${response.status})`;
+    const message =
+  typeof payload === 'object' &&
+  payload !== null &&
+  'message' in payload &&
+  typeof payload.message === 'string'
+    ? payload.message
+    : response.status === 403
+      ? 'No tienes permisos para realizar esta acción.'
+      : `Solicitud fallida (${response.status})`;
+      
     throw new ApiError(
       message,
       { status: response.status, details: payload },

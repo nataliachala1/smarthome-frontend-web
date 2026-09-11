@@ -4,7 +4,6 @@ export interface Home {
   id: string;
   createdBy: string;
   name: string;
-  stratum: number;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -35,11 +34,18 @@ export interface Invitation {
 
 export const listHomes = () => apiClient<Home[]>('/homes');
 export const getHome = (homeId: string) => apiClient<Home>(`/homes/${encodeURIComponent(homeId)}`);
-export const createHome = (payload: { name: string; stratum: number }) =>
-  apiClient<Home>('/homes', { method: 'POST', body: payload });
-export const updateHome = (homeId: string, payload: { name?: string; stratum?: number }) =>
+export const createHome = (payload: { name: string }) =>
+  apiClient<Home>('/homes', {
+    method: 'POST',
+    body: payload,
+  });
+export const updateHome = (
+  homeId: string,
+  payload: { name?: string },
+) =>
   apiClient<Home>(`/homes/${encodeURIComponent(homeId)}`, { method: 'PATCH', body: payload });
-export const leaveHome = (homeId: string) =>
+
+  export const leaveHome = (homeId: string) =>
   apiClient<void>(`/homes/${encodeURIComponent(homeId)}/members/me/leave`, { method: 'PATCH' });
 export const listMembers = (homeId: string) =>
   apiClient<HomeMember[]>(`/homes/${encodeURIComponent(homeId)}/members`);

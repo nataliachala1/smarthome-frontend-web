@@ -20,18 +20,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    const initializeAuth = async () => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    if (storedUser && token) {
+
+      if (!storedUser || !token) {
+        setInitialized(true);
+        return;
+      }
+
       try {
-        setUser(JSON.parse(storedUser) as AuthUser);
+        const parsedUser = JSON.parse(storedUser) as AuthUser;
+
+        // Verifica con el backend que el JWT siga siendo válido.
+        await authApi.getCurrentUser();
+
+        setUser(parsedUser);
         setIsAuthenticated(true);
       } catch {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setInitialized(true);
       }
-    }
-    setInitialized(true);
+    };
+
+    void initializeAuth();
   }, []);
 
   const saveSession = (response: authApi.AuthResponse) => {

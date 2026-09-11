@@ -1,219 +1,473 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useState } from 'react';
+
+import {
+  dismissNotification,
+  getUnreadNotificationsCount,
+  listNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  type Notification,
+  type NotificationStatus,
+} from '../../../shared/api/notifications.api';
+
+import {
+  Card,
+  CardContent,
+} from '../../../components/ui/Card';
+import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
+
+type NotificationFilter =
+  | 'ALL'
+  | 'UNREAD'
+  | 'READ';
 
 export const Notifications = () => {
-  const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] =
+    useState<Notification[]>([]);
 
-  const markAsRead = (id) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)));
-  };
+  const [filter, setFilter] =
+    useState<NotificationFilter>('ALL');
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
-  };
+  const [unreadCount, setUnreadCount] =
+    useState(0);
 
-  const deleteNotification = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-  };
+  const [isLoading, setIsLoading] =
+    useState(true);
 
-  const deleteAll = () => {
-    setNotifications([]);
-  };
+  const [isUpdating, setIsUpdating] =
+    useState(false);
 
-  const getNotificationMeta = (type) => {
-    const map = {
-      highConsumption: {
-        icon: (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-      },
-      deviceOffline: {
-        icon: (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.828m2.829 2.828L21 21M21 3L3 21M4.929 4.929A9 9 0 0012 21M7.757 7.757a5 5 0 017.071 0" />
-          </svg>
-        ),
-      },
-      tariffChange: {
-        icon: (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        ),
-      },
-      info: {
-        icon: (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-      },
+  const [error, setError] =
+    useState('');
+
+  const loadNotifications = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const status: NotificationStatus | undefined =
+        filter === 'ALL'
+          ? undefined
+          : filter;
+
+      const [
+        notificationsResponse,
+        unreadResponse,
+      ] = await Promise.all([
+        listNotifications({
+          status,
+          limit: 100,
+        }),
+
+        getUnreadNotificationsCount(),
+      ]);
+
+      setNotifications(
+        notificationsResponse,
+      );
+
+      setUnreadCount(
+        unreadResponse.unreadCount,
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible cargar las notificaciones.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const socket = getRealtimeSocket();
+
+    if (!socket) {
+      return;
+    }
+
+    const handleNotificationCreated = (
+      notification: Notification,
+    ) => {
+      setUnreadCount((current) => current + 1);
+
+      if (
+        filter === 'ALL' ||
+        filter === 'UNREAD'
+      ) {
+        setNotifications((current) => [
+          notification,
+          ...current,
+        ]);
+      }
     };
-    return map[type] || map.info;
-  };
 
-  const formatTimestamp = (date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
+    const handleUnreadCountUpdated = (
+      payload: { unreadCount: number },
+    ) => {
+      setUnreadCount(payload.unreadCount);
+    };
 
-    if (minutes < 60) {
-      return `Hace ${minutes} min`;
-    } else if (hours < 24) {
-      return `Hace ${hours} h`;
-    } else {
-      return date.toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'short',
-      });
+    socket.on(
+      'notification.created',
+      handleNotificationCreated,
+    );
+
+    socket.on(
+      'notification.unread_count.updated',
+      handleUnreadCountUpdated,
+    );
+
+    return () => {
+      socket.off(
+        'notification.created',
+        handleNotificationCreated,
+      );
+
+      socket.off(
+        'notification.unread_count.updated',
+        handleUnreadCountUpdated,
+      );
+    };
+  }, [filter]);
+
+  const handleMarkAsRead = async (
+    notificationId: string,
+  ) => {
+    setIsUpdating(true);
+    setError('');
+
+    try {
+      await markNotificationAsRead(
+        notificationId,
+      );
+
+      await loadNotifications();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible marcar la notificación como leída.',
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const handleMarkAllAsRead = async () => {
+    setIsUpdating(true);
+    setError('');
+
+    try {
+      await markAllNotificationsAsRead();
+
+      await loadNotifications();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible marcar todas las notificaciones como leídas.',
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDismiss = async (
+    notificationId: string,
+  ) => {
+    setIsUpdating(true);
+    setError('');
+
+    try {
+      await dismissNotification(
+        notificationId,
+      );
+
+      await loadNotifications();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible descartar la notificación.',
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const formatDate = (
+    value: string,
+  ) =>
+    new Intl.DateTimeFormat(
+      'es-CO',
+      {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      },
+    ).format(
+      new Date(value),
+    );
+
+  const getPriorityClasses = (
+    priority: string,
+  ) => {
+    const normalized =
+      priority.toUpperCase();
+
+    if (
+      normalized === 'HIGH' ||
+      normalized === 'CRITICAL'
+    ) {
+      return 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-300';
+    }
+
+    if (normalized === 'MEDIUM') {
+      return 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300';
+    }
+
+    return 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300';
+  };
 
   return (
-    <div className="p-8 min-h-screen bg-[#f4f5f9] dark:bg-[#0f111a] font-sans antialiased transition-colors duration-200">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* CABECERA */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+      <div className="mx-auto max-w-5xl space-y-7">
+
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
           <div>
-            <h1 className="text-2xl font-bold text-[#1e1e2f] dark:text-white flex items-center gap-2.5 tracking-tight">
-              {t('notifications.title')}
+            <div className="flex items-center gap-3">
+
+              <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+                Notificaciones
+              </h1>
+
               {unreadCount > 0 && (
-                <span className="bg-[#635bff] text-white text-[11px] font-bold h-5 px-2 rounded-full flex items-center justify-center min-w-[20px]">
+                <span className="rounded-full bg-[#1866C1] px-3 py-1 text-xs font-bold text-white">
                   {unreadCount}
                 </span>
               )}
-            </h1>
-            <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-1">Alertas y notificaciones del sistema</p>
-          </div>
-          
-          {/* ACCIONES DE CABECERA */}
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <button 
-                onClick={markAllAsRead} 
-                className="bg-[#635bff] hover:bg-[#5249f0] text-white text-xs font-semibold py-2 px-4 rounded-lg transition-all shadow-sm shadow-indigo-100 dark:shadow-none"
-              >
-                {t('notifications.markAsRead')}
-              </button>
-            )}
-            {notifications.length > 0 && (
-              <button 
-                onClick={deleteAll} 
-                className="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                {t('notifications.deleteAll')}
-              </button>
-            )}
-          </div>
-        </div>
 
-        {/* LISTA DE TARJETAS */}
-        <div className="space-y-3">
-          {notifications.map((notification) => {
-            const meta = getNotificationMeta(notification.type);
-            return (
-              <div 
-                key={notification.id} 
-                // CORRECCIÓN AQUÍ: Si NO está leída (!notification.read), toda la tarjeta adopta el fondo azulito oscuro bg-[#2563eb] con textos blancos.
-                className={`rounded-xl p-4 transition-all duration-200 border shadow-[0_4px_12px_rgba(0,0,0,0.015)] ${
-                  !notification.read 
-                    ? 'bg-[#2563eb] border-transparent text-white' 
-                    : 'bg-white dark:bg-[#151824] border-gray-100/50 dark:border-gray-800/50 opacity-85 text-gray-900'
-                }`}
-                role="article"
-              >
-                <div className="flex items-center justify-between gap-6">
-                  
-                  {/* LADO IZQUIERDO: ICONO + DETALLES */}
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    
-                    {/* Contenedor del icono (Blanco translúcido si la tarjeta es azul oscuro) */}
-                    <div className={`p-2.5 rounded-xl flex-shrink-0 ${
-                      !notification.read
-                        ? 'bg-white/15 text-white'
-                        : 'bg-[#635bff]/5 text-[#635bff] dark:bg-[#635bff]/10 dark:text-indigo-400'
-                    }`}>
-                      {meta.icon}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <h3 className={`text-sm tracking-tight ${
-                          !notification.read 
-                            ? 'text-white font-bold' 
-                            : 'text-gray-900 dark:text-gray-100 font-semibold'
-                        }`}>
-                          {notification.title}
-                        </h3>
-                        <span className={`text-[11px] font-medium ${
-                          !notification.read ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'
-                        }`}>
-                          • {formatTimestamp(notification.timestamp)}
-                        </span>
-                      </div>
-                      <p className={`text-xs mt-1 line-clamp-1 leading-normal font-medium ${
-                        !notification.read ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {notification.message}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* LADO DERECHO: ACCIONES Y PUNTO EN FILA */}
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    
-                    {/* Botones de acción minimalistas con herencia de color blanca si está activa */}
-                    <div className="flex items-center gap-3 text-xs">
-                      {!notification.read && (
-                        <button 
-                          onClick={() => markAsRead(notification.id)} 
-                          className="text-white hover:text-white/80 font-bold transition-colors"
-                        >
-                          {t('notifications.markAsRead')}
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => deleteNotification(notification.id)} 
-                        className={`font-semibold transition-colors ${
-                          !notification.read 
-                            ? 'text-white/80 hover:text-white' 
-                            : 'text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400'
-                        }`}
-                      >
-                        {t('common.delete')}
-                      </button>
-                    </div>
-
-                    {/* Indicador de estado por punto */}
-                    <div className="w-2 h-2 flex-shrink-0 flex items-center justify-center">
-                      {!notification.read && (
-                        <span className="w-2 h-2 bg-white rounded-full shadow-sm" />
-                      )}
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-            );
-          })}
-
-          {/* ESTADO VACÍO */}
-          {notifications.length === 0 && (
-            <div className="bg-white dark:bg-[#151824] rounded-xl p-16 text-center shadow-[0_4px_12px_rgba(0,0,0,0.015)] border border-dashed border-gray-200 dark:border-gray-800">
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">No tienes notificaciones en este momento</p>
             </div>
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Alertas y eventos importantes de SmartHome.
+            </p>
+          </div>
+
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              disabled={isUpdating}
+              onClick={() =>
+                void handleMarkAllAsRead()
+              }
+              className="rounded-xl bg-[#1866C1] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1557a3] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Marcar todas como leídas
+            </button>
           )}
-        </div>
+
+        </header>
+
+        {/* FILTROS */}
+
+        <section className="flex w-fit rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+
+          <button
+            type="button"
+            onClick={() =>
+              setFilter('ALL')
+            }
+            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+              filter === 'ALL'
+                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            Todas
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setFilter('UNREAD')
+            }
+            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+              filter === 'UNREAD'
+                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            No leídas
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setFilter('READ')
+            }
+            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+              filter === 'READ'
+                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            Leídas
+          </button>
+
+        </section>
+
+        {error && (
+          <div
+            role="alert"
+            className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+          >
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+            Cargando notificaciones...
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="rounded-2xl bg-white p-12 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+            No tienes notificaciones en esta sección.
+          </div>
+        ) : (
+          <section className="space-y-4">
+
+            {notifications.map(
+              (notification) => {
+                const isUnread =
+                  notification.status ===
+                  'UNREAD';
+
+                return (
+                  <Card
+                    key={notification.id}
+                    className={`rounded-2xl border ${
+                      isUnread
+                        ? 'border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/10'
+                        : 'border-gray-100 dark:border-gray-800'
+                    }`}
+                  >
+                    <CardContent className="p-6">
+
+                      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+
+                        <div className="flex-1">
+
+                          <div className="flex flex-wrap items-center gap-2">
+
+                            {isUnread && (
+                              <span className="h-2.5 w-2.5 rounded-full bg-[#1866C1]" />
+                            )}
+
+                            <h2 className="text-base font-semibold text-[#1b254b] dark:text-white">
+                              {
+                                notification.title
+                              }
+                            </h2>
+
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${getPriorityClasses(
+                                notification.priority,
+                              )}`}
+                            >
+                              {
+                                notification.priority
+                              }
+                            </span>
+
+                          </div>
+
+                          <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                            {
+                              notification.message
+                            }
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-400">
+
+                            <span>
+                              {formatDate(
+                                notification.createdAt,
+                              )}
+                            </span>
+
+                            {notification.homeId && (
+                              <span>
+                                Hogar asociado
+                              </span>
+                            )}
+
+                            {notification.deviceId && (
+                              <span>
+                                Dispositivo asociado
+                              </span>
+                            )}
+
+                          </div>
+
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 sm:flex-col">
+
+                          {isUnread && (
+                            <button
+                              type="button"
+                              disabled={
+                                isUpdating
+                              }
+                              onClick={() =>
+                                void handleMarkAsRead(
+                                  notification.id,
+                                )
+                              }
+                              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#1866C1] transition hover:bg-blue-50 disabled:opacity-60 dark:border-blue-900"
+                            >
+                              Marcar como leída
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            disabled={
+                              isUpdating
+                            }
+                            onClick={() =>
+                              void handleDismiss(
+                                notification.id,
+                              )
+                            }
+                            className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+                          >
+                            Descartar
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    </CardContent>
+                  </Card>
+                );
+              },
+            )}
+
+          </section>
+        )}
+
       </div>
-    </div>
+    </main>
   );
-}; 
+};
+
+export default Notifications;
