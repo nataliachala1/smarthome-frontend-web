@@ -8,7 +8,18 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   initialized: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<authApi.RegisterResponse>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    passwordConfirmation: string,
+  ) => Promise<authApi.RegisterResponse>;
+  forgotPassword: (email: string) => Promise<authApi.ForgotPasswordResponse>;
+  resetPassword: (
+    token: string,
+    password: string,
+    passwordConfirmation: string,
+  ) => Promise<authApi.ResetPasswordResponse>;
   logout: () => void;
 }
 
@@ -65,9 +76,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     saveSession(await authApi.login({ email, password }));
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    return authApi.register({ name, email, password });
-  };
+  const register = async (
+  name: string,
+  email: string,
+  password: string,
+  passwordConfirmation: string,
+  ) => {
+  return authApi.register({
+    name,
+    email,
+    password,
+    passwordConfirmation,
+  });
+};
+
+const forgotPassword = async (email: string) => {
+  return authApi.forgotPassword({ email });
+};
+
+const resetPassword = async (
+  token: string,
+  password: string,
+  passwordConfirmation: string,
+) => {
+  return authApi.resetPassword({
+    token,
+    password,
+    passwordConfirmation,
+  });
+};
 
   const logout = () => {
     localStorage.removeItem('user');
@@ -77,7 +114,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, initialized, login, register, logout }}>
+    <AuthContext.Provider
+  value={{
+    user,
+    isAuthenticated,
+    initialized,
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+    logout,
+  }}
+>
       {children}
     </AuthContext.Provider>
   );

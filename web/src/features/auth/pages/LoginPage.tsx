@@ -127,8 +127,9 @@ export const LoginPage = () => {
           <div className="mt-4 text-center">
             <button
               type="button"
+              onClick={() => navigate('/forgot-password')}
               className="text-sm text-[#666666] dark:text-[#a3a3a3] hover:underline"
-            >
+               >
               {t('auth.forgotPassword')}
             </button>
           </div>

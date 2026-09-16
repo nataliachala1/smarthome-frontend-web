@@ -93,7 +93,7 @@ export const RegisterPage = () => {
     setIsSubmitting(true);
 
     try {
-      await register(nameTrim, emailTrim, password);
+      await register(nameTrim, emailTrim, password, confirmPassword);
 
       setRegistrationMessage(
         'Registro exitoso. Revisa tu correo para activar la cuenta antes de iniciar sesión.',

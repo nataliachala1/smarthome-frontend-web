@@ -32,19 +32,50 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterPayload extends LoginCredentials {
+export interface RegisterPayload {
   name: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
 }
-
-export const login = (credentials: LoginCredentials) =>
-  apiClient<AuthResponse>('/auth/login', { method: 'POST', body: credentials });
-
-export const register = (payload: RegisterPayload) =>
-  apiClient<RegisterResponse>('/auth/register', { method: 'POST', body: payload });
 
 export interface ActivateAccountResponse {
   activated: boolean;
 }
+
+export interface ResendActivationResponse {
+  sent: boolean;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  sent: boolean;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
+export interface ResetPasswordResponse {
+  reset: boolean;
+}
+
+export const login = (credentials: LoginCredentials) =>
+  apiClient<AuthResponse>('/auth/login', {
+    method: 'POST',
+    body: credentials,
+  });
+
+export const register = (payload: RegisterPayload) =>
+  apiClient<RegisterResponse>('/auth/register', {
+    method: 'POST',
+    body: payload,
+  });
 
 export const activateAccount = (token: string) =>
   apiClient<ActivateAccountResponse>('/auth/activate', {
@@ -52,14 +83,22 @@ export const activateAccount = (token: string) =>
     body: { token },
   });
 
-export interface ResendActivationResponse {
-  sent: boolean;
-}
-
 export const resendActivation = (email: string) =>
   apiClient<ResendActivationResponse>('/auth/resend-activation', {
     method: 'POST',
     body: { email },
   });
-  
-  export const getCurrentUser = () => apiClient<CurrentUser>('/auth/me');
+
+export const forgotPassword = (payload: ForgotPasswordPayload) =>
+  apiClient<ForgotPasswordResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: payload,
+  });
+
+export const resetPassword = (payload: ResetPasswordPayload) =>
+  apiClient<ResetPasswordResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: payload,
+  });
+
+export const getCurrentUser = () => apiClient<CurrentUser>('/auth/me');

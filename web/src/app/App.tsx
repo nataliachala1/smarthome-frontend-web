@@ -18,6 +18,8 @@ import { DeviceDetailPage } from '../features/devices/pages/DeviceDetailPage';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { HomeDashboardPage } from '../features/homes/pages/HomeDashboardPage';
 import { EditDevicePage } from '../features/devices/pages/EditDevicePage';
+import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -67,6 +69,24 @@ function AppRoutes() {
       element={
         <PublicRoute>
           <ResendActivationPage />
+        </PublicRoute>
+      }
+    />
+
+    <Route
+      path="/forgot-password"
+      element={
+        <PublicRoute>
+          <ForgotPasswordPage />
+        </PublicRoute>
+      }
+    />
+
+    <Route
+      path="/reset-password"
+      element={
+        <PublicRoute>
+          <ResetPasswordPage />
         </PublicRoute>
       }
     />
