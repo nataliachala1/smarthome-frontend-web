@@ -272,16 +272,30 @@ export const Devices = () => {
             </p>
           </div>
 
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => {
-              setIsCreating((current) => !current);
-              setError('');
-            }}
-          >
-            + Agregar dispositivo
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setIsCreating((current) => !current);
+                setError('');
+              }}
+            >
+              + Agregar manualmente
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() =>
+                navigate(
+                  `/homes/${homeId}/devices/add/shelly`,
+                )
+              }
+            >
+              Vincular Shelly
+            </Button>
+          </div>
         </header>
 
         {error && (

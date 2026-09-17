@@ -20,6 +20,7 @@ import { HomeDashboardPage } from '../features/homes/pages/HomeDashboardPage';
 import { EditDevicePage } from '../features/devices/pages/EditDevicePage';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
+import { AddShellyDevicePage } from '../features/devices/pages/AddShellyDevicePage';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -116,15 +117,24 @@ function AppRoutes() {
       </Route>
 
       <Route
-  path="homes/:homeId/devices/:deviceId/edit"
-  element={<EditDevicePage />}
-/>
+          path="homes/:homeId/devices/:deviceId/edit"
+          element={<EditDevicePage />}
+      />  
 
       <Route
-  path="homes/:homeId/devices"
-  element={<Devices />}
-/>
+          path="homes/:homeId/devices"
+          element={<Devices />}
+      />
 
+      <Route
+          path="homes/:homeId/devices/add/shelly"
+          element={<AddShellyDevicePage />}
+      />
+
+      <Route
+          path="homes/:homeId/devices/:deviceId"
+          element={<DeviceDetailPage />}
+      />
     </Routes>
   );
 }
