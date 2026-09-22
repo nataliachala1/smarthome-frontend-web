@@ -1,5 +1,8 @@
 import { apiClient } from './api-client';
-import type { Device } from './devices.api';
+
+import type {
+  Device,
+} from './devices.api';
 
 export interface DiscoveredShellyDevice {
   ip: string;
@@ -28,7 +31,6 @@ export interface IdentifiedShellyDevice {
 export interface ProvisionShellyPayload {
   shellyIp: string;
   name: string;
-  deviceTypeId: string;
 }
 
 export interface ProvisionShellyResponse {
@@ -38,16 +40,25 @@ export interface ProvisionShellyResponse {
 
   shelly: {
     ip: string;
-    manufacturerDeviceId: string;
+
+    manufacturerDeviceId:
+      string;
+
     mac: string;
+
     model: string;
+
     modelCode: string;
-    firmwareVersion: string | null;
+
+    firmwareVersion:
+      string | null;
   };
 
   mqtt: {
     server: string;
+
     topicPrefix: string;
+
     connected: boolean;
   };
 }
@@ -55,18 +66,27 @@ export interface ProvisionShellyResponse {
 export const discoverShellyDevices = (
   homeId: string,
 ) =>
-  apiClient<DiscoveredShellyDevice[]>(
-    `/homes/${encodeURIComponent(homeId)}/shelly/discover`,
+  apiClient<
+    DiscoveredShellyDevice[]
+  >(
+    `/homes/${encodeURIComponent(
+      homeId,
+    )}/shelly/discover`,
   );
 
 export const identifyShellyDevice = (
   homeId: string,
   shellyIp: string,
 ) =>
-  apiClient<IdentifiedShellyDevice>(
-    `/homes/${encodeURIComponent(homeId)}/shelly/identify`,
+  apiClient<
+    IdentifiedShellyDevice
+  >(
+    `/homes/${encodeURIComponent(
+      homeId,
+    )}/shelly/identify`,
     {
       method: 'POST',
+
       body: {
         shellyIp,
       },
@@ -77,10 +97,16 @@ export const provisionShellyDevice = (
   homeId: string,
   payload: ProvisionShellyPayload,
 ) =>
-  apiClient<ProvisionShellyResponse>(
-    `/homes/${encodeURIComponent(homeId)}/shelly/provision`,
+  apiClient<
+    ProvisionShellyResponse
+  >(
+    `/homes/${encodeURIComponent(
+      homeId,
+    )}/shelly/provision`,
     {
       method: 'POST',
-      body: payload,
+
+      body:
+        payload,
     },
   );
