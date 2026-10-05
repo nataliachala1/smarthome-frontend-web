@@ -26,7 +26,10 @@
     "notifications": "Notificaciones",
     "homes": "Hogares",
     "settings": "Configuración",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "alerts": "Alertas",
+    "favorites": "Favoritos",
+    "access": "Accesos"
   },
   "dashboard": {
     "title": "Panel de Control",

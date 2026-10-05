@@ -46,7 +46,16 @@ import { AddDeviceByIpPage } from '../features/devices/pages/AddDeviceByIpPage';
 // OTHERS
 import { Reports } from '../features/reports/pages/Reports';
 import { Notifications } from '../features/notifications/pages/Notifications';
-import { Settings } from '../features/settings/pages/Settings';
+import { Consumption } from '../features/consumption/pages/Consumption';
+import {
+  AboutPage,
+  AccountPage,
+  AlertsPage,
+  FavoritesPage,
+  HelpPage,
+  ProfilePage,
+} from '../features/experience/pages/MobileParityPages';
+import { AccessPage } from '../features/experience/pages/AccessPage';
 
 interface RouteGuardProps {
   children: ReactNode;
@@ -211,6 +220,17 @@ function AppRoutes() {
         />
 
         {/* ====================================== */}
+        {/* CONSUMO / ENERGÍA                     */}
+        {/* ====================================== */}
+
+        <Route
+          path="homes/:homeId/consumption"
+          element={
+            <Consumption />
+          }
+        />
+
+        {/* ====================================== */}
         {/* DISPOSITIVOS                          */}
         {/* ====================================== */}
 
@@ -288,12 +308,17 @@ function AppRoutes() {
         {/* CONFIGURACIÓN                         */}
         {/* ====================================== */}
 
-        <Route
-          path="settings"
-          element={
-            <Settings />
-          }
-        />
+        <Route path="profile/settings" element={<Navigate to="/profile#profile-settings" replace />} />
+        <Route path="settings" element={<Navigate to="/profile#profile-settings" replace />} />
+
+        {/* Vistas web adaptadas desde la organización de la app móvil */}
+        <Route path="alerts" element={<AlertsPage />} />
+        <Route path="favorites" element={<FavoritesPage />} />
+        <Route path="access" element={<AccessPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="account/:page" element={<AccountPage />} />
+        <Route path="help" element={<HelpPage />} />
+        <Route path="about" element={<AboutPage />} />
       </Route>
 
       {/* ====================================== */}

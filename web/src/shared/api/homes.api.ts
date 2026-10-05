@@ -45,7 +45,12 @@ export const updateHome = (
 ) =>
   apiClient<Home>(`/homes/${encodeURIComponent(homeId)}`, { method: 'PATCH', body: payload });
 
-  export const leaveHome = (homeId: string) =>
+export const deleteHome = (homeId: string) =>
+  apiClient<{ deleted: boolean }>(`/homes/${encodeURIComponent(homeId)}`, {
+    method: 'DELETE',
+  });
+
+export const leaveHome = (homeId: string) =>
   apiClient<void>(`/homes/${encodeURIComponent(homeId)}/members/me/leave`, { method: 'PATCH' });
 export const listMembers = (homeId: string) =>
   apiClient<HomeMember[]>(`/homes/${encodeURIComponent(homeId)}/members`);

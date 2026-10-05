@@ -1,139 +1,330 @@
-import React, { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
-import { Badge } from '../../../components/ui/Badge';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../app/contexts/AuthContext';
+import { useTheme } from '../../../app/contexts/ThemeContext';
+
+type IconProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+const Icon = ({ children, className = 'h-5 w-5' }: IconProps) => (
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {children}
+  </svg>
+);
+
+const IconBox = ({ children }: { children: ReactNode }) => (
+  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef5ff] text-[#0877f9] dark:bg-[#152747] dark:text-[#75adff]">
+    {children}
+  </div>
+);
+
+const SectionHeading = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) => (
+  <div className="mb-4 flex items-center gap-3">
+    <IconBox>{icon}</IconBox>
+    <div className="min-w-0">
+      <h2 className="text-base font-bold leading-5 text-[#0a1740] dark:text-white">{title}</h2>
+      <p className="mt-0.5 text-xs leading-4 text-[#687b9e] dark:text-slate-400">{description}</p>
+    </div>
+  </div>
+);
+
+const cardClassName =
+  'min-w-0 rounded-2xl border border-[#e5edf8] bg-white p-5 shadow-[0_6px_20px_rgba(26,65,119,0.045)] dark:border-slate-700 dark:bg-[#111b2d] sm:p-7';
 
 export const Settings = () => {
   const { t, i18n } = useTranslation();
   const { logout } = useAuth();
-
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const { theme: currentTheme, setTheme } = useTheme();
   const [lang, setLang] = useState(i18n.language || 'es');
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [alertThreshold, setAlertThreshold] = useState(25);
+  const [activeTab, setActiveTab] = useState('general');
 
-  const handleThemeChange = (newTheme) => {
-    setTheme(newTheme);
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(newTheme);
-    localStorage.setItem('theme', newTheme);
+  const handleLangChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextLanguage = event.target.value;
+    setLang(nextLanguage);
+    void i18n.changeLanguage(nextLanguage);
+    localStorage.setItem('i18nextLng', nextLanguage);
   };
 
-  const handleLangChange = (e) => {
-    const l = e.target.value;
-    setLang(l);
-    i18n.changeLanguage(l);
-    localStorage.setItem('i18nextLng', l);
-  };
+  const tabs = [
+    {
+      id: 'general',
+      label: 'General',
+      icon: <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />,
+    },
+    {
+      id: 'notifications',
+      label: 'Notificaciones',
+      icon: <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />,
+    },
+    {
+      id: 'security',
+      label: 'Seguridad',
+      icon: <path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" />,
+    },
+    {
+      id: 'information',
+      label: 'Información',
+      icon: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></>,
+    },
+  ];
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#1a1a1a] dark:text-white">{t('settings.title') || 'Configuración'}</h1>
-          <p className="text-sm text-[#666666] dark:text-[#a3a3a3] mt-1">{t('settings.description') || 'Ajustes de la cuenta y preferencias'}</p>
+    <div className="mx-auto w-full max-w-[1440px] pb-2 text-[#0a1740] dark:text-slate-100">
+      <div className="mb-4">
+        <div className="mb-2 flex items-center gap-2 text-[11px] text-[#8090ad]">
+          <Link to="/profile" className="transition-colors hover:text-[#0877f9]">Perfil</Link>
+          <span aria-hidden="true">›</span>
+          <span className="font-medium text-[#50658c] dark:text-slate-300">Configuración</span>
         </div>
+        <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.04em] text-[#09143d] dark:text-white sm:text-[30px]">
+          {t('settings.title') || 'Configuración'}
+        </h1>
+        <p className="mt-1 text-[13px] leading-5 text-[#50658c] dark:text-slate-400">
+          Personaliza tu experiencia en Smart Home y gestiona tu cuenta.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Apariencia</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 mb-4">
-                <Button variant={theme === 'light' ? 'primary' : 'outline'} onClick={() => handleThemeChange('light')}>Claro</Button>
-                <Button variant={theme === 'dark' ? 'primary' : 'outline'} onClick={() => handleThemeChange('dark')}>Oscuro</Button>
-              </div>
+      <div role="tablist" aria-label="Secciones de configuración" className="mb-4 flex max-w-full gap-2 overflow-x-auto border-b border-[#e5edf8] dark:border-slate-700">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            id={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`settings-${tab.id}`}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === tab.id
+                ? 'border-[#0877f9] text-[#0877f9]'
+                : 'border-transparent text-[#50658c] hover:text-[#0877f9] dark:text-slate-400'
+            }`}
+          >
+            <Icon className="h-[17px] w-[17px]">{tab.icon}</Icon>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-              <div className="mb-4">
-                <label className="block mb-2 text-sm">Idioma</label>
-                <select value={lang} onChange={handleLangChange} className="w-64 px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e5e5e5] dark:border-[#333333]">
-                  <option value="es">ES Español</option>
-                  <option value="en">EN English</option>
-                  <option value="fr">FR Français</option>
-                  <option value="de">DE Deutsch</option>
+      <div className="grid grid-cols-1 gap-4">
+        <section id="settings-general" role="tabpanel" aria-labelledby="general" hidden={activeTab !== 'general'} className={cardClassName}>
+          <SectionHeading
+            title="Apariencia"
+            description="Elige el tema visual de la aplicación."
+            icon={<Icon><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.7-3.1 1.7 1.7 0 0 1 1.4-2.6H19a2 2 0 0 0 2-2A10 10 0 0 0 12 3Z" /><path d="M7.5 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm3-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm5 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /></Icon>}
+          />
+
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              ['light', 'Claro', <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></>],
+              ['dark', 'Oscuro', <path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z" />],
+              ['system', 'Sistema', <><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></>],
+            ] as const).map(([theme, label, icon]) => {
+              const isSelected = currentTheme === theme;
+              return (
+                <button
+                  key={theme}
+                  type="button"
+                  onClick={() => setTheme(theme)}
+                  aria-pressed={isSelected}
+                  className={`relative flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 ${
+                    isSelected
+                      ? 'border-[#0877f9] bg-[#edf5ff] text-[#0877f9] dark:bg-[#172b49]'
+                      : 'border-[#e1e9f4] bg-white text-[#18264a] hover:border-[#93bdff] dark:border-slate-600 dark:bg-[#172236] dark:text-slate-200'
+                  }`}
+                >
+                  {isSelected && <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#0877f9] text-white"><Icon className="h-2.5 w-2.5"><path d="m5 12 4 4L19 6" /></Icon></span>}
+                  <Icon className="h-6 w-6">{icon}</Icon>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="my-6 h-px bg-[#e7edf6] dark:bg-slate-700" />
+
+          <div className="flex items-center gap-3">
+            <IconBox><Icon className="h-5 w-5"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18" /></Icon></IconBox>
+            <div className="min-w-0 flex-1">
+              <label htmlFor="settings-language" className="mb-1.5 block text-base font-bold text-[#0a1740] dark:text-slate-100">Idioma</label>
+              <div className="relative">
+                <select
+                  id="settings-language"
+                  value={lang}
+                  onChange={handleLangChange}
+                  className="h-11 w-full appearance-none rounded-lg border border-[#dfe7f2] bg-white px-3 pr-9 text-sm font-medium text-[#18264a] outline-none transition focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                >
+                  <option value="es">ES&nbsp; Español</option>
+                  <option value="en">EN&nbsp; English</option>
+                  <option value="fr">FR&nbsp; Français</option>
+                  <option value="de">DE&nbsp; Deutsch</option>
                 </select>
+                <Icon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#50658c]"><path d="m6 9 6 6 6-6" /></Icon>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Seguridad</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-[#fafafa] dark:bg-[#0f0f0f] border border-[#eee] p-4 rounded">Cambiar Contraseña<br/><span className="text-xs text-[#666]">Actualiza tu contraseña</span></div>
-              <div className="bg-[#fafafa] dark:bg-[#0f0f0f] border border-[#eee] p-4 rounded">Autenticación de Dos Factores<br/><span className="text-xs text-[#666]">Aumenta la seguridad de tu cuenta</span></div>
+        <section id="settings-notifications" role="tabpanel" aria-labelledby="notifications" hidden={activeTab !== 'notifications'} className={cardClassName}>
+          <SectionHeading
+            title="Notificaciones"
+            description="Decide cómo y cuándo recibir alertas."
+            icon={<Icon><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" /></Icon>}
+          />
 
-              <div className="border border-[#fee2e2] bg-[#fff1f2] p-4 rounded">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-[#991b1b]">Cerrar sesión</div>
-                    <div className="text-xs text-[#991b1b]">En todos los dispositivos</div>
-                  </div>
-                  <Button variant="destructive" onClick={logout}>Cerrar Sesión</Button>
+          <div className="rounded-lg border border-[#e5edf6] px-2.5 dark:border-slate-700">
+            <div className="flex min-h-[51px] items-center gap-3 border-b border-[#edf1f7] dark:border-slate-700">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200">
+                <Icon className="h-[17px] w-[17px]"><rect x="6" y="2.5" width="12" height="19" rx="2" /><path d="M10 18.5h4" /></Icon>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Notificaciones Push</p>
+                <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe alertas en tiempo real en tus dispositivos.</p>
+              </div>
+              <label className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center">
+                <input type="checkbox" checked={pushEnabled} onChange={() => setPushEnabled((enabled) => !enabled)} className="peer sr-only" aria-label="Notificaciones Push" />
+                <span className="absolute inset-0 rounded-full bg-[#cbd5e3] transition-colors peer-checked:bg-[#0877f9] peer-focus-visible:ring-2 peer-focus-visible:ring-[#0877f9]/30" />
+                <span className="absolute left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
+              </label>
+            </div>
+
+            <div className="flex min-h-[51px] items-center gap-3 border-b border-[#edf1f7] dark:border-slate-700">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200">
+                <Icon className="h-[17px] w-[17px]"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></Icon>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Notificaciones por Email</p>
+                <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe un resumen diario por email.</p>
+              </div>
+              <label className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center">
+                <input type="checkbox" checked={emailEnabled} onChange={() => setEmailEnabled((enabled) => !enabled)} className="peer sr-only" aria-label="Notificaciones por Email" />
+                <span className="absolute inset-0 rounded-full bg-[#cbd5e3] transition-colors peer-checked:bg-[#0877f9] peer-focus-visible:ring-2 peer-focus-visible:ring-[#0877f9]/30" />
+                <span className="absolute left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
+              </label>
+            </div>
+
+            <div className="py-2.5">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#0877f9] dark:bg-slate-800">
+                  <Icon className="h-[17px] w-[17px]"><path d="M4 19v-5m5 5V9m5 10V5m5 14v-8" /></Icon>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Notificaciones</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 border border-[#f0f0f0] rounded">
-                <div>
-                  <div className="font-medium">Notificaciones Push</div>
-                  <div className="text-sm text-[#666666]">Recibe alertas en tiempo real</div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Umbral de alerta de consumo</p>
+                  <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe una alerta cuando tu consumo supere el valor establecido.</p>
                 </div>
-                <label className="inline-flex items-center">
-                  <input type="checkbox" checked={pushEnabled} onChange={() => setPushEnabled((v) => !v)} className="mr-2" />
-                </label>
+                <span className="shrink-0 rounded-lg bg-[#f0f4fa] px-2.5 py-1.5 text-[11px] font-bold text-[#18264a] dark:bg-slate-700 dark:text-slate-100">{alertThreshold} kWh</span>
               </div>
-
-              <div className="flex items-center justify-between p-3 border border-[#f0f0f0] rounded">
-                <div>
-                  <div className="font-medium">Notificaciones por Email</div>
-                  <div className="text-sm text-[#666666]">Resúmenes diarios por email</div>
-                </div>
-                <label className="inline-flex items-center">
-                  <input type="checkbox" checked={emailEnabled} onChange={() => setEmailEnabled((v) => !v)} className="mr-2" />
-                </label>
+              <input
+                type="range"
+                min="5"
+                max="100"
+                value={alertThreshold}
+                onChange={(event) => setAlertThreshold(Number(event.target.value))}
+                aria-label="Umbral de alerta de consumo"
+                className="h-1.5 w-full cursor-pointer accent-[#0877f9]"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-[#8292ae]">
+                <span>5 kWh</span>
+                <span>100 kWh</span>
               </div>
+            </div>
+          </div>
+        </section>
 
+        <section id="settings-security" role="tabpanel" aria-labelledby="security" hidden={activeTab !== 'security'} className={cardClassName}>
+          <SectionHeading
+            title="Seguridad"
+            description="Protege tu cuenta y gestiona el acceso."
+            icon={<Icon><path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" /><path d="m9 12 2 2 4-4" /></Icon>}
+          />
+          <div className="space-y-2">
+            <Link to="/account/password" className="flex min-h-[46px] w-full items-center gap-3 rounded-lg border border-[#e5edf6] px-3 text-left transition hover:border-[#b9d2f6] dark:border-slate-700 dark:hover:border-slate-500">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200"><Icon className="h-[17px] w-[17px]"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3" /></Icon></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-semibold text-[#0a1740] dark:text-slate-100">Cambiar contraseña</span>
+                <span className="mt-0.5 block text-[11px] text-[#7385a5] dark:text-slate-400">Actualiza tu contraseña de forma segura.</span>
+              </span>
+              <Icon className="h-4 w-4 shrink-0 text-[#50658c]"><path d="m9 18 6-6-6-6" /></Icon>
+            </Link>
+            <Link to="/account/security" className="flex min-h-[46px] w-full items-center gap-3 rounded-lg border border-[#e5edf6] px-3 text-left transition hover:border-[#b9d2f6] dark:border-slate-700 dark:hover:border-slate-500">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200"><Icon className="h-[17px] w-[17px]"><path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" /><path d="m9 12 2 2 4-4" /></Icon></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-semibold text-[#0a1740] dark:text-slate-100">Autenticación de dos factores</span>
+                <span className="mt-0.5 block text-[11px] text-[#7385a5] dark:text-slate-400">Aumenta la seguridad de tu cuenta.</span>
+              </span>
+              <Icon className="h-4 w-4 shrink-0 text-[#50658c]"><path d="m9 18 6-6-6-6" /></Icon>
+            </Link>
+          </div>
+          <div className="mt-4 flex min-h-[54px] items-center justify-between gap-4 rounded-xl border border-[#ffe0e0] bg-[#fff7f7] px-4 py-2.5 dark:border-red-900/60 dark:bg-red-950/20">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ffe9e9] text-[#ed2929] dark:bg-red-950/60"><Icon><path d="M10 17l5-5-5-5m5 5H3" /><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" /></Icon></span>
               <div>
-                <label className="block text-sm mb-2">Umbral de Alerta <span className="text-sm text-[#666]">{alertThreshold} kWh</span></label>
-                <input type="range" min="5" max="100" value={alertThreshold} onChange={(e) => setAlertThreshold(Number(e.target.value))} className="w-full" />
+                <p className="text-xs font-bold text-[#d92121]">Cerrar sesión</p>
+                <p className="mt-0.5 text-[11px] text-[#d64a4a]">Cierra tu sesión en todos los dispositivos.</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <button
+              type="button"
+              onClick={logout}
+              className="shrink-0 rounded-lg bg-[#ed2424] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#d51c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Información</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-[#666666]">
-              <div className="flex justify-between"><span>Versión</span><strong>1.0.0</strong></div>
-              <div className="flex justify-between"><span>Última actualización</span><span>Mayo 2026</span></div>
-              <div className="flex justify-between"><span>Soporte</span><a href="#" className="text-[#1866C1]">Contactar</a></div>
-            </CardContent>
-          </Card>
-        </div>
+        <section id="settings-information" role="tabpanel" aria-labelledby="information" hidden={activeTab !== 'information'} className={cardClassName}>
+          <SectionHeading
+            title="Información"
+            description="Detalles de la aplicación."
+            icon={<Icon><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></Icon>}
+          />
+          <div className="space-y-0.5 rounded-lg bg-[#f7f9fc] px-3 py-1 dark:bg-slate-800/60">
+            <div className="flex min-h-[34px] items-center gap-3 text-xs">
+              <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M14 3v5h5" /></Icon>
+              <span className="flex-1">Versión</span>
+              <strong className="font-bold text-[#0a1740] dark:text-slate-100">1.0.0</strong>
+            </div>
+            <div className="flex min-h-[34px] items-center gap-3 text-xs">
+              <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></Icon>
+              <span className="flex-1">Última actualización</span>
+              <span className="text-[#50658c] dark:text-slate-300">Mayo 2026</span>
+            </div>
+            <div className="flex min-h-[34px] items-center gap-3 text-xs">
+              <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><path d="M3 12a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-2v-6h4M3 13h4v6H5a2 2 0 0 1-2-2v-4Zm4 6a5 5 0 0 0 5 2" /></Icon>
+              <span className="flex-1">Soporte</span>
+              <Link to="/help" className="inline-flex items-center gap-1 font-semibold text-[#0877f9] hover:underline">
+                Contactar
+                <Icon className="h-3.5 w-3.5"><path d="M14 4h6v6m-11 5L20 4" /><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></Icon>
+              </Link>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div className="flex justify-end gap-3 mt-4">
-        <Button variant="outline">Cancelar</Button>
-        <Button variant="primary">Guardar</Button>
-      </div>
     </div>
   );
 };

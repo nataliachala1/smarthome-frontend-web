@@ -26,7 +26,10 @@
     "notifications": "Notifications",
     "homes": "Homes",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "alerts": "Alerts",
+    "favorites": "Favorites",
+    "access": "Access"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   dismissNotification,
@@ -22,6 +23,8 @@ type NotificationFilter =
   | 'READ';
 
 export const Notifications = () => {
+  const navigate = useNavigate();
+
   const [notifications, setNotifications] =
     useState<Notification[]>([]);
 
@@ -235,39 +238,28 @@ export const Notifications = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
-      <div className="mx-auto max-w-5xl space-y-7">
+    <main className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-[1240px] flex-col">
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-7">
 
           <div>
-            <div className="flex items-center gap-3">
-
-              <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
-                Notificaciones
-              </h1>
-
-              {unreadCount > 0 && (
-                <span className="rounded-full bg-[#1866C1] px-3 py-1 text-xs font-bold text-white">
-                  {unreadCount}
-                </span>
-              )}
-
-            </div>
-
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <h1 className="text-[30px] font-bold leading-9 tracking-[-0.035em] text-[#0f172a] dark:text-white sm:text-[34px]">
+              Notificaciones
+            </h1>
+            <p className="mt-1 text-[15px] leading-6 text-[#64748b] dark:text-slate-400">
               Alertas y eventos importantes de SmartHome.
             </p>
           </div>
 
-          {unreadCount > 0 && (
+          {notifications.length > 0 && unreadCount > 0 && (
             <button
               type="button"
               disabled={isUpdating}
               onClick={() =>
                 void handleMarkAllAsRead()
               }
-              className="rounded-xl bg-[#1866C1] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1557a3] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b5ed7] disabled:cursor-not-allowed disabled:opacity-60"
             >
               Marcar todas como leídas
             </button>
@@ -277,17 +269,18 @@ export const Notifications = () => {
 
         {/* FILTROS */}
 
-        <section className="flex w-fit rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+        <section aria-label="Filtrar notificaciones" className="mb-7 flex w-full max-w-[420px] rounded-xl bg-[#f1f5f9] p-1 dark:bg-slate-800 sm:w-fit">
 
           <button
             type="button"
             onClick={() =>
               setFilter('ALL')
             }
-            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+            aria-pressed={filter === 'ALL'}
+            className={`min-w-0 flex-1 rounded-[9px] px-3 py-2 text-sm font-semibold transition sm:flex-none sm:px-5 ${
               filter === 'ALL'
-                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'border border-[#e2e8f0] bg-white text-[#0d6efd] shadow-[0_1px_3px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-[#1f2335] dark:text-blue-400'
+                : 'border border-transparent bg-transparent text-[#475569] hover:text-[#0f172a] dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             Todas
@@ -298,10 +291,11 @@ export const Notifications = () => {
             onClick={() =>
               setFilter('UNREAD')
             }
-            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+            aria-pressed={filter === 'UNREAD'}
+            className={`min-w-0 flex-1 rounded-[9px] px-3 py-2 text-sm font-semibold transition sm:flex-none sm:px-5 ${
               filter === 'UNREAD'
-                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'border border-[#e2e8f0] bg-white text-[#0d6efd] shadow-[0_1px_3px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-[#1f2335] dark:text-blue-400'
+                : 'border border-transparent bg-transparent text-[#475569] hover:text-[#0f172a] dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             No leídas
@@ -312,10 +306,11 @@ export const Notifications = () => {
             onClick={() =>
               setFilter('READ')
             }
-            className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+            aria-pressed={filter === 'READ'}
+            className={`min-w-0 flex-1 rounded-[9px] px-3 py-2 text-sm font-semibold transition sm:flex-none sm:px-5 ${
               filter === 'READ'
-                ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'border border-[#e2e8f0] bg-white text-[#0d6efd] shadow-[0_1px_3px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-[#1f2335] dark:text-blue-400'
+                : 'border border-transparent bg-transparent text-[#475569] hover:text-[#0f172a] dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             Leídas
@@ -326,20 +321,48 @@ export const Notifications = () => {
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
           >
             {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+          <div className="flex min-h-[380px] flex-1 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-8 text-center text-sm text-[#64748b] dark:border-slate-700 dark:bg-[#151824] dark:text-slate-400">
             Cargando notificaciones...
           </div>
         ) : notifications.length === 0 ? (
-          <div className="rounded-2xl bg-white p-12 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
-            No tienes notificaciones en esta sección.
-          </div>
+          <section className="flex min-h-[420px] flex-1 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:min-h-[450px] sm:px-10">
+            <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#eff6ff] text-[#0d6efd] dark:bg-[#172b49] dark:text-[#75adff]">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                <path d="M10 21h4" />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-[24px] font-bold leading-8 tracking-[-0.025em] text-[#0f172a] dark:text-white sm:text-[28px]">
+              No tienes notificaciones
+            </h2>
+            <p className="mt-2 max-w-[680px] text-[15px] leading-6 text-[#64748b] dark:text-slate-400 sm:text-base">
+              Cuando recibas alertas, recordatorios o eventos importantes, aparecerán aquí.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/profile#profile-settings')}
+              className="mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-[11px] bg-[#0d6efd] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 focus-visible:ring-offset-2 sm:w-auto"
+            >
+              Configurar notificaciones
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/profile#profile-settings')}
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#0d6efd] transition-colors hover:text-[#0b5ed7] focus-visible:outline-none focus-visible:underline"
+            >
+              Ver preferencias
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          </section>
         ) : (
           <section className="space-y-4">
 
@@ -352,10 +375,10 @@ export const Notifications = () => {
                 return (
                   <Card
                     key={notification.id}
-                    className={`rounded-2xl border ${
+                    className={`rounded-2xl border shadow-none ${
                       isUnread
-                        ? 'border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/10'
-                        : 'border-gray-100 dark:border-gray-800'
+                        ? 'border-blue-200 bg-white dark:border-blue-900/50 dark:bg-[#151824]'
+                        : 'border-[#e2e8f0] bg-white dark:border-slate-700 dark:bg-[#151824]'
                     }`}
                   >
                     <CardContent className="p-6">
@@ -370,7 +393,7 @@ export const Notifications = () => {
                               <span className="h-2.5 w-2.5 rounded-full bg-[#1866C1]" />
                             )}
 
-                            <h2 className="text-base font-semibold text-[#1b254b] dark:text-white">
+                            <h2 className="text-base font-semibold text-[#0f172a] dark:text-white">
                               {
                                 notification.title
                               }
@@ -388,7 +411,7 @@ export const Notifications = () => {
 
                           </div>
 
-                          <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                          <p className="mt-3 text-sm leading-6 text-[#475569] dark:text-gray-300">
                             {
                               notification.message
                             }
