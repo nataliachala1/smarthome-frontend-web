@@ -3,7 +3,6 @@ import { apiClient } from './api-client';
 export interface Device {
   id: string;
   homeId: string;
-  deviceTypeId: string;
   name: string;
   status: string;
   connectivityStatus: string;
@@ -16,23 +15,14 @@ export interface Device {
   updatedAt: string;
 }
 
-export interface DeviceType {
-  id: string;
-  name: string;
-  description: string | null;
-  icon: string | null;
-}
-
 export const listDevices = (homeId: string) =>
   apiClient<Device[]>(`/homes/${encodeURIComponent(homeId)}/devices`);
 export const createDevice = (homeId: string, payload: {
-  deviceTypeId: string;
   name: string;
   manufacturerDeviceId?: string;
   transportType?: 'WIFI' | 'BLUETOOTH';
   messagingProtocol?: 'MQTT';
 }) => apiClient<Device>(`/homes/${encodeURIComponent(homeId)}/devices`, { method: 'POST', body: payload });
-export const listDeviceTypes = () => apiClient<DeviceType[]>('/device-types');
 export const getDevice = (
   homeId: string,
   deviceId: string,
@@ -45,7 +35,6 @@ export const updateDevice = (
   homeId: string,
   deviceId: string,
   payload: {
-    deviceTypeId?: string;
     name?: string;
     transportType?: 'WIFI' | 'BLUETOOTH';
     messagingProtocol?: 'MQTT';

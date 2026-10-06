@@ -205,7 +205,11 @@ export const DashboardPage = () => {
 
           <button
             type="button"
-            onClick={() => navigate('/devices')}
+            onClick={() =>
+              homeSummaries[0]
+                ? navigate(`/homes/${homeSummaries[0].home.id}/devices`)
+                : navigate('/homes')
+            }
             className="group flex min-h-20 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

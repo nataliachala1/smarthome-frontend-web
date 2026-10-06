@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   getDevice,
-  listDeviceTypes,
   updateDevice,
   type Device,
-  type DeviceType,
 } from '../../../shared/api/devices.api';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -20,10 +18,8 @@ export const EditDevicePage = () => {
   }>();
 
   const [device, setDevice] = useState<Device | null>(null);
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
 
   const [name, setName] = useState('');
-  const [deviceTypeId, setDeviceTypeId] = useState('');
   const [transportType, setTransportType] =
     useState<'WIFI' | 'BLUETOOTH'>('WIFI');
   const [messagingProtocol, setMessagingProtocol] =
@@ -42,16 +38,10 @@ export const EditDevicePage = () => {
       }
 
       try {
-        const [deviceResponse, typesResponse] = await Promise.all([
-          getDevice(homeId, deviceId),
-          listDeviceTypes(),
-        ]);
+        const deviceResponse = await getDevice(homeId, deviceId);
 
         setDevice(deviceResponse);
-        setDeviceTypes(typesResponse);
-
         setName(deviceResponse.name);
-        setDeviceTypeId(deviceResponse.deviceTypeId);
 
         if (
           deviceResponse.transportType === 'WIFI' ||
@@ -93,7 +83,6 @@ export const EditDevicePage = () => {
     try {
       await updateDevice(homeId, deviceId, {
         name: trimmedName,
-        deviceTypeId,
         transportType,
         messagingProtocol,
       });
@@ -133,7 +122,6 @@ export const EditDevicePage = () => {
   return (
     <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
       <div className="mx-auto max-w-3xl space-y-6">
-
         <header>
           <button
             type="button"
@@ -165,7 +153,6 @@ export const EditDevicePage = () => {
 
         <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
           <CardContent className="p-6 space-y-5">
-
             <Input
               label="Nombre del dispositivo"
               type="text"
@@ -174,24 +161,6 @@ export const EditDevicePage = () => {
               maxLength={100}
               required
             />
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Tipo de dispositivo
-              </label>
-
-              <select
-                value={deviceTypeId}
-                onChange={(e) => setDeviceTypeId(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-[#151824]"
-              >
-                {deviceTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -247,13 +216,12 @@ export const EditDevicePage = () => {
                 Cancelar
               </Button>
             </div>
-
           </CardContent>
         </Card>
-
       </div>
     </main>
   );
 };
 
 export default EditDevicePage;
+
