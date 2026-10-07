@@ -2,20 +2,40 @@ import { io, type Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
-export const getRealtimeSocket = () => {
-  const token = localStorage.getItem('token');
+const REALTIME_URL = (
+  import.meta.env.VITE_REALTIME_URL || '/realtime'
+).replace(/\/$/, '');
 
-  if (!token) {
+const getCurrentToken = () => localStorage.getItem('token');
+
+export const getRealtimeSocket = () => {
+  if (!getCurrentToken()) {
     return null;
   }
 
   if (!socket) {
-    socket = io('http://localhost:3000/realtime', {
-      auth: {
-        token,
+    socket = io(REALTIME_URL, {
+      auth: (callback) => {
+        const token = getCurrentToken();
+
+        callback({
+          token: token ?? '',
+        });
       },
       transports: ['websocket'],
       autoConnect: true,
+      reconnection: true,
+    });
+
+    socket.on('connect_error', (error) => {
+      console.warn('Realtime: error de conexión.', error.message);
+    });
+
+    socket.io.on('reconnect_attempt', () => {
+      if (!getCurrentToken()) {
+        socket?.disconnect();
+        socket = null;
+      }
     });
   }
 

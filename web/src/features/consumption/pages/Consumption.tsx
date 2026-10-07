@@ -39,6 +39,10 @@ import {
   CardContent,
 } from '../../../components/ui/Card';
 
+import {
+  getRealtimeSocket,
+} from '../../../shared/realtime/realtime-client';
+
 type ConsumptionPeriod = 'day' | 'month' | 'year';
 
 interface DateRange {
@@ -324,6 +328,70 @@ export const Consumption = () => {
   useEffect(() => {
     void loadConsumption();
   }, [loadConsumption]);
+    useEffect(() => {
+    if (!homeId) {
+      return;
+    }
+
+    const socket = getRealtimeSocket();
+
+    if (!socket) {
+      return;
+    }
+
+    const handleConsumptionCreated = (
+      reading: ConsumptionReading,
+    ) => {
+      if (reading.homeId !== homeId) {
+        return;
+      }
+
+      const readAt = new Date(reading.readAt).getTime();
+      const from = new Date(dateRange.from).getTime();
+      const to = new Date(dateRange.to).getTime();
+
+      if (
+        Number.isNaN(readAt) ||
+        Number.isNaN(from) ||
+        Number.isNaN(to)
+      ) {
+        return;
+      }
+
+      if (readAt < from || readAt > to) {
+        return;
+      }
+
+      setReadings((currentReadings) => {
+        const alreadyExists = currentReadings.some(
+          (currentReading) =>
+            currentReading.id === reading.id,
+        );
+
+        if (alreadyExists) {
+          return currentReadings;
+        }
+
+        return [...currentReadings, reading].sort(
+          (a, b) =>
+            new Date(b.readAt).getTime() -
+            new Date(a.readAt).getTime(),
+        );
+      });
+    };
+
+    socket.on(
+      'consumption.created',
+      handleConsumptionCreated,
+    );
+
+    return () => {
+      socket.off(
+        'consumption.created',
+        handleConsumptionCreated,
+      );
+    };
+  }, [homeId, dateRange.from, dateRange.to]);
 
   const handlePeriodChange = (
     newPeriod: ConsumptionPeriod,
