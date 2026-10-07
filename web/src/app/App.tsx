@@ -44,7 +44,6 @@ import { DiscoverDevicePage } from '../features/devices/pages/DiscoverDevicePage
 import { AddDeviceByIpPage } from '../features/devices/pages/AddDeviceByIpPage';
 
 // OTHERS
-import { Reports } from '../features/reports/pages/Reports';
 import { Notifications } from '../features/notifications/pages/Notifications';
 import { Consumption } from '../features/consumption/pages/Consumption';
 import {
@@ -57,6 +56,20 @@ import {
 } from '../features/experience/pages/MobileParityPages';
 import { AccessPage } from '../features/experience/pages/AccessPage';
 
+const ReportsRedirect = () => {
+  const activeHomeId = localStorage.getItem('activeHomeId');
+
+  return (
+    <Navigate
+      to={
+        activeHomeId
+          ? '/homes/' + activeHomeId + '/consumption'
+          : '/homes'
+      }
+      replace
+    />
+  );
+};
 interface RouteGuardProps {
   children: ReactNode;
 }
@@ -289,7 +302,7 @@ function AppRoutes() {
         <Route
           path="reports"
           element={
-            <Reports />
+            <ReportsRedirect />
           }
         />
 
