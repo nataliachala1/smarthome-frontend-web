@@ -47,7 +47,6 @@ const pageTitle: Record<string, { title: string; description: string }> = {
   profile: { title: 'Perfil', description: 'Administra tu cuenta y preferencias.' },
   personal: { title: 'Información personal', description: 'Consulta la información de tu cuenta.' },
   security: { title: 'Seguridad de la cuenta', description: 'Revisa las opciones para proteger tu cuenta.' },
-  password: { title: 'Cambiar contraseña', description: 'Actualiza las credenciales de tu cuenta.' },
   sessions: { title: 'Dónde iniciaste sesión', description: 'Consulta la actividad de acceso de tu cuenta.' },
   activity: { title: 'Actividad de inicio de sesión', description: 'Revisa los dispositivos asociados a tu cuenta.' },
   'close-sessions': { title: 'Cerrar sesiones', description: 'Administra las sesiones activas de tu cuenta.' },
@@ -175,7 +174,7 @@ export const AccountPage = () => {
   const { user } = useAuth();
   const profileName = user?.name || 'Usuario';
   const profileEmail = user?.email || 'Correo no disponible';
-  const supportedAccountPages = ['personal', 'security', 'password', 'sessions', 'activity', 'close-sessions', 'language'];
+  const supportedAccountPages = ['personal', 'security', 'sessions', 'activity', 'close-sessions', 'language'];
   const currentPage = page;
 
   if (!supportedAccountPages.includes(currentPage)) {
@@ -204,26 +203,7 @@ export const AccountPage = () => {
           <p className="mt-1 text-sm text-[#64748b] dark:text-slate-400">La información de sesiones y verificaciones aún no está disponible en la web.</p>
         </section>
         <section className={panelClass}>
-          <PageLink icon="key" title="Cambiar contraseña" description="Actualiza las credenciales de acceso" to="/account/password" />
           <PageLink icon="devices" title="Dónde iniciaste sesión" description="Dispositivos y actividad de cuenta" to="/account/sessions" />
-        </section>
-      </div>
-    );
-  }
-
-  if (currentPage === 'password') {
-    return (
-      <div className={contentClass}>
-        <PageHeading page={currentPage} />
-        <section className={`${panelClass} max-w-2xl p-5 sm:p-6`}>
-          <label className="block text-sm font-medium text-[#334155] dark:text-slate-300">Contraseña actual</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <label className="mt-4 block text-sm font-medium text-[#334155] dark:text-slate-300">Nueva contraseña</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <label className="mt-4 block text-sm font-medium text-[#334155] dark:text-slate-300">Confirmar nueva contraseña</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <button type="button" disabled className="mt-5 h-11 rounded-lg bg-[#0d6efd] px-5 text-sm font-semibold text-white opacity-50">Actualizar contraseña</button>
-          <p className="mt-3 text-xs text-[#64748b] dark:text-slate-400">Este formulario es una vista previa; no guarda cambios.</p>
         </section>
       </div>
     );
