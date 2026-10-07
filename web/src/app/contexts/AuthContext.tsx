@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import * as authApi from '../../shared/api/auth.api';
+import { disconnectRealtimeSocket } from '../../shared/realtime/realtime-client';
 
 export type AuthUser = authApi.AuthUser;
 
@@ -30,25 +31,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
+     useEffect(() => {
     const initializeAuth = async () => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
 
-      if (!storedUser || !token) {
+      if (!token) {
         setInitialized(true);
         return;
       }
 
       try {
-        const parsedUser = JSON.parse(storedUser) as AuthUser;
+        const currentUser = await authApi.getCurrentUser();
+        const storedUser = localStorage.getItem('user');
 
-        // Verifica con el backend que el JWT siga siendo válido.
-        await authApi.getCurrentUser();
+        const parsedUser = storedUser
+          ? (JSON.parse(storedUser) as AuthUser)
+          : {
+              id: currentUser.userId,
+              email: '',
+              role: currentUser.role,
+            };
 
         setUser(parsedUser);
         setIsAuthenticated(true);
       } catch {
+        disconnectRealtimeSocket();
         localStorage.removeItem('user');
         localStorage.removeItem('token');
 
@@ -106,7 +113,8 @@ const resetPassword = async (
   });
 };
 
-  const logout = () => {
+   const logout = () => {
+    disconnectRealtimeSocket();
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
