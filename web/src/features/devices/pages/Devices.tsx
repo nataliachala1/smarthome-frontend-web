@@ -30,6 +30,7 @@ import {
 } from '../../../components/ui/Card';
 
 import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 interface DeviceStatusUpdatedEvent {
   id: string;
@@ -42,6 +43,7 @@ interface DeviceStatusUpdatedEvent {
 
 export const Devices = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId } =
     useParams<{
@@ -55,6 +57,8 @@ export const Devices = () => {
     useState<Home | null>(
       null,
     );
+
+  const isOwner = home?.createdBy === user?.id;
 
   const [
     devices,
@@ -318,7 +322,7 @@ export const Devices = () => {
     async (
       device: Device,
     ) => {
-      if (!homeId) {
+      if (!homeId || !isOwner) {
         return;
       }
 
@@ -427,18 +431,19 @@ export const Devices = () => {
             </p>
 
           </div>
-
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() =>
-              navigate(
-                `/homes/${homeId}/devices/add`,
-              )
-            }
-          >
-            + Agregar dispositivo
-          </Button>
+          {isOwner && (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() =>
+                navigate(
+                  `/homes/${homeId}/devices/add`,
+                    )
+              }
+            >
+              + Agregar dispositivo
+            </Button>
+          )}
 
         </header>
 
@@ -570,19 +575,20 @@ export const Devices = () => {
                 para comenzar a controlarlo
                 desde SmartHome.
               </p>
-
-              <Button
-                type="button"
-                variant="primary"
-                className="mt-5"
-                onClick={() =>
-                  navigate(
-                    `/homes/${homeId}/devices/add`,
-                  )
-                }
-              >
-                + Agregar dispositivo
-              </Button>
+              {isOwner && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="mt-5"
+                  onClick={() =>
+                    navigate(
+                      `/homes/${homeId}/devices/add`,
+                    )
+                  }
+                >
+                  + Agregar dispositivo
+                </Button>
+              )}
 
             </div>
           ) : (
@@ -653,7 +659,7 @@ export const Devices = () => {
                       </div>
 
                       <div className="mt-6 space-y-3">
-
+                        {isOwner && (
                         <Button
                           type="button"
                           variant="primary"
@@ -672,6 +678,7 @@ export const Devices = () => {
                             ? 'Apagar'
                             : 'Encender'}
                         </Button>
+                        )}
 
                         <Button
                           type="button"

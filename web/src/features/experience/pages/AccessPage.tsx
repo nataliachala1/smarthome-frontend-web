@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useAuth } from '../../../app/contexts/AuthContext';
 import {
   inviteMember,
   listHomes,
@@ -39,6 +40,7 @@ const HomeIcon = () => (
 );
 
 export const AccessPage = () => {
+  const { user } = useAuth();
   const [homes, setHomes] = useState<Home[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState('');
   const [members, setMembers] = useState<HomeMember[]>([]);
@@ -56,6 +58,8 @@ export const AccessPage = () => {
     () => homes.find((home) => home.id === selectedHomeId) ?? null,
     [homes, selectedHomeId],
   );
+
+  const isOwner = selectedHome?.createdBy === user?.id;
 
   const loadHomes = useCallback(async () => {
     setIsLoadingHomes(true);
@@ -115,7 +119,7 @@ export const AccessPage = () => {
   const handleInvite = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!selectedHomeId) {
+    if (!selectedHomeId || !isOwner) {
       setError('Selecciona un hogar antes de enviar una invitación.');
       return;
     }
@@ -138,6 +142,8 @@ export const AccessPage = () => {
   };
 
   const handleRoleChange = async (member: HomeMember, nextRole: 'MEMBER' | 'GUEST') => {
+    if (!selectedHomeId || !isOwner) return;
+
     setBusyMemberId(member.id);
     setError('');
     setSuccess('');
@@ -154,6 +160,8 @@ export const AccessPage = () => {
   };
 
   const handleRevoke = async (member: HomeMember) => {
+    if (!selectedHomeId || !isOwner) return;
+
     const confirmed = window.confirm('¿Quieres retirar este acceso al hogar?');
     if (!confirmed) return;
 
@@ -176,7 +184,7 @@ export const AccessPage = () => {
     (member) => member.status === 'ACTIVE' || member.status === 'PENDING',
   );
   const canManageMember = (member: HomeMember) =>
-    member.role !== 'OWNER' && (member.status === 'ACTIVE' || member.status === 'PENDING');
+    isOwner && member.role !== 'OWNER' && (member.status === 'ACTIVE' || member.status === 'PENDING');
 
   return (
     <div className="mx-auto w-full max-w-[1000px] text-[#0f172a] dark:text-slate-100">
@@ -256,6 +264,8 @@ export const AccessPage = () => {
                     Invita personas a usar {selectedHome?.name ?? 'este hogar'} y administra sus accesos.
                   </p>
                 </div>
+                {isOwner && (
+
                 <button
                   type="button"
                   onClick={() => {
@@ -268,6 +278,7 @@ export const AccessPage = () => {
                   <span aria-hidden="true" className="text-xl leading-none">+</span>
                   Invitar a una persona
                 </button>
+                )}
               </div>
               <div className="mb-4 mt-5">
                 <h3 className="text-base font-semibold text-[#0f172a] dark:text-white">Personas con acceso</h3>

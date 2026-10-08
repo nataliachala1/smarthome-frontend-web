@@ -80,6 +80,7 @@ export const Homes = () => {
   };
 
   const startEditing = (home: Home) => {
+    if (home.createdBy !== user?.id) return;
     setEditingHomeId(home.id);
     setEditingHomeName(home.name);
     setError('');
@@ -320,16 +321,17 @@ export const Homes = () => {
                         >
                           Entrar al hogar
                         </Button>
-
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="w-full rounded-[11px]"
-                          disabled={isSaving || deletingHomeId !== null}
-                          onClick={() => startEditing(home)}
-                        >
-                          Editar nombre
-                        </Button>
+                        {home.createdBy === user?.id && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="w-full rounded-[11px]"
+                            disabled={isSaving || deletingHomeId !== null}
+                            onClick={() => startEditing(home)}
+                          >
+                            Editar nombre
+                          </Button>
+                        )}
 
                         {home.createdBy === user?.id && (
                           <Button

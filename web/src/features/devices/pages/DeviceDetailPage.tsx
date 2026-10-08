@@ -9,6 +9,7 @@ import { getHome, type Home } from '../../../shared/api/homes.api';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent } from '../../../components/ui/Card';
 import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 interface DeviceStatusUpdatedEvent {
   id: string;
@@ -21,6 +22,7 @@ interface DeviceStatusUpdatedEvent {
 
 export const DeviceDetailPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId, deviceId } = useParams<{
     homeId: string;
@@ -32,6 +34,8 @@ export const DeviceDetailPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isControlling, setIsControlling] = useState(false);
+
+  const isOwner = home?.createdBy === user?.id;
   const [error, setError] = useState('');
 
   const loadDevice = useCallback(async () => {
@@ -115,7 +119,7 @@ export const DeviceDetailPage = () => {
   }, [homeId, deviceId]);
 
   const handleControl = async () => {
-    if (!homeId || !device) return;
+    if (!homeId || !device || !isOwner) return;
 
     setIsControlling(true);
     setError('');
@@ -312,7 +316,8 @@ export const DeviceDetailPage = () => {
 
         <section className="grid gap-4 sm:grid-cols-2">
 
-          <Button
+                    {isOwner && (
+<Button
             type="button"
             variant="primary"
             disabled={
@@ -327,8 +332,10 @@ export const DeviceDetailPage = () => {
                 ? 'Apagar dispositivo'
                 : 'Encender dispositivo'}
           </Button>
+          )}
 
-          <Button
+                    {isOwner && (
+            <Button
             type="button"
             variant="secondary"
             onClick={() =>
@@ -339,6 +346,7 @@ export const DeviceDetailPage = () => {
           >
             Editar dispositivo
           </Button>
+          )}
 
         </section>
 

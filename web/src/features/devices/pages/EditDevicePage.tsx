@@ -5,12 +5,18 @@ import {
   updateDevice,
   type Device,
 } from '../../../shared/api/devices.api';
+import {
+  getHome,
+  type Home,
+} from '../../../shared/api/homes.api';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Card, CardContent } from '../../../components/ui/Card';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const EditDevicePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId, deviceId } = useParams<{
     homeId: string;
@@ -18,6 +24,7 @@ export const EditDevicePage = () => {
   }>();
 
   const [device, setDevice] = useState<Device | null>(null);
+  const [home, setHome] = useState<Home | null>(null);
 
   const [name, setName] = useState('');
   const [transportType, setTransportType] =
@@ -29,6 +36,8 @@ export const EditDevicePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const isOwner = home?.createdBy === user?.id;
+
   useEffect(() => {
     const load = async () => {
       if (!homeId || !deviceId) {
@@ -38,8 +47,12 @@ export const EditDevicePage = () => {
       }
 
       try {
-        const deviceResponse = await getDevice(homeId, deviceId);
+        const [homeResponse, deviceResponse] = await Promise.all([
+          getHome(homeId),
+          getDevice(homeId, deviceId),
+        ]);
 
+        setHome(homeResponse);
         setDevice(deviceResponse);
         setName(deviceResponse.name);
 
@@ -68,7 +81,7 @@ export const EditDevicePage = () => {
   }, [homeId, deviceId]);
 
   const handleSubmit = async () => {
-    if (!homeId || !deviceId) return;
+    if (!homeId || !deviceId || !isOwner) return;
 
     const trimmedName = name.trim();
 
@@ -104,6 +117,15 @@ export const EditDevicePage = () => {
       <main className="p-6">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivo...
+        </div>
+      </main>
+    );
+  }
+  if (!isOwner) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          No tienes permisos para editar este dispositivo.
         </div>
       </main>
     );
