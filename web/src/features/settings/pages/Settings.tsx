@@ -53,7 +53,7 @@ const cardClassName =
 
 export const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { logout } = useAuth();
+  const { logoutAll } = useAuth();
   const { theme: currentTheme, setTheme } = useTheme();
   const [lang, setLang] = useState(i18n.language || 'es');
   const [activeTab, setActiveTab] = useState('general');
@@ -198,7 +198,7 @@ export const Settings = () => {
             </div>
             <button
               type="button"
-              onClick={logout}
+              onClick={logoutAll}
               className="shrink-0 rounded-lg bg-[#ed2424] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#d51c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
             >
               Cerrar sesión

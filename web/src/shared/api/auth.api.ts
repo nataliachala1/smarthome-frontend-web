@@ -102,3 +102,26 @@ export const resetPassword = (payload: ResetPasswordPayload) =>
   });
 
 export const getCurrentUser = () => apiClient<CurrentUser>('/auth/me');
+export interface RefreshSessionResponse {
+  accessToken: string;
+  tokenType: 'Bearer';
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
+export const refreshSession = () =>
+  apiClient<RefreshSessionResponse>('/auth/refresh', {
+    method: 'POST',
+  });
+
+export const logout = () =>
+  apiClient<LogoutResponse>('/auth/logout', {
+    method: 'POST',
+  });
+
+export const logoutAll = () =>
+  apiClient<LogoutResponse>('/auth/logout-all', {
+    method: 'POST',
+  });
