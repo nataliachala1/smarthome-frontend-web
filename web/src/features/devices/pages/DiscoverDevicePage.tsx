@@ -23,7 +23,11 @@ import {
 
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { getHome, type Home } from '../../../shared/api/homes.api';
+import {
+  getHome,
+  listMembers,
+  type HomeMember,
+} from '../../../shared/api/homes.api';
 import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const DiscoverDevicePage = () => {
@@ -37,26 +41,74 @@ export const DiscoverDevicePage = () => {
       homeId: string;
     }>();
 
-  const [home, setHome] = useState<Home | null>(null);
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
   const [isLoadingHome, setIsLoadingHome] = useState(true);
-  const isOwner = home?.createdBy === user?.id;
+
+  const isOwner =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
+
   useEffect(() => {
-    if (!homeId) {
-      setIsLoadingHome(false);
-      return;
-    }
+    let active = true;
+
+    setCurrentMembership(null);
+    setIsLoadingHome(true);
+    setError('');
 
     const loadHome = async () => {
+      if (!homeId || !user?.id) {
+        if (active) {
+          setError('No se pudo verificar el hogar o el usuario.');
+          setIsLoadingHome(false);
+        }
+        return;
+      }
+
       try {
-        const homeResponse = await getHome(homeId);
-        setHome(homeResponse);
+        await getHome(homeId);
+        const members = await listMembers(homeId);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE'
+        );
+
+        if (!membership) {
+          setError('No tienes una membresía activa en este hogar.');
+          setCurrentMembership(null);
+          return;
+        }
+
+        setCurrentMembership(membership);
+
+        if (membership.role !== 'OWNER') {
+          setError('Solo el propietario puede descubrir y registrar dispositivos.');
+        }
+      } catch {
+        if (active) {
+          setCurrentMembership(null);
+          setError('No fue posible verificar tus permisos. Inténtalo nuevamente.');
+        }
       } finally {
-        setIsLoadingHome(false);
+        if (active) {
+          setIsLoadingHome(false);
+        }
       }
     };
 
     void loadHome();
-  }, [homeId]);
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   const [
     devices,

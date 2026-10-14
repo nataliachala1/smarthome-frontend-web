@@ -14,7 +14,7 @@ import {
 } from '../../../components/ui/Card';
 
 import { Button } from '../../../components/ui/Button';
-import { getHome, type Home } from '../../../shared/api/homes.api';
+import { getHome, listMembers, type Home, type HomeMember } from '../../../shared/api/homes.api';
 import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const AddDevicePage = () => {
@@ -28,26 +28,62 @@ export const AddDevicePage = () => {
     }>();
 
   const [home, setHome] = useState<Home | null>(null);
+  const [currentMembership, setCurrentMembership] = useState<HomeMember | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isOwner = home?.createdBy === user?.id;
+
+  const isOwner =
+    home !== null &&
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
 
   useEffect(() => {
-    if (!homeId) {
-      setIsLoading(false);
-      return;
-    }
+    let active = true;
+
+    setIsLoading(true);
+    setHome(null);
+    setCurrentMembership(null);
 
     const loadHome = async () => {
+      if (!homeId || !user?.id) {
+        if (active) setIsLoading(false);
+        return;
+      }
+
       try {
-        const homeResponse = await getHome(homeId);
+        const [homeResponse, members] = await Promise.all([
+          getHome(homeId),
+          listMembers(homeId),
+        ]);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE'
+        ) ?? null;
+
         setHome(homeResponse);
+        setCurrentMembership(membership);
+      } catch {
+        if (active) {
+          setHome(null);
+          setCurrentMembership(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     void loadHome();
-  }, [homeId]);
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   if (!homeId) {
     return (

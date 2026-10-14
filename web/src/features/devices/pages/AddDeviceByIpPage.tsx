@@ -21,7 +21,11 @@ import {
 
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { getHome, type Home } from '../../../shared/api/homes.api';
+import {
+  getHome,
+  listMembers,
+  type HomeMember,
+} from '../../../shared/api/homes.api';
 import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const AddDeviceByIpPage = () => {
@@ -34,27 +38,69 @@ export const AddDeviceByIpPage = () => {
     useParams<{
       homeId: string;
     }>();
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
 
-  const [home, setHome] = useState<Home | null>(null);
   const [isLoadingHome, setIsLoadingHome] = useState(true);
-  const isOwner = home?.createdBy === user?.id;
+
+  const isOwner =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
   useEffect(() => {
-    if (!homeId) {
+    let active = true;
+
+    setIsLoadingHome(true);
+    setCurrentMembership(null);
+    setError('');
+
+    if (!homeId || !user?.id) {
       setIsLoadingHome(false);
-      return;
+      return () => {
+        active = false;
+      };
     }
 
     const loadHome = async () => {
       try {
-        const homeResponse = await getHome(homeId);
-        setHome(homeResponse);
+        await getHome(homeId);
+        const members = await listMembers(homeId);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE',
+        ) ?? null;
+
+        setCurrentMembership(membership);
+
+        if (!membership) {
+          setError('No se pudo verificar tu membresía activa.');
+        }
+      } catch (cause) {
+        if (!active) return;
+
+        setCurrentMembership(null);
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : 'No fue posible verificar los permisos del hogar.',
+        );
       } finally {
-        setIsLoadingHome(false);
+        if (active) setIsLoadingHome(false);
       }
     };
 
     void loadHome();
-  }, [homeId]);
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   const [
     ip,

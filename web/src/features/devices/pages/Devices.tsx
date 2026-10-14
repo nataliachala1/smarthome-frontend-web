@@ -18,7 +18,9 @@ import {
 
 import {
   getHome,
+  listMembers,
   type Home,
+  type HomeMember,
 } from '../../../shared/api/homes.api';
 
 import { Button } from '../../../components/ui/Button';
@@ -58,7 +60,21 @@ export const Devices = () => {
       null,
     );
 
-  const isOwner = home?.createdBy === user?.id;
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
+
+  const hasActiveMembership =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE';
+
+  const isOwner =
+    hasActiveMembership && currentMembership?.role === 'OWNER';
+
+  const canControlDevice =
+    hasActiveMembership &&
+    (currentMembership?.role === 'OWNER' ||
+      currentMembership?.role === 'MEMBER');
 
   const [
     devices,
@@ -90,6 +106,8 @@ export const Devices = () => {
   const loadDevicesPage =
     useCallback(
       async () => {
+        setCurrentMembership(null);
+
         if (!homeId) {
           setError(
             'No se encontró el hogar seleccionado.',
@@ -131,6 +149,29 @@ export const Devices = () => {
             devicesResponse,
           );
 
+          try {
+            const membersResponse = await listMembers(homeId);
+            const membership = membersResponse.find(
+              (member) =>
+                member.homeId === homeId &&
+                member.userId === user?.id &&
+                member.status === 'ACTIVE',
+            ) ?? null;
+
+            setCurrentMembership(membership);
+
+            if (!membership) {
+              setError(
+                'No se pudo verificar tu membresía activa. Los controles permanecerán deshabilitados.',
+              );
+            }
+          } catch {
+            setCurrentMembership(null);
+            setError(
+              'No fue posible verificar los permisos del hogar. Los dispositivos permanecerán en modo de solo lectura.',
+            );
+          }
+
           localStorage.setItem(
             'activeHomeId',
             homeId,
@@ -147,7 +188,7 @@ export const Devices = () => {
           );
         }
       },
-      [homeId],
+      [homeId, user?.id],
     );
 
   /*
@@ -322,7 +363,7 @@ export const Devices = () => {
     async (
       device: Device,
     ) => {
-      if (!homeId || !isOwner) {
+      if (!homeId || !canControlDevice) {
         return;
       }
 
@@ -659,7 +700,7 @@ export const Devices = () => {
                       </div>
 
                       <div className="mt-6 space-y-3">
-                        {isOwner && (
+                        {canControlDevice && (
                         <Button
                           type="button"
                           variant="primary"

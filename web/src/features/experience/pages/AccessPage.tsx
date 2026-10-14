@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../../app/contexts/AuthContext';
 import {
   inviteMember,
@@ -44,6 +44,7 @@ export const AccessPage = () => {
   const [homes, setHomes] = useState<Home[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState('');
   const [members, setMembers] = useState<HomeMember[]>([]);
+  const membersRequestId = useRef(0);
   const [isLoadingHomes, setIsLoadingHomes] = useState(true);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -59,7 +60,13 @@ export const AccessPage = () => {
     [homes, selectedHomeId],
   );
 
-  const isOwner = selectedHome?.createdBy === user?.id;
+  const currentMembership = members.find(
+    (member) =>
+      member.homeId === selectedHomeId &&
+      member.userId === user?.id &&
+      member.status === 'ACTIVE',
+  );
+  const isOwner = currentMembership?.role === 'OWNER';
 
   const loadHomes = useCallback(async () => {
     setIsLoadingHomes(true);
@@ -89,22 +96,40 @@ export const AccessPage = () => {
   }, []);
 
   const loadMembers = useCallback(async (homeId: string) => {
+    const requestId = ++membersRequestId.current;
+
+    setMembers([]);
+    setError('');
+
     if (!homeId) {
-      setMembers([]);
+      setIsLoadingMembers(false);
       return;
     }
 
     setIsLoadingMembers(true);
-    setError('');
 
     try {
-      setMembers(await listMembers(homeId));
+      const response = await listMembers(homeId);
+
+      if (requestId !== membersRequestId.current) return;
+      if (homeId !== selectedHomeId) return;
+
+      setMembers(response);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar los accesos del hogar.');
+      if (requestId !== membersRequestId.current) return;
+
+      setMembers([]);
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible verificar los accesos del hogar.',
+      );
     } finally {
-      setIsLoadingMembers(false);
+      if (requestId === membersRequestId.current) {
+        setIsLoadingMembers(false);
+      }
     }
-  }, []);
+  }, [selectedHomeId]);
 
   useEffect(() => {
     void loadHomes();

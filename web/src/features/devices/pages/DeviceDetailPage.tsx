@@ -5,7 +5,7 @@ import {
   getDevice,
   type Device,
 } from '../../../shared/api/devices.api';
-import { getHome, type Home } from '../../../shared/api/homes.api';
+import { getHome, listMembers, type Home, type HomeMember } from '../../../shared/api/homes.api';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent } from '../../../components/ui/Card';
 import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
@@ -35,7 +35,21 @@ export const DeviceDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isControlling, setIsControlling] = useState(false);
 
-  const isOwner = home?.createdBy === user?.id;
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
+
+  const hasActiveMembership =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE';
+
+  const isOwner =
+    hasActiveMembership && currentMembership?.role === 'OWNER';
+
+  const canControlDevice =
+    hasActiveMembership &&
+    (currentMembership?.role === 'OWNER' ||
+      currentMembership?.role === 'MEMBER');
   const [error, setError] = useState('');
 
   const loadDevice = useCallback(async () => {
@@ -72,6 +86,50 @@ export const DeviceDetailPage = () => {
   useEffect(() => {
     void loadDevice();
   }, [loadDevice]);
+  useEffect(() => {
+    let active = true;
+    setCurrentMembership(null);
+
+    if (!homeId || !user?.id) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const loadMembership = async () => {
+      try {
+        const members = await listMembers(homeId);
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user?.id &&
+            member.status === 'ACTIVE',
+        ) ?? null;
+
+        setCurrentMembership(membership);
+
+        if (!membership) {
+          setError(
+            'No se pudo verificar tu membresía activa. El control permanecerá deshabilitado.',
+          );
+        }
+      } catch {
+        if (!active) return;
+        setCurrentMembership(null);
+        setError(
+          'No fue posible verificar los permisos del hogar. El dispositivo permanecerá en modo de solo lectura.',
+        );
+      }
+    };
+
+    void loadMembership();
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   useEffect(() => {
     const socket = getRealtimeSocket();
@@ -119,7 +177,7 @@ export const DeviceDetailPage = () => {
   }, [homeId, deviceId]);
 
   const handleControl = async () => {
-    if (!homeId || !device || !isOwner) return;
+    if (!homeId || !device || !canControlDevice) return;
 
     setIsControlling(true);
     setError('');
@@ -316,7 +374,7 @@ export const DeviceDetailPage = () => {
 
         <section className="grid gap-4 sm:grid-cols-2">
 
-                    {isOwner && (
+                    {canControlDevice && (
 <Button
             type="button"
             variant="primary"
