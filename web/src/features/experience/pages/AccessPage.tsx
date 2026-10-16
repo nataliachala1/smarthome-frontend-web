@@ -157,7 +157,7 @@ export const AccessPage = () => {
       await inviteMember(selectedHomeId, { email: email.trim(), role });
       setEmail('');
       setIsInviteOpen(false);
-      setSuccess('La invitación se creó correctamente.');
+      setSuccess('La invitación se envió correctamente por correo.');
       await loadMembers(selectedHomeId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No fue posible enviar la invitación.');
@@ -425,26 +425,42 @@ export const AccessPage = () => {
                 />
               </div>
 
-              <div>
-                <label htmlFor="invite-role" className="mb-1.5 block text-sm font-medium text-[#334155] dark:text-slate-200">Tipo de acceso</label>
-                <select
-                  id="invite-role"
-                  value={role}
-                  onChange={(event) => {
-                    const selectedRole = event.target.value;
-                    if (selectedRole === 'MEMBER' || selectedRole === 'GUEST') {
-                      setRole(selectedRole);
-                    }
-                  }}
-                  className="h-12 w-full rounded-xl border border-[#cfd8e5] bg-white px-4 text-base text-[#0f172a] outline-none transition focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 dark:border-slate-700 dark:bg-[#111827] dark:text-white"
+              <fieldset>
+                <legend className="mb-1.5 block text-sm font-medium text-[#334155] dark:text-slate-200">
+                  Tipo de acceso
+                </legend>
+                <div
+                  role="group"
+                  aria-label="Rol de la persona invitada"
+                  className="grid grid-cols-2 gap-3"
                 >
-                  <option value="MEMBER">Miembro — acceso de miembro</option>
-                  <option value="GUEST">Invitado — acceso de invitado</option>
-                </select>
+                  {([
+                    ['MEMBER', 'Miembro'],
+                    ['GUEST', 'Invitado'],
+                  ] as const).map(([value, label]) => {
+                    const isSelected = role === value;
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => setRole(value)}
+                        className={`min-h-12 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 ${
+                          isSelected
+                            ? 'border-[#1677f2] bg-[#eaf4ff] text-[#1455a0] dark:bg-[#172b49] dark:text-[#bedaff]'
+                            : 'border-[#cfd8e5] bg-white text-[#475569] hover:bg-[#f8fafc] dark:border-slate-700 dark:bg-[#111827] dark:text-slate-200'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <p className="mt-1.5 text-xs leading-5 text-[#64748b] dark:text-slate-400">
-                  La aplicación administra el acceso mediante estos roles; no configura permisos separados por dispositivo.
+                  La persona invitada será Miembro o Invitado. Propietario es el rol de quien administra y envía la invitación.
                 </p>
-              </div>
+              </fieldset>
 
               {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
 

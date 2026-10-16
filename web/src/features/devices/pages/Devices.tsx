@@ -116,7 +116,7 @@ export const Devices = () => {
 
         if (!homeId) {
           setError(
-            'No se encontrÃƒÂ³ el hogar seleccionado.',
+            'No se encontró el hogar seleccionado.',
           );
 
           setIsLoading(
@@ -168,13 +168,13 @@ export const Devices = () => {
 
             if (!membership) {
               setError(
-                'No se pudo verificar tu membresÃƒÂ­a activa. Los controles permanecerÃƒÂ¡n deshabilitados.',
+                'No se pudo verificar tu membresía activa. Los controles permanecerán deshabilitados.',
               );
             }
           } catch {
             setCurrentMembership(null);
             setError(
-              'No fue posible verificar los permisos del hogar. Los dispositivos permanecerÃƒÂ¡n en modo de solo lectura.',
+              'No fue posible verificar los permisos del hogar. Los dispositivos permanecerán en modo de solo lectura.',
             );
           }
 
@@ -340,7 +340,7 @@ export const Devices = () => {
     ]);
 
   /*
-   * EstadÃƒÂ­sticas
+   * Estadísticas
    */
   const onlineCount =
     devices.filter(
@@ -372,7 +372,7 @@ export const Devices = () => {
 
     if (device.connectivityStatus !== 'ONLINE') {
       setError(
-        'El dispositivo estÃƒÂ¡ desconectado y no puede recibir ÃƒÂ³rdenes.',
+        'El dispositivo está desconectado y no puede recibir órdenes.',
       );
       return;
     }
@@ -395,7 +395,7 @@ export const Devices = () => {
       const response = await controlDevice(homeId, device.id, command);
 
       if (response.status !== 'COMMAND_PUBLISHED') {
-        setError('No se pudo confirmar la publicaciÃƒÂ³n de la orden.');
+        setError('No se pudo confirmar la publicación de la orden.');
       }
     } catch (cause) {
       setError(
@@ -485,7 +485,7 @@ export const Devices = () => {
               }
               className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
             >
-              Ã¢â€ Â Volver al hogar
+              Volver al hogar
             </button>
 
             <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
@@ -716,9 +716,9 @@ export const Devices = () => {
                           Potencia actual:{' '}
 
                           <span className="font-semibold text-[#1b254b] dark:text-white">
-                            {device.currentPowerW ??
-                              0}{' '}
-                            W
+                            {device.currentPowerW === null
+                              ? 'Sin datos'
+                              : `${device.currentPowerW} W`}
                           </span>
                         </p>
 
