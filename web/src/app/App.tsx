@@ -45,6 +45,7 @@ import { AddDeviceByIpPage } from '../features/devices/pages/AddDeviceByIpPage';
 
 // OTHERS
 import { Notifications } from '../features/notifications/pages/Notifications';
+import { InvitationsPage } from '../features/notifications/pages/InvitationsPage';
 import { Consumption } from '../features/consumption/pages/Consumption';
 import {
   AboutPage,
@@ -314,6 +315,12 @@ function AppRoutes() {
           path="notifications"
           element={
             <Notifications />
+          }
+        />
+        <Route
+          path="notifications/invitations"
+          element={
+            <InvitationsPage />
           }
         />
 

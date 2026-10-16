@@ -23,8 +23,16 @@ import {
 
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import {
+  getHome,
+  listMembers,
+  type HomeMember,
+} from '../../../shared/api/homes.api';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const DiscoverDevicePage = () => {
+  const { user } = useAuth();
+
   const navigate =
     useNavigate();
 
@@ -32,6 +40,75 @@ export const DiscoverDevicePage = () => {
     useParams<{
       homeId: string;
     }>();
+
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
+  const [isLoadingHome, setIsLoadingHome] = useState(true);
+
+  const isOwner =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
+
+  useEffect(() => {
+    let active = true;
+
+    setCurrentMembership(null);
+    setIsLoadingHome(true);
+    setError('');
+
+    const loadHome = async () => {
+      if (!homeId || !user?.id) {
+        if (active) {
+          setError('No se pudo verificar el hogar o el usuario.');
+          setIsLoadingHome(false);
+        }
+        return;
+      }
+
+      try {
+        await getHome(homeId);
+        const members = await listMembers(homeId);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE'
+        );
+
+        if (!membership) {
+          setError('No tienes una membresía activa en este hogar.');
+          setCurrentMembership(null);
+          return;
+        }
+
+        setCurrentMembership(membership);
+
+        if (membership.role !== 'OWNER') {
+          setError('Solo el propietario puede descubrir y registrar dispositivos.');
+        }
+      } catch {
+        if (active) {
+          setCurrentMembership(null);
+          setError('No fue posible verificar tus permisos. Inténtalo nuevamente.');
+        }
+      } finally {
+        if (active) {
+          setIsLoadingHome(false);
+        }
+      }
+    };
+
+    void loadHome();
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   const [
     devices,
@@ -81,7 +158,7 @@ export const DiscoverDevicePage = () => {
 
   const handleDiscover =
     async () => {
-      if (!homeId) {
+      if (!homeId || !isOwner) {
         return;
       }
 
@@ -107,17 +184,18 @@ export const DiscoverDevicePage = () => {
         setIsSearching(false);
       }
     };
-
   useEffect(() => {
-    void handleDiscover();
-  }, [homeId]);
+    if (isOwner) {
+      void handleDiscover();
+    }
+  }, [homeId, isOwner]);
 
   const handleSelect =
     async (
       device:
         DiscoveredShellyDevice,
     ) => {
-      if (!homeId) {
+      if (!homeId || !isOwner) {
         return;
       }
 
@@ -147,10 +225,7 @@ export const DiscoverDevicePage = () => {
 
   const handleProvision =
     async () => {
-      if (
-        !homeId ||
-        !selectedDevice
-      ) {
+      if (!homeId || !isOwner || !selectedDevice) {
         return;
       }
 
@@ -203,6 +278,25 @@ export const DiscoverDevicePage = () => {
     );
   }
 
+  if (isLoadingHome) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
+          Verificando permisos...
+        </div>
+      </main>
+    );
+  }
+
+  if (!isOwner) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          No tienes permisos para agregar dispositivos a este hogar.
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
       <div className="mx-auto max-w-4xl space-y-6">

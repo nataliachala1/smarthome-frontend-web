@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   createHome,
   deleteHome,
   listHomes,
+  listMembers,
   updateHome,
   type Home,
 } from '../../../shared/api/homes.api';
@@ -17,6 +18,8 @@ export const Homes = () => {
   const { user } = useAuth();
 
   const [homes, setHomes] = useState<Home[]>([]);
+  const [ownerHomeIds, setOwnerHomeIds] = useState<Set<string>>(new Set());
+  const homesRequestId = useRef(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -29,26 +32,90 @@ export const Homes = () => {
   const [deletingHomeId, setDeletingHomeId] = useState<string | null>(null);
 
   const loadHomes = useCallback(async () => {
+    const requestId = ++homesRequestId.current;
+
     setIsLoading(true);
     setError('');
+    setOwnerHomeIds(new Set());
 
     try {
       const response = await listHomes();
+
+      if (requestId !== homesRequestId.current) return;
+
       setHomes(response);
+
+      const membershipChecks = await Promise.all(
+        response.map(async (home) => {
+          if (!user?.id) {
+            return {
+              homeId: home.id,
+              isOwner: false,
+              verificationFailed: false,
+            };
+          }
+
+          try {
+            const members = await listMembers(home.id);
+            const membership = members.find(
+              (member) =>
+                member.homeId === home.id &&
+                member.userId === user.id &&
+                member.status === 'ACTIVE',
+            );
+
+            return {
+              homeId: home.id,
+              isOwner: membership?.role === 'OWNER',
+              verificationFailed: false,
+            };
+          } catch {
+            return {
+              homeId: home.id,
+              isOwner: false,
+              verificationFailed: true,
+            };
+          }
+        }),
+      );
+
+      if (requestId !== homesRequestId.current) return;
+
+      setOwnerHomeIds(
+        new Set(
+          membershipChecks
+            .filter((result) => result.isOwner)
+            .map((result) => result.homeId),
+        ),
+      );
+
+      if (membershipChecks.some((result) => result.verificationFailed)) {
+        setError(
+          'No fue posible verificar los permisos de uno o más hogares. Las acciones administrativas permanecerán ocultas.',
+        );
+      }
     } catch (cause) {
+      if (requestId !== homesRequestId.current) return;
+
+      setHomes([]);
+      setOwnerHomeIds(new Set());
       setError(
         cause instanceof Error
           ? cause.message
           : 'No fue posible cargar los hogares.',
       );
     } finally {
-      setIsLoading(false);
+      if (requestId === homesRequestId.current) {
+        setIsLoading(false);
+      }
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     void loadHomes();
   }, [loadHomes]);
+  const isHomeOwner = (homeId: string) =>
+    ownerHomeIds.has(homeId);
 
   const handleCreateHome = async () => {
     const name = newHomeName.trim();
@@ -80,6 +147,7 @@ export const Homes = () => {
   };
 
   const startEditing = (home: Home) => {
+    if (!isHomeOwner(home.id)) return;
     setEditingHomeId(home.id);
     setEditingHomeName(home.name);
     setError('');
@@ -91,6 +159,11 @@ export const Homes = () => {
   };
 
   const handleUpdateHome = async (homeId: string) => {
+    if (!isHomeOwner(homeId)) {
+      setError('Solo el propietario activo puede modificar este hogar.');
+      return;
+    }
+
     const name = editingHomeName.trim();
 
     if (!name) {
@@ -119,6 +192,11 @@ export const Homes = () => {
   };
 
   const handleDeleteHome = async (home: Home) => {
+    if (!isHomeOwner(home.id)) {
+      setError('Solo el propietario activo puede eliminar este hogar.');
+      return;
+    }
+
     const confirmed = window.confirm(
       `¿Eliminar el hogar "${home.name}"? Esta acción no se puede deshacer. Solo se pueden eliminar hogares sin dispositivos.`,
     );
@@ -320,18 +398,19 @@ export const Homes = () => {
                         >
                           Entrar al hogar
                         </Button>
+                        {isHomeOwner(home.id) && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="w-full rounded-[11px]"
+                            disabled={isSaving || deletingHomeId !== null}
+                            onClick={() => startEditing(home)}
+                          >
+                            Editar nombre
+                          </Button>
+                        )}
 
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="w-full rounded-[11px]"
-                          disabled={isSaving || deletingHomeId !== null}
-                          onClick={() => startEditing(home)}
-                        >
-                          Editar nombre
-                        </Button>
-
-                        {home.createdBy === user?.id && (
+                        {isHomeOwner(home.id) && (
                           <Button
                             type="button"
                             variant="secondary"

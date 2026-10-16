@@ -97,16 +97,10 @@ export const provisionShellyDevice = (
   homeId: string,
   payload: ProvisionShellyPayload,
 ) =>
-  apiClient<
-    ProvisionShellyResponse
-  >(
-    `/homes/${encodeURIComponent(
-      homeId,
-    )}/shelly/provision`,
+  apiClient<ProvisionShellyResponse>(
+    `/homes/${encodeURIComponent(homeId)}/shelly/provision`,
     {
       method: 'POST',
-
-      body:
-        payload,
+      body: payload,
     },
   );

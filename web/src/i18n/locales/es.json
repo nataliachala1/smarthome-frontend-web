@@ -86,6 +86,9 @@
   },
   "notifications": {
     "title": "Notificaciones",
+    "sectionNavigation": "Sección de notificaciones",
+    "section": "Notificaciones",
+    "invitations": "Invitaciones",
     "markAsRead": "Marcar como Leída",
     "deleteAll": "Eliminar Todas",
     "highConsumption": "Consumo Alto",

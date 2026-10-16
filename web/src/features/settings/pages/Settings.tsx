@@ -53,12 +53,9 @@ const cardClassName =
 
 export const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { logout } = useAuth();
+  const { logoutAll } = useAuth();
   const { theme: currentTheme, setTheme } = useTheme();
   const [lang, setLang] = useState(i18n.language || 'es');
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [emailEnabled, setEmailEnabled] = useState(true);
-  const [alertThreshold, setAlertThreshold] = useState(25);
   const [activeTab, setActiveTab] = useState('general');
 
   const handleLangChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -73,11 +70,6 @@ export const Settings = () => {
       id: 'general',
       label: 'General',
       icon: <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />,
-    },
-    {
-      id: 'notifications',
-      label: 'Notificaciones',
-      icon: <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />,
     },
     {
       id: 'security',
@@ -188,72 +180,6 @@ export const Settings = () => {
           </div>
         </section>
 
-        <section id="settings-notifications" role="tabpanel" aria-labelledby="notifications" hidden={activeTab !== 'notifications'} className={cardClassName}>
-          <SectionHeading
-            title="Notificaciones"
-            description="Decide cómo y cuándo recibir alertas."
-            icon={<Icon><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" /></Icon>}
-          />
-
-          <div className="rounded-lg border border-[#e5edf6] px-2.5 dark:border-slate-700">
-            <div className="flex min-h-[51px] items-center gap-3 border-b border-[#edf1f7] dark:border-slate-700">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200">
-                <Icon className="h-[17px] w-[17px]"><rect x="6" y="2.5" width="12" height="19" rx="2" /><path d="M10 18.5h4" /></Icon>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Notificaciones Push</p>
-                <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe alertas en tiempo real en tus dispositivos.</p>
-              </div>
-              <label className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center">
-                <input type="checkbox" checked={pushEnabled} onChange={() => setPushEnabled((enabled) => !enabled)} className="peer sr-only" aria-label="Notificaciones Push" />
-                <span className="absolute inset-0 rounded-full bg-[#cbd5e3] transition-colors peer-checked:bg-[#0877f9] peer-focus-visible:ring-2 peer-focus-visible:ring-[#0877f9]/30" />
-                <span className="absolute left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
-              </label>
-            </div>
-
-            <div className="flex min-h-[51px] items-center gap-3 border-b border-[#edf1f7] dark:border-slate-700">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200">
-                <Icon className="h-[17px] w-[17px]"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></Icon>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Notificaciones por Email</p>
-                <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe un resumen diario por email.</p>
-              </div>
-              <label className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center">
-                <input type="checkbox" checked={emailEnabled} onChange={() => setEmailEnabled((enabled) => !enabled)} className="peer sr-only" aria-label="Notificaciones por Email" />
-                <span className="absolute inset-0 rounded-full bg-[#cbd5e3] transition-colors peer-checked:bg-[#0877f9] peer-focus-visible:ring-2 peer-focus-visible:ring-[#0877f9]/30" />
-                <span className="absolute left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
-              </label>
-            </div>
-
-            <div className="py-2.5">
-              <div className="mb-2 flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#0877f9] dark:bg-slate-800">
-                  <Icon className="h-[17px] w-[17px]"><path d="M4 19v-5m5 5V9m5 10V5m5 14v-8" /></Icon>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-[#0a1740] dark:text-slate-100">Umbral de alerta de consumo</p>
-                  <p className="mt-0.5 text-[11px] leading-4 text-[#7385a5] dark:text-slate-400">Recibe una alerta cuando tu consumo supere el valor establecido.</p>
-                </div>
-                <span className="shrink-0 rounded-lg bg-[#f0f4fa] px-2.5 py-1.5 text-[11px] font-bold text-[#18264a] dark:bg-slate-700 dark:text-slate-100">{alertThreshold} kWh</span>
-              </div>
-              <input
-                type="range"
-                min="5"
-                max="100"
-                value={alertThreshold}
-                onChange={(event) => setAlertThreshold(Number(event.target.value))}
-                aria-label="Umbral de alerta de consumo"
-                className="h-1.5 w-full cursor-pointer accent-[#0877f9]"
-              />
-              <div className="mt-1 flex justify-between text-[10px] text-[#8292ae]">
-                <span>5 kWh</span>
-                <span>100 kWh</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section id="settings-security" role="tabpanel" aria-labelledby="security" hidden={activeTab !== 'security'} className={cardClassName}>
           <SectionHeading
             title="Seguridad"
@@ -261,22 +187,6 @@ export const Settings = () => {
             icon={<Icon><path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" /><path d="m9 12 2 2 4-4" /></Icon>}
           />
           <div className="space-y-2">
-            <Link to="/account/password" className="flex min-h-[46px] w-full items-center gap-3 rounded-lg border border-[#e5edf6] px-3 text-left transition hover:border-[#b9d2f6] dark:border-slate-700 dark:hover:border-slate-500">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200"><Icon className="h-[17px] w-[17px]"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3" /></Icon></span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold text-[#0a1740] dark:text-slate-100">Cambiar contraseña</span>
-                <span className="mt-0.5 block text-[11px] text-[#7385a5] dark:text-slate-400">Actualiza tu contraseña de forma segura.</span>
-              </span>
-              <Icon className="h-4 w-4 shrink-0 text-[#50658c]"><path d="m9 18 6-6-6-6" /></Icon>
-            </Link>
-            <Link to="/account/security" className="flex min-h-[46px] w-full items-center gap-3 rounded-lg border border-[#e5edf6] px-3 text-left transition hover:border-[#b9d2f6] dark:border-slate-700 dark:hover:border-slate-500">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f4f7fb] text-[#17264d] dark:bg-slate-800 dark:text-slate-200"><Icon className="h-[17px] w-[17px]"><path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" /><path d="m9 12 2 2 4-4" /></Icon></span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold text-[#0a1740] dark:text-slate-100">Autenticación de dos factores</span>
-                <span className="mt-0.5 block text-[11px] text-[#7385a5] dark:text-slate-400">Aumenta la seguridad de tu cuenta.</span>
-              </span>
-              <Icon className="h-4 w-4 shrink-0 text-[#50658c]"><path d="m9 18 6-6-6-6" /></Icon>
-            </Link>
           </div>
           <div className="mt-4 flex min-h-[54px] items-center justify-between gap-4 rounded-xl border border-[#ffe0e0] bg-[#fff7f7] px-4 py-2.5 dark:border-red-900/60 dark:bg-red-950/20">
             <div className="flex min-w-0 items-center gap-3">
@@ -288,7 +198,7 @@ export const Settings = () => {
             </div>
             <button
               type="button"
-              onClick={logout}
+              onClick={logoutAll}
               className="shrink-0 rounded-lg bg-[#ed2424] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#d51c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
             >
               Cerrar sesión

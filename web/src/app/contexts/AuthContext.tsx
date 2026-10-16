@@ -21,7 +21,8 @@ interface AuthContextValue {
     password: string,
     passwordConfirmation: string,
   ) => Promise<authApi.ResetPasswordResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -31,20 +32,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-     useEffect(() => {
+  const clearLocalSession = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        setInitialized(true);
-        return;
-      }
-
       try {
+        let token = localStorage.getItem('token');
+
+        if (!token) {
+          const refreshedSession = await authApi.refreshSession();
+
+          if (!refreshedSession.accessToken) {
+            throw new Error('No fue posible renovar la sesión.');
+          }
+
+          token = refreshedSession.accessToken;
+          localStorage.setItem('token', token);
+        }
+
         const currentUser = await authApi.getCurrentUser();
         const storedUser = localStorage.getItem('user');
 
-        const parsedUser = storedUser
+        const parsedUser: AuthUser = storedUser
           ? (JSON.parse(storedUser) as AuthUser)
           : {
               id: currentUser.userId,
@@ -56,11 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
       } catch {
         disconnectRealtimeSocket();
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-
-        setUser(null);
-        setIsAuthenticated(false);
+        clearLocalSession();
       } finally {
         setInitialized(true);
       }
@@ -71,8 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const saveSession = (response: authApi.AuthResponse) => {
     if (!response.accessToken || !response.user) {
-      throw new Error('La respuesta de autenticacion no tiene el formato esperado.');
+      throw new Error(
+        'La respuesta de autenticación no tiene el formato esperado.',
+      );
     }
+
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('token', response.accessToken);
     setUser(response.user);
@@ -83,57 +96,71 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     saveSession(await authApi.login({ email, password }));
   };
 
-  const register = async (
-  name: string,
-  email: string,
-  password: string,
-  passwordConfirmation: string,
-  ) => {
-  return authApi.register({
-    name,
-    email,
-    password,
-    passwordConfirmation,
-  });
-};
+  const register = (
+    name: string,
+    email: string,
+    password: string,
+    passwordConfirmation: string,
+  ) =>
+    authApi.register({
+      name,
+      email,
+      password,
+      passwordConfirmation,
+    });
 
-const forgotPassword = async (email: string) => {
-  return authApi.forgotPassword({ email });
-};
+  const forgotPassword = (email: string) =>
+    authApi.forgotPassword({ email });
 
-const resetPassword = async (
-  token: string,
-  password: string,
-  passwordConfirmation: string,
-) => {
-  return authApi.resetPassword({
-    token,
-    password,
-    passwordConfirmation,
-  });
-};
+  const resetPassword = (
+    token: string,
+    password: string,
+    passwordConfirmation: string,
+  ) =>
+    authApi.resetPassword({
+      token,
+      password,
+      passwordConfirmation,
+    });
 
-   const logout = () => {
+  const logout = async () => {
     disconnectRealtimeSocket();
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
+
+    try {
+      await authApi.logout();
+    } catch {
+      // Si falla la petición al servidor, se limpia igualmente la sesión local.
+    } finally {
+      clearLocalSession();
+    }
+  };
+
+  const logoutAll = async () => {
+    disconnectRealtimeSocket();
+
+    try {
+      await authApi.logoutAll();
+    } catch {
+      // Si falla la petición, se cierra la sesión local igualmente.
+    } finally {
+      clearLocalSession();
+    }
   };
 
   return (
     <AuthContext.Provider
-  value={{
-    user,
-    isAuthenticated,
-    initialized,
-    login,
-    register,
-    forgotPassword,
-    resetPassword,
-    logout,
-  }}
->
+      value={{
+        user,
+        isAuthenticated,
+        initialized,
+        login,
+        register,
+        forgotPassword,
+        resetPassword,
+        logout,
+        logoutAll,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -141,6 +168,10 @@ const resetPassword = async (
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
+
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
   return context;
 };

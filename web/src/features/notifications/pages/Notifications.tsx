@@ -10,6 +10,7 @@ import {
   type Notification,
   type NotificationStatus,
 } from '../../../shared/api/notifications.api';
+import { NotificationsSectionNav } from '../components/NotificationsSectionNav';
 
 import {
   Card,
@@ -266,6 +267,8 @@ export const Notifications = () => {
           )}
 
         </header>
+
+        <NotificationsSectionNav />
 
         {/* FILTROS */}
 

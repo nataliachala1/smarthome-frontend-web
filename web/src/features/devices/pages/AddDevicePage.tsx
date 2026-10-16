@@ -1,4 +1,9 @@
 import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
@@ -9,15 +14,76 @@ import {
 } from '../../../components/ui/Card';
 
 import { Button } from '../../../components/ui/Button';
+import { getHome, listMembers, type Home, type HomeMember } from '../../../shared/api/homes.api';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const AddDevicePage = () => {
   const navigate =
     useNavigate();
+  const { user } = useAuth();
 
   const { homeId } =
     useParams<{
       homeId: string;
     }>();
+
+  const [home, setHome] = useState<Home | null>(null);
+  const [currentMembership, setCurrentMembership] = useState<HomeMember | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isOwner =
+    home !== null &&
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
+
+  useEffect(() => {
+    let active = true;
+
+    setIsLoading(true);
+    setHome(null);
+    setCurrentMembership(null);
+
+    const loadHome = async () => {
+      if (!homeId || !user?.id) {
+        if (active) setIsLoading(false);
+        return;
+      }
+
+      try {
+        const [homeResponse, members] = await Promise.all([
+          getHome(homeId),
+          listMembers(homeId),
+        ]);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE'
+        ) ?? null;
+
+        setHome(homeResponse);
+        setCurrentMembership(membership);
+      } catch {
+        if (active) {
+          setHome(null);
+          setCurrentMembership(null);
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void loadHome();
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, user?.id]);
 
   if (!homeId) {
     return (
@@ -29,6 +95,25 @@ export const AddDevicePage = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
+          Verificando permisos...
+        </div>
+      </main>
+    );
+  }
+
+  if (!isOwner) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          No tienes permisos para agregar dispositivos a este hogar.
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
       <div className="mx-auto max-w-4xl space-y-6">

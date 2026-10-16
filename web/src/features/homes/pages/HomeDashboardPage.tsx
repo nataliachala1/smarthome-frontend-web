@@ -221,7 +221,9 @@ export const HomeDashboardPage = () => {
                   <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                     Potencia actual:{' '}
                     <span className="font-semibold text-[#1b254b] dark:text-white">
-                      {device.currentPowerW ?? 0} W
+                      {device.currentPowerW === null
+                        ? 'Sin datos'
+                        : `${device.currentPowerW} W`}
                     </span>
                   </p>
 

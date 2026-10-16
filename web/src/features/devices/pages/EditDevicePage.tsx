@@ -5,12 +5,19 @@ import {
   updateDevice,
   type Device,
 } from '../../../shared/api/devices.api';
+import {
+  getHome,
+  listMembers,
+  type HomeMember,
+} from '../../../shared/api/homes.api';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Card, CardContent } from '../../../components/ui/Card';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 export const EditDevicePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId, deviceId } = useParams<{
     homeId: string;
@@ -18,6 +25,7 @@ export const EditDevicePage = () => {
   }>();
 
   const [device, setDevice] = useState<Device | null>(null);
+  const [currentMembership, setCurrentMembership] = useState<HomeMember | null>(null);
 
   const [name, setName] = useState('');
   const [transportType, setTransportType] =
@@ -29,16 +37,57 @@ export const EditDevicePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const isOwner =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE' &&
+    currentMembership?.role === 'OWNER';
+
   useEffect(() => {
+    let active = true;
+
+    setIsLoading(true);
+    setCurrentMembership(null);
+    setDevice(null);
+    setError('');
+
     const load = async () => {
-      if (!homeId || !deviceId) {
-        setError('No se encontró el dispositivo.');
-        setIsLoading(false);
+      if (!homeId || !deviceId || !user?.id) {
+        if (active) {
+          setError('No se pudo verificar el hogar, el dispositivo o el usuario.');
+          setIsLoading(false);
+        }
         return;
       }
 
       try {
-        const deviceResponse = await getDevice(homeId, deviceId);
+        const [, deviceResponse, members] = await Promise.all([
+          getHome(homeId),
+          getDevice(homeId, deviceId),
+          listMembers(homeId),
+        ]);
+
+        if (!active) return;
+
+        const membership = members.find(
+          (member) =>
+            member.homeId === homeId &&
+            member.userId === user.id &&
+            member.status === 'ACTIVE'
+        );
+
+        if (!membership) {
+          setCurrentMembership(null);
+          setError('No tienes una membresía activa en este hogar.');
+          return;
+        }
+
+        setCurrentMembership(membership);
+
+        if (membership.role !== 'OWNER') {
+          setError('Solo el propietario puede editar dispositivos.');
+          return;
+        }
 
         setDevice(deviceResponse);
         setName(deviceResponse.name);
@@ -54,21 +103,30 @@ export const EditDevicePage = () => {
           setMessagingProtocol('MQTT');
         }
       } catch (cause) {
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : 'No fue posible cargar el dispositivo.',
-        );
+        if (active) {
+          setCurrentMembership(null);
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : 'No fue posible verificar los permisos o cargar el dispositivo.'
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+        }
       }
     };
 
     void load();
-  }, [homeId, deviceId]);
+
+    return () => {
+      active = false;
+    };
+  }, [homeId, deviceId, user?.id]);
 
   const handleSubmit = async () => {
-    if (!homeId || !deviceId) return;
+    if (!homeId || !deviceId || !isOwner) return;
 
     const trimmedName = name.trim();
 
@@ -104,6 +162,15 @@ export const EditDevicePage = () => {
       <main className="p-6">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivo...
+        </div>
+      </main>
+    );
+  }
+  if (!isOwner) {
+    return (
+      <main className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          No tienes permisos para editar este dispositivo.
         </div>
       </main>
     );
