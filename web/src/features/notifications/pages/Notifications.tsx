@@ -334,6 +334,20 @@ export const Notifications = () => {
           <div className="flex min-h-[380px] flex-1 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-8 text-center text-sm text-[#64748b] dark:border-slate-700 dark:bg-[#151824] dark:text-slate-400">
             Cargando notificaciones...
           </div>
+        ) : error && notifications.length === 0 ? (
+          <section className="flex min-h-[380px] flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:px-10">
+            <h2 className="text-xl font-bold text-[#0f172a] dark:text-white">
+              No fue posible cargar las notificaciones
+            </h2>
+            <button
+              type="button"
+              disabled={isUpdating}
+              onClick={() => void loadNotifications()}
+              className="mt-5 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Reintentar
+            </button>
+          </section>
         ) : notifications.length === 0 ? (
           <section className="flex min-h-[420px] flex-1 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:min-h-[450px] sm:px-10">
             <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#eff6ff] text-[#0d6efd] dark:bg-[#172b49] dark:text-[#75adff]">
@@ -430,13 +444,13 @@ export const Notifications = () => {
 
                             {notification.homeId && (
                               <span>
-                                Hogar asociado
+                                Hogar: {notification.homeName ?? 'asociado'}
                               </span>
                             )}
 
                             {notification.deviceId && (
                               <span>
-                                Dispositivo asociado
+                                Dispositivo: {notification.deviceName ?? 'asociado'}
                               </span>
                             )}
 

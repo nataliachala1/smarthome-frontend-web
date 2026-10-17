@@ -4,13 +4,13 @@ export interface HomeConsumptionSummary {
   homeId: string;
   from: string | null;
   to: string | null;
-  readingsCount: number;
-  devicesWithReadings: number;
   totalEnergyDeltaKwh: number;
-  averagePowerW: number | null;
-  maxPowerW: number | null;
-  minPowerW: number | null;
-  latestReadAt: string | null;
+  readingsCount?: number;
+  devicesWithReadings?: number;
+  averagePowerW?: number | null;
+  maxPowerW?: number | null;
+  minPowerW?: number | null;
+  latestReadAt?: string | null;
 }
 
 export interface HomeDailyConsumption {
@@ -27,7 +27,7 @@ export interface ConsumptionReading {
   id: string;
   homeId: string;
   deviceId: string;
-  deviceName: string;
+  deviceName: string | null;
   manufacturerDeviceId: string | null;
   powerW: number;
   energyDeltaKwh: number;

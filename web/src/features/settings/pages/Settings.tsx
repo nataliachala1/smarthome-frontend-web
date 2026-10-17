@@ -1,3 +1,4 @@
+import appPackage from '../../../../package.json';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -213,16 +214,7 @@ export const Settings = () => {
             icon={<Icon><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></Icon>}
           />
           <div className="space-y-0.5 rounded-lg bg-[#f7f9fc] px-3 py-1 dark:bg-slate-800/60">
-            <div className="flex min-h-[34px] items-center gap-3 text-xs">
-              <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M14 3v5h5" /></Icon>
-              <span className="flex-1">Versión</span>
-              <strong className="font-bold text-[#0a1740] dark:text-slate-100">1.0.0</strong>
-            </div>
-            <div className="flex min-h-[34px] items-center gap-3 text-xs">
-              <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></Icon>
-              <span className="flex-1">Última actualización</span>
-              <span className="text-[#50658c] dark:text-slate-300">Mayo 2026</span>
-            </div>
+            <div className="flex min-h-[34px] items-center justify-between gap-3 text-xs"><span>Versi\u00f3n instalada</span><strong className="font-bold text-[#0a1740] dark:text-slate-100">{appPackage.version}</strong></div>
             <div className="flex min-h-[34px] items-center gap-3 text-xs">
               <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><path d="M3 12a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-2v-6h4M3 13h4v6H5a2 2 0 0 1-2-2v-4Zm4 6a5 5 0 0 0 5 2" /></Icon>
               <span className="flex-1">Soporte</span>

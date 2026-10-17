@@ -47,6 +47,8 @@ export const AccessPage = () => {
   const membersRequestId = useRef(0);
   const [isLoadingHomes, setIsLoadingHomes] = useState(true);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [homesLoadError, setHomesLoadError] = useState('');
+  const [membersLoadError, setMembersLoadError] = useState('');
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'MEMBER' | 'GUEST'>('MEMBER');
@@ -70,6 +72,7 @@ export const AccessPage = () => {
 
   const loadHomes = useCallback(async () => {
     setIsLoadingHomes(true);
+    setHomesLoadError('');
     setError('');
 
     try {
@@ -89,7 +92,11 @@ export const AccessPage = () => {
         return selectedId;
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar tus hogares.');
+      setHomesLoadError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible cargar tus hogares.',
+      );
     } finally {
       setIsLoadingHomes(false);
     }
@@ -99,6 +106,7 @@ export const AccessPage = () => {
     const requestId = ++membersRequestId.current;
 
     setMembers([]);
+    setMembersLoadError('');
     setError('');
 
     if (!homeId) {
@@ -119,7 +127,7 @@ export const AccessPage = () => {
       if (requestId !== membersRequestId.current) return;
 
       setMembers([]);
-      setError(
+      setMembersLoadError(
         cause instanceof Error
           ? cause.message
           : 'No fue posible verificar los accesos del hogar.',
@@ -236,6 +244,18 @@ export const AccessPage = () => {
         <div className={`${panelClass} px-5 py-12 text-center text-sm text-[#64748b] dark:text-slate-400`}>
           Cargando hogares...
         </div>
+      ) : homesLoadError ? (
+        <section role="alert" className={`${panelClass} flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center`}>
+          <h2 className="text-lg font-semibold text-[#0f172a] dark:text-white">No fue posible cargar tus hogares</h2>
+          <p className="mt-2 max-w-md text-sm leading-6 text-[#64748b] dark:text-slate-400">{homesLoadError}</p>
+          <button
+            type="button"
+            onClick={() => void loadHomes()}
+            className="mt-4 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+          >
+            Reintentar
+          </button>
+        </section>
       ) : homes.length === 0 ? (
         <section className={`${panelClass} flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center`}>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eff6ff] text-[#1677f2] dark:bg-[#172b49] dark:text-[#75adff]">
@@ -314,6 +334,17 @@ export const AccessPage = () => {
 
             {isLoadingMembers ? (
               <div className="py-10 text-center text-sm text-[#64748b] dark:text-slate-400">Cargando accesos...</div>
+            ) : membersLoadError ? (
+              <div role="alert" className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-red-200 px-5 py-8 text-center dark:border-red-900/50">
+                <p className="text-sm text-red-700 dark:text-red-300">{membersLoadError}</p>
+                <button
+                  type="button"
+                  onClick={() => void loadMembers(selectedHomeId)}
+                  className="mt-3 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+                >
+                  Reintentar
+                </button>
+              </div>
             ) : visibleMembers.length === 0 ? (
               <div className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-[#d8e0eb] px-5 py-8 text-center dark:border-slate-700">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300"><PersonIcon /></span>

@@ -135,6 +135,19 @@ export const InvitationsPage = () => {
           >
             Cargando invitaciones...
           </div>
+        ) : error && invitations.length === 0 ? (
+          <section className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:px-10">
+            <h2 className="text-xl font-bold text-[#0f172a] dark:text-white">
+              No fue posible cargar las invitaciones
+            </h2>
+            <button
+              type="button"
+              onClick={() => void loadInvitations()}
+              className="mt-5 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7]"
+            >
+              Reintentar
+            </button>
+          </section>
         ) : invitations.length === 0 ? (
           <section className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:px-10">
             <span

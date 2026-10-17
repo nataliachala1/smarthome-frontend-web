@@ -301,7 +301,9 @@ export const DeviceDetailPage = () => {
               </p>
 
               <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
-                {device.currentPowerW ?? 0} W
+                {device.currentPowerW === null
+                  ? 'Sin datos'
+                  : `${device.currentPowerW} W`}
               </p>
             </CardContent>
           </Card>

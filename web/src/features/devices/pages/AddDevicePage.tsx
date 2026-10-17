@@ -141,7 +141,7 @@ export const AddDevicePage = () => {
           </p>
         </header>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-3">
 
           <Card className="rounded-2xl border-2 border-[#1866C1]/20">
             <CardContent className="p-6">
@@ -173,6 +173,15 @@ export const AddDevicePage = () => {
                 Buscar dispositivos
               </Button>
 
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-6">
+              <div className="mb-4 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">Nuevo contrato de backend</div>
+              <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">Vinculación por sesión AP</h2>
+              <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-gray-400">Coordina una sesión de alta Shelly con el backend y consulta sus capacidades reales.</p>
+              <Button type="button" variant="secondary" className="mt-6 w-full" onClick={() => navigate(`/homes/${homeId}/devices/add/pairing`)}>Abrir sesión AP</Button>
             </CardContent>
           </Card>
 

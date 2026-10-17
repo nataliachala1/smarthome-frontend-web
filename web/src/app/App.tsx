@@ -42,6 +42,7 @@ import { EditDevicePage } from '../features/devices/pages/EditDevicePage';
 import { AddDevicePage } from '../features/devices/pages/AddDevicePage';
 import { DiscoverDevicePage } from '../features/devices/pages/DiscoverDevicePage';
 import { AddDeviceByIpPage } from '../features/devices/pages/AddDeviceByIpPage';
+import { ShellyPairingPage } from '../features/devices/pages/ShellyPairingPage';
 
 // OTHERS
 import { Notifications } from '../features/notifications/pages/Notifications';
@@ -271,6 +272,8 @@ function AppRoutes() {
             <DiscoverDevicePage />
           }
         />
+
+        <Route path="homes/:homeId/devices/add/pairing" element={<ShellyPairingPage />} />
 
         {/* Pantalla: agregar por IP */}
         <Route

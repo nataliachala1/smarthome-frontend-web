@@ -7,7 +7,8 @@ import { listDevices } from '../../../shared/api/devices.api';
 
 interface HomeSummary {
   home: Home;
-  deviceCount: number;
+  deviceCount: number | null;
+  deviceError: string | null;
 }
 
 const HomeIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
@@ -112,11 +113,16 @@ export const DashboardPage = () => {
             return {
               home,
               deviceCount: devices.length,
+              deviceError: null,
             };
-          } catch {
+          } catch (cause) {
             return {
               home,
-              deviceCount: 0,
+              deviceCount: null,
+              deviceError:
+                cause instanceof Error
+                  ? cause.message
+                  : 'No fue posible cargar los dispositivos.',
             };
           }
         }),
@@ -139,11 +145,16 @@ export const DashboardPage = () => {
   }, [loadDashboard]);
 
   const totalDevices = useMemo(
-    () =>
-      homeSummaries.reduce(
-        (total, item) => total + item.deviceCount,
+    () => {
+      if (homeSummaries.some((item) => item.deviceCount === null)) {
+        return null;
+      }
+
+      return homeSummaries.reduce(
+        (total, item) => total + (item.deviceCount ?? 0),
         0,
-      ),
+      );
+    },
     [homeSummaries],
   );
 
@@ -214,9 +225,13 @@ export const DashboardPage = () => {
           <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">Dispositivos</p>
             <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-              {totalDevices}
+              {totalDevices ?? 'No disponible'}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">dispositivos en total</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {totalDevices === null
+                ? 'No fue posible consultar todos los hogares'
+                : 'dispositivos en total'}
+            </p>
           </div>
         </div>
       </section>
@@ -321,7 +336,7 @@ export const DashboardPage = () => {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {homeSummaries.slice(0, 4).map(({ home, deviceCount }) => (
+            {homeSummaries.slice(0, 4).map(({ home, deviceCount, deviceError }) => (
               <article
                 key={home.id}
                 className="flex flex-col justify-between rounded-xl border border-border bg-background/50 p-5 transition-colors hover:border-primary/30"
@@ -329,9 +344,15 @@ export const DashboardPage = () => {
                 <div>
                   <h3 className="text-base font-semibold text-foreground">{home.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {deviceCount} dispositivo
-                    {deviceCount === 1 ? '' : 's'}
+                    {deviceCount === null
+                      ? 'Dispositivos: no disponible'
+                      : `${deviceCount} dispositivo${deviceCount === 1 ? '' : 's'}`}
                   </p>
+                  {deviceError && (
+                    <p className="mt-1 text-xs text-destructive" role="status">
+                      {deviceError}
+                    </p>
+                  )}
                 </div>
 
                 <button
