@@ -1,42 +1,91 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../../../app/contexts/AuthContext';
 import { listHomes, type Home } from '../../../shared/api/homes.api';
 import { listDevices } from '../../../shared/api/devices.api';
 
 interface HomeSummary {
   home: Home;
-  deviceCount: number;
+  deviceCount: number | null;
+  deviceError: string | null;
 }
 
 const HomeIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
-  <svg aria-hidden="true" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-    <path strokeLinecap="round" strokeLinejoin="round" d="m3 10 9-7 9 7M5 9v11h14V9M9 20v-6h6v6" />
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m3 10 9-7 9 7M5 9v11h14V9M9 20v-6h6v6"
+    />
   </svg>
 );
 
 const DeviceIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
-  <svg aria-hidden="true" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  >
     <rect width="15" height="18" x="4.5" y="3" rx="2" />
     <path strokeLinecap="round" d="M9 6.5h6M10 17.5h4" />
   </svg>
 );
 
 const AlertIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
-  <svg aria-hidden="true" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+    />
     <path strokeLinecap="round" d="M12 9v4m0 4h.01" />
   </svg>
 );
 
 const FavoriteIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
-  <svg aria-hidden="true" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-    <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
+    />
   </svg>
 );
 
 const ChevronRightIcon = () => (
-  <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+  <svg
+    aria-hidden="true"
+    className="h-4 w-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
   </svg>
 );
@@ -64,11 +113,16 @@ export const DashboardPage = () => {
             return {
               home,
               deviceCount: devices.length,
+              deviceError: null,
             };
-          } catch {
+          } catch (cause) {
             return {
               home,
-              deviceCount: 0,
+              deviceCount: null,
+              deviceError:
+                cause instanceof Error
+                  ? cause.message
+                  : 'No fue posible cargar los dispositivos.',
             };
           }
         }),
@@ -91,17 +145,21 @@ export const DashboardPage = () => {
   }, [loadDashboard]);
 
   const totalDevices = useMemo(
-    () =>
-      homeSummaries.reduce(
-        (total, item) => total + item.deviceCount,
+    () => {
+      if (homeSummaries.some((item) => item.deviceCount === null)) {
+        return null;
+      }
+
+      return homeSummaries.reduce(
+        (total, item) => total + (item.deviceCount ?? 0),
         0,
-      ),
+      );
+    },
     [homeSummaries],
   );
 
   const enterHome = (homeId: string) => {
     localStorage.setItem('activeHomeId', homeId);
-
     navigate(`/homes/${homeId}/dashboard`);
   };
 
@@ -120,7 +178,6 @@ export const DashboardPage = () => {
       <main className="mx-auto max-w-7xl">
         <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive dark:bg-destructive/10">
           <p>{error}</p>
-
           <button
             type="button"
             onClick={() => void loadDashboard()}
@@ -168,9 +225,13 @@ export const DashboardPage = () => {
           <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">Dispositivos</p>
             <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-              {totalDevices}
+              {totalDevices ?? 'No disponible'}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">dispositivos en total</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {totalDevices === null
+                ? 'No fue posible consultar todos los hogares'
+                : 'dispositivos en total'}
+            </p>
           </div>
         </div>
       </section>
@@ -205,11 +266,15 @@ export const DashboardPage = () => {
 
           <button
             type="button"
-            onClick={() =>
-              homeSummaries[0]
-                ? navigate(`/homes/${homeSummaries[0].home.id}/devices`)
-                : navigate('/homes')
-            }
+            onClick={() => {
+              const activeHomeId = localStorage.getItem('activeHomeId');
+
+              if (activeHomeId) {
+                navigate(`/homes/${activeHomeId}/devices`);
+              } else {
+                navigate('/homes');
+              }
+            }}
             className="group flex min-h-20 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -271,7 +336,7 @@ export const DashboardPage = () => {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {homeSummaries.slice(0, 4).map(({ home, deviceCount }) => (
+            {homeSummaries.slice(0, 4).map(({ home, deviceCount, deviceError }) => (
               <article
                 key={home.id}
                 className="flex flex-col justify-between rounded-xl border border-border bg-background/50 p-5 transition-colors hover:border-primary/30"
@@ -279,9 +344,15 @@ export const DashboardPage = () => {
                 <div>
                   <h3 className="text-base font-semibold text-foreground">{home.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {deviceCount} dispositivo
-                    {deviceCount === 1 ? '' : 's'}
+                    {deviceCount === null
+                      ? 'Dispositivos: no disponible'
+                      : `${deviceCount} dispositivo${deviceCount === 1 ? '' : 's'}`}
                   </p>
+                  {deviceError && (
+                    <p className="mt-1 text-xs text-destructive" role="status">
+                      {deviceError}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -353,7 +424,6 @@ export const DashboardPage = () => {
           </article>
         </div>
       </section>
-
     </main>
   );
 };

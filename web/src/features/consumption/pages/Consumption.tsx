@@ -31,8 +31,10 @@ import {
 
 import {
   getHome,
+  listMembers,
   type Home,
 } from '../../../shared/api/homes.api';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 import {
   Card,
@@ -53,6 +55,7 @@ interface DateRange {
 interface DeviceConsumptionCard {
   device: Device;
   todayConsumption: DeviceConsumptionSummary | null;
+  errorMessage: string | null;
 }
 
 const getStartOfDay = (date: Date) => {
@@ -202,12 +205,14 @@ const getConsumptionTitle = (
 
 export const Consumption = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId } = useParams<{
     homeId: string;
   }>();
 
   const [home, setHome] = useState<Home | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
 
   const [period, setPeriod] =
     useState<ConsumptionPeriod>('day');
@@ -247,34 +252,64 @@ export const Consumption = () => {
 
     setIsLoading(true);
     setError('');
+    setHome(null);
+    setSummary(null);
+    setDailyData([]);
+    setReadings([]);
+    setDeviceConsumptionCards([]);
+    setIsGuest(false);
 
     try {
+      const [homeResponse, membersResponse] = await Promise.all([
+        getHome(homeId),
+        listMembers(homeId),
+      ]);
+
+      const membership = membersResponse.find(
+        (member) =>
+          member.homeId === homeId &&
+          member.userId === user?.id &&
+          member.status === 'ACTIVE',
+      );
+
+      if (!membership) {
+        throw new Error('No se pudo verificar tu membresía activa en este hogar.');
+      }
+
+      const summaryResponse = await getHomeConsumptionSummary(homeId, {
+        from: dateRange.from,
+        to: dateRange.to,
+      });
+
+      setHome(homeResponse);
+      setSummary(summaryResponse);
+      setIsGuest(membership.role === 'GUEST');
+
+      localStorage.setItem('activeHomeId', homeId);
+
+      if (membership.role === 'GUEST') {
+        setDailyData([]);
+        setReadings([]);
+        setDeviceConsumptionCards([]);
+        return;
+      }
+
       const [
-        homeResponse,
-        summaryResponse,
         dailyResponse,
         readingsResponse,
+        devicesResponse,
       ] = await Promise.all([
-        getHome(homeId),
-
-        getHomeConsumptionSummary(homeId, {
-          from: dateRange.from,
-          to: dateRange.to,
-        }),
-
         getHomeDailyConsumption(homeId, {
           from: dateRange.from,
           to: dateRange.to,
         }),
-
         listHomeConsumption(homeId, {
           from: dateRange.from,
           to: dateRange.to,
           limit: 200,
         }),
+        listDevices(homeId),
       ]);
-
-      const devicesResponse = await listDevices(homeId);
 
       const todayRange = getTodayRange();
 
@@ -294,26 +329,24 @@ export const Consumption = () => {
             return {
               device,
               todayConsumption,
+              errorMessage: null,
             };
-          } catch {
+          } catch (cause) {
             return {
               device,
               todayConsumption: null,
+              errorMessage:
+                cause instanceof Error
+                  ? cause.message
+                  : 'No fue posible cargar el consumo de este dispositivo.',
             };
           }
         }),
       );
 
-      setHome(homeResponse);
-      setSummary(summaryResponse);
       setDailyData(dailyResponse);
       setReadings(readingsResponse);
       setDeviceConsumptionCards(deviceCards);
-
-      localStorage.setItem(
-        'activeHomeId',
-        homeId,
-      );
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -323,13 +356,13 @@ export const Consumption = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [homeId, dateRange.from, dateRange.to]);
+  }, [homeId, dateRange.from, dateRange.to, user?.id]);
 
   useEffect(() => {
     void loadConsumption();
   }, [loadConsumption]);
     useEffect(() => {
-    if (!homeId) {
+      if (!homeId || isGuest) {
       return;
     }
 
@@ -391,7 +424,7 @@ export const Consumption = () => {
         handleConsumptionCreated,
       );
     };
-  }, [homeId, dateRange.from, dateRange.to]);
+  }, [homeId, dateRange.from, dateRange.to, isGuest]);
 
   const handlePeriodChange = (
     newPeriod: ConsumptionPeriod,
@@ -475,6 +508,11 @@ export const Consumption = () => {
     }));
   }, [dailyData, selectedDate]);
 
+  const hasChartData =
+    period === 'day'
+      ? todayChartData.length > 0
+      : dailyData.length > 0;
+
   if (isLoading && !summary) {
     return (
       <main className="p-6">
@@ -491,17 +529,26 @@ export const Consumption = () => {
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
           <p>{error}</p>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                `/homes/${homeId}/dashboard`,
-              )
-            }
-            className="mt-3 font-semibold underline"
-          >
-            Volver al hogar
-          </button>
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+            <button
+              type="button"
+              onClick={() => void loadConsumption()}
+              className="font-semibold underline"
+            >
+              Reintentar
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  `/homes/${homeId}/dashboard`,
+                )
+              }
+              className="font-semibold underline"
+            >
+              Volver al hogar
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -644,9 +691,11 @@ export const Consumption = () => {
             <div className="mt-3 flex items-end gap-2">
 
               <p className="text-4xl font-bold text-[#1b254b] dark:text-white sm:text-5xl">
-                {summary?.totalEnergyDeltaKwh.toFixed(
-                  4,
-                ) ?? '0.0000'}
+                {summary?.readingsCount === 0
+                  ? 'Sin datos'
+                  : summary
+                    ? summary.totalEnergyDeltaKwh.toFixed(4)
+                    : 'Sin datos'}
               </p>
 
               <span className="mb-1 text-lg font-semibold text-gray-400">
@@ -656,15 +705,23 @@ export const Consumption = () => {
             </div>
 
             <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-              Energía consumida durante el periodo seleccionado.
+              {summary?.readingsCount === 0
+                ? 'No hay lecturas registradas durante el periodo seleccionado.'
+                : 'Energía consumida durante el periodo seleccionado.'}
             </p>
 
           </CardContent>
         </Card>
 
+        {isGuest && (
+          <p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-300">
+            Tu rol de Invitado permite consultar el consumo total del periodo. Las métricas y lecturas detalladas no están disponibles.
+          </p>
+        )}
+
         {/* MÉTRICAS */}
 
-        <section className="grid gap-4 sm:grid-cols-3">
+        {!isGuest && <section className="grid gap-4 sm:grid-cols-3">
 
           <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
             <CardContent className="p-5">
@@ -677,7 +734,7 @@ export const Consumption = () => {
                 {summary?.averagePowerW !== null &&
                 summary?.averagePowerW !== undefined
                   ? summary.averagePowerW.toFixed(2)
-                  : '0.00'}{' '}
+                  : 'Sin datos'}{' '}
                 W
               </p>
 
@@ -695,7 +752,7 @@ export const Consumption = () => {
                 {summary?.maxPowerW !== null &&
                 summary?.maxPowerW !== undefined
                   ? summary.maxPowerW.toFixed(2)
-                  : '0.00'}{' '}
+                  : 'Sin datos'}{' '}
                 W
               </p>
 
@@ -710,17 +767,17 @@ export const Consumption = () => {
               </p>
 
               <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
-                {summary?.devicesWithReadings ?? 0}
+                {summary?.devicesWithReadings ?? 'Sin datos'}
               </p>
 
             </CardContent>
           </Card>
 
-        </section>
+        </section>}
 
         {/* ESPACIO PARA LA GRÁFICA */}
 
-        <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151824]">
+        {!isGuest && <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151824]">
 
           <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
             {period === 'day'
@@ -731,11 +788,15 @@ export const Consumption = () => {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Aquí mostraremos la gráfica de consumo.
+            Lecturas registradas durante el periodo seleccionado.
           </p>
 
           <div className="mt-6 h-80">
-            {period === 'day' && (
+            {!hasChartData ? (
+              <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 px-5 text-center text-sm text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
+                No hay lecturas registradas para el periodo seleccionado.
+              </div>
+            ) : period === 'day' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={todayChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -759,9 +820,7 @@ export const Consumption = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            )}
-
-            {period === 'month' && (
+            ) : period === 'month' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -781,9 +840,7 @@ export const Consumption = () => {
                   />
                 </BarChart>
               </ResponsiveContainer>
-            )}
-
-            {period === 'year' && (
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={yearChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -806,11 +863,11 @@ export const Consumption = () => {
             )}
           </div>
 
-        </section>
+        </section>}
 
         {/* ESPACIO PARA DISPOSITIVOS */}
 
-        <section>
+        {!isGuest && <section>
 
           <div className="mb-4">
             <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
@@ -829,7 +886,7 @@ export const Consumption = () => {
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {deviceConsumptionCards.map(
-                ({ device, todayConsumption }) => (
+                ({ device, todayConsumption, errorMessage }) => (
                   <Card
                     key={device.id}
                     className="rounded-2xl border border-gray-100 dark:border-gray-800"
@@ -860,7 +917,9 @@ export const Consumption = () => {
                           </p>
 
                           <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
-                            {device.currentPowerW ?? 0} W
+                            {device.currentPowerW === null
+                              ? 'Sin datos'
+                              : `${device.currentPowerW} W`}
                           </p>
                         </div>
 
@@ -870,11 +929,22 @@ export const Consumption = () => {
                           </p>
 
                           <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
-                            {todayConsumption
-                              ? todayConsumption.totalEnergyDeltaKwh.toFixed(4)
-                              : '0.0000'}{' '}
-                            kWh
+                            {errorMessage
+                              ? 'No disponible'
+                              : todayConsumption?.readingsCount === 0
+                                ? 'Sin datos'
+                                : todayConsumption
+                              ? `${todayConsumption.totalEnergyDeltaKwh.toFixed(4)} kWh`
+                              : 'Sin datos'}
                           </p>
+                          {errorMessage && (
+                            <p
+                              role="alert"
+                              className="mt-1 text-xs text-red-600 dark:text-red-400"
+                            >
+                              {errorMessage}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -884,7 +954,7 @@ export const Consumption = () => {
             </div>
           )}
 
-        </section>
+        </section>}
 
       </div>
     </main>

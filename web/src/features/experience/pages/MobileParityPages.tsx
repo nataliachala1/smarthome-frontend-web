@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { listNotifications, type Notification } from '../../../shared/api/notifications.api';
+import appPackage from '../../../../package.json';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../app/contexts/AuthContext';
 import { Settings } from '../../settings/pages/Settings';
@@ -47,7 +49,6 @@ const pageTitle: Record<string, { title: string; description: string }> = {
   profile: { title: 'Perfil', description: 'Administra tu cuenta y preferencias.' },
   personal: { title: 'Información personal', description: 'Consulta la información de tu cuenta.' },
   security: { title: 'Seguridad de la cuenta', description: 'Revisa las opciones para proteger tu cuenta.' },
-  password: { title: 'Cambiar contraseña', description: 'Actualiza las credenciales de tu cuenta.' },
   sessions: { title: 'Dónde iniciaste sesión', description: 'Consulta la actividad de acceso de tu cuenta.' },
   activity: { title: 'Actividad de inicio de sesión', description: 'Revisa los dispositivos asociados a tu cuenta.' },
   'close-sessions': { title: 'Cerrar sesiones', description: 'Administra las sesiones activas de tu cuenta.' },
@@ -114,32 +115,35 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-export const AlertsPage = () => (
-  <div className={contentClass}>
-    <PageHeading page="alerts" />
-    <EmptyState
-      icon="alert"
-      title="No hay alertas activas"
-      description="Las alertas de dispositivos y consumo de tus hogares aparecerán aquí cuando requieran atención."
-      action={{ label: 'Ver mis hogares', to: '/homes' }}
-    />
+export const AlertsPage = () => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let live = true;
+    listNotifications({ limit: 50 }).then((items) => { if (live) setNotifications(items); })
+      .catch((reason: unknown) => { if (live) setError(reason instanceof Error ? reason.message : 'No se pudieron cargar las notificaciones.'); })
+      .finally(() => { if (live) setLoading(false); });
+    return () => { live = false; };
+  }, []);
+  return <div className={contentClass}><PageHeading page="alerts" />
+    {loading ? <p role="status" className={panelClass + ' p-5'}>Cargando notificaciones?</p>
+      : error ? <p role="alert" className={panelClass + ' p-5 text-red-700'}>{error}</p>
+      : notifications.length === 0 ? <EmptyState icon="alert" title="No hay notificaciones" description="El backend no reporta notificaciones para tu cuenta." action={{ label: 'Ver notificaciones', to: '/notifications' }} />
+      : <section aria-label="Notificaciones" className={panelClass + ' divide-y divide-slate-100 dark:divide-slate-700'}>{notifications.map((item) => <article key={item.id} className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">{item.title}</h2><span className="text-xs text-slate-500">{new Date(item.createdAt).toLocaleString()}</span></div>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.message}</p><p className="mt-2 text-xs text-slate-500">{item.homeName || 'Hogar'} ? {item.priority} ? {item.status}</p>
+      </article>)}</section>}
+  </div>;
+};
+
+
+export const FavoritesPage = () => (
+  <div className={contentClass}><PageHeading page="favorites" />
+    <EmptyState icon="star" title="Favoritos no disponible" description="El backend actual no ofrece un contrato para consultar o guardar hogares favoritos en la web." action={{ label: 'Explorar hogares', to: '/homes' }} />
   </div>
 );
 
-export const FavoritesPage = () => (
-  <div className={contentClass}>
-    <PageHeading page="favorites" />
-    <section aria-label="Hogares favoritos">
-      <h2 className="mb-3 text-base font-semibold text-[#0f172a] dark:text-white">Mis hogares favoritos</h2>
-      <EmptyState
-        icon="star"
-        title="Aún no tienes favoritos"
-        description="Los hogares que marques como favoritos estarán disponibles aquí para acceder rápidamente."
-        action={{ label: 'Explorar hogares', to: '/homes' }}
-      />
-    </section>
-  </div>
-);
 
 export const ProfilePage = () => {
   const { user } = useAuth();
@@ -175,7 +179,7 @@ export const AccountPage = () => {
   const { user } = useAuth();
   const profileName = user?.name || 'Usuario';
   const profileEmail = user?.email || 'Correo no disponible';
-  const supportedAccountPages = ['personal', 'security', 'password', 'sessions', 'activity', 'close-sessions', 'language'];
+  const supportedAccountPages = ['personal', 'security', 'sessions', 'activity', 'close-sessions', 'language'];
   const currentPage = page;
 
   if (!supportedAccountPages.includes(currentPage)) {
@@ -204,26 +208,7 @@ export const AccountPage = () => {
           <p className="mt-1 text-sm text-[#64748b] dark:text-slate-400">La información de sesiones y verificaciones aún no está disponible en la web.</p>
         </section>
         <section className={panelClass}>
-          <PageLink icon="key" title="Cambiar contraseña" description="Actualiza las credenciales de acceso" to="/account/password" />
           <PageLink icon="devices" title="Dónde iniciaste sesión" description="Dispositivos y actividad de cuenta" to="/account/sessions" />
-        </section>
-      </div>
-    );
-  }
-
-  if (currentPage === 'password') {
-    return (
-      <div className={contentClass}>
-        <PageHeading page={currentPage} />
-        <section className={`${panelClass} max-w-2xl p-5 sm:p-6`}>
-          <label className="block text-sm font-medium text-[#334155] dark:text-slate-300">Contraseña actual</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <label className="mt-4 block text-sm font-medium text-[#334155] dark:text-slate-300">Nueva contraseña</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <label className="mt-4 block text-sm font-medium text-[#334155] dark:text-slate-300">Confirmar nueva contraseña</label>
-          <input disabled type="password" className="mt-2 h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 dark:border-slate-700 dark:bg-slate-800" />
-          <button type="button" disabled className="mt-5 h-11 rounded-lg bg-[#0d6efd] px-5 text-sm font-semibold text-white opacity-50">Actualizar contraseña</button>
-          <p className="mt-3 text-xs text-[#64748b] dark:text-slate-400">Este formulario es una vista previa; no guarda cambios.</p>
         </section>
       </div>
     );
@@ -248,19 +233,7 @@ export const AccountPage = () => {
     );
   }
 
-  if (currentPage === 'language') {
-    return (
-      <div className={contentClass}>
-        <PageHeading page={currentPage} />
-        <section className={panelClass}>
-          <InfoRow label="Español" value="Idioma actual" />
-          <InfoRow label="English" value="Disponible" />
-          <InfoRow label="Français" value="Disponible" />
-          <p className="px-5 py-3 text-xs text-[#64748b] dark:text-slate-400">La selección de idioma desde esta vista aún no está conectada.</p>
-        </section>
-      </div>
-    );
-  }
+  if (currentPage === 'language') return <Navigate to="/profile#profile-settings" replace />;
 
   return <Navigate to="/account/personal" replace />;
 };
@@ -298,7 +271,7 @@ export const AboutPage = () => (
     <PageHeading page="about" />
     <section className={panelClass}>
       <InfoRow label="Aplicación" value="Smart Home" />
-      <InfoRow label="Versión" value="1.0.0" />
+      <InfoRow label="Versi\u00f3n" value={appPackage.version} />
       <InfoRow label="Plataforma" value="Web" />
     </section>
   </div>

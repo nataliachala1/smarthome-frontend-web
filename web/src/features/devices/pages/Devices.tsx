@@ -18,7 +18,9 @@ import {
 
 import {
   getHome,
+  listMembers,
   type Home,
+  type HomeMember,
 } from '../../../shared/api/homes.api';
 
 import { Button } from '../../../components/ui/Button';
@@ -30,6 +32,7 @@ import {
 } from '../../../components/ui/Card';
 
 import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
+import { useAuth } from '../../../app/contexts/AuthContext';
 
 interface DeviceStatusUpdatedEvent {
   id: string;
@@ -42,6 +45,7 @@ interface DeviceStatusUpdatedEvent {
 
 export const Devices = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { homeId } =
     useParams<{
@@ -55,6 +59,22 @@ export const Devices = () => {
     useState<Home | null>(
       null,
     );
+
+  const [currentMembership, setCurrentMembership] =
+    useState<HomeMember | null>(null);
+
+  const hasActiveMembership =
+    currentMembership?.homeId === homeId &&
+    currentMembership?.userId === user?.id &&
+    currentMembership?.status === 'ACTIVE';
+
+  const isOwner =
+    hasActiveMembership && currentMembership?.role === 'OWNER';
+
+  const canControlDevice =
+    hasActiveMembership &&
+    (currentMembership?.role === 'OWNER' ||
+      currentMembership?.role === 'MEMBER');
 
   const [
     devices,
@@ -74,11 +94,17 @@ export const Devices = () => {
   ] =
     useState(true);
 
+
   const [
     error,
     setError,
   ] =
     useState('');
+
+  const [pendingDeviceIds, setPendingDeviceIds] = useState<Set<string>>(
+    new Set(),
+  );
+
 
   /*
    * Cargar hogar + dispositivos
@@ -86,6 +112,8 @@ export const Devices = () => {
   const loadDevicesPage =
     useCallback(
       async () => {
+        setCurrentMembership(null);
+
         if (!homeId) {
           setError(
             'No se encontró el hogar seleccionado.',
@@ -127,6 +155,29 @@ export const Devices = () => {
             devicesResponse,
           );
 
+          try {
+            const membersResponse = await listMembers(homeId);
+            const membership = membersResponse.find(
+              (member) =>
+                member.homeId === homeId &&
+                member.userId === user?.id &&
+                member.status === 'ACTIVE',
+            ) ?? null;
+
+            setCurrentMembership(membership);
+
+            if (!membership) {
+              setError(
+                'No se pudo verificar tu membresía activa. Los controles permanecerán deshabilitados.',
+              );
+            }
+          } catch {
+            setCurrentMembership(null);
+            setError(
+              'No fue posible verificar los permisos del hogar. Los dispositivos permanecerán en modo de solo lectura.',
+            );
+          }
+
           localStorage.setItem(
             'activeHomeId',
             homeId,
@@ -143,7 +194,7 @@ export const Devices = () => {
           );
         }
       },
-      [homeId],
+      [homeId, user?.id],
     );
 
   /*
@@ -312,36 +363,55 @@ export const Devices = () => {
     ).length;
 
   /*
-   * Encender / apagar
+   * Encender / apagar dispositivos
    */
-  const handleControlDevice =
-    async (
-      device: Device,
-    ) => {
-      if (!homeId) {
-        return;
+  const handleControlDevice = async (device: Device) => {
+    if (!homeId || !canControlDevice) {
+      return;
+    }
+
+    if (device.connectivityStatus !== 'ONLINE') {
+      setError(
+        'El dispositivo está desconectado y no puede recibir órdenes.',
+      );
+      return;
+    }
+
+    if (pendingDeviceIds.has(device.id)) {
+      return;
+    }
+
+    const command = device.isOn ? 'TURN_OFF' : 'TURN_ON';
+
+    setPendingDeviceIds((current) => {
+      const next = new Set(current);
+      next.add(device.id);
+      return next;
+    });
+
+    setError('');
+
+    try {
+      const response = await controlDevice(homeId, device.id, command);
+
+      if (response.status !== 'COMMAND_PUBLISHED') {
+        setError('No se pudo confirmar la publicación de la orden.');
       }
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible enviar la orden al dispositivo.',
+      );
+    } finally {
+      setPendingDeviceIds((current) => {
+        const next = new Set(current);
+        next.delete(device.id);
+        return next;
+      });
+    }
+  };
 
-      setError('');
-
-      try {
-        await controlDevice(
-          homeId,
-
-          device.id,
-
-          device.isOn
-            ? 'TURN_OFF'
-            : 'TURN_ON',
-        );
-      } catch (cause) {
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : 'No fue posible controlar el dispositivo.',
-        );
-      }
-    };
 
   /*
    * Loading
@@ -415,7 +485,7 @@ export const Devices = () => {
               }
               className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
             >
-              ← Volver al hogar
+              Volver al hogar
             </button>
 
             <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
@@ -427,18 +497,19 @@ export const Devices = () => {
             </p>
 
           </div>
-
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() =>
-              navigate(
-                `/homes/${homeId}/devices/add`,
-              )
-            }
-          >
-            + Agregar dispositivo
-          </Button>
+          {isOwner && (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() =>
+                navigate(
+                  `/homes/${homeId}/devices/add`,
+                    )
+              }
+            >
+              + Agregar dispositivo
+            </Button>
+          )}
 
         </header>
 
@@ -570,19 +641,20 @@ export const Devices = () => {
                 para comenzar a controlarlo
                 desde SmartHome.
               </p>
-
-              <Button
-                type="button"
-                variant="primary"
-                className="mt-5"
-                onClick={() =>
-                  navigate(
-                    `/homes/${homeId}/devices/add`,
-                  )
-                }
-              >
-                + Agregar dispositivo
-              </Button>
+              {isOwner && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="mt-5"
+                  onClick={() =>
+                    navigate(
+                      `/homes/${homeId}/devices/add`,
+                    )
+                  }
+                >
+                  + Agregar dispositivo
+                </Button>
+              )}
 
             </div>
           ) : (
@@ -644,34 +716,36 @@ export const Devices = () => {
                           Potencia actual:{' '}
 
                           <span className="font-semibold text-[#1b254b] dark:text-white">
-                            {device.currentPowerW ??
-                              0}{' '}
-                            W
+                            {device.currentPowerW === null
+                              ? 'Sin datos'
+                              : `${device.currentPowerW} W`}
                           </span>
                         </p>
 
                       </div>
 
                       <div className="mt-6 space-y-3">
+                        {canControlDevice && (
 
-                        <Button
-                          type="button"
-                          variant="primary"
-                          className="w-full"
-                          disabled={
-                            device.connectivityStatus !==
-                            'ONLINE'
-                          }
-                          onClick={() =>
-                            void handleControlDevice(
-                              device,
-                            )
-                          }
-                        >
-                          {device.isOn
-                            ? 'Apagar'
-                            : 'Encender'}
-                        </Button>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            className="w-full"
+                            disabled={
+                              device.connectivityStatus !== 'ONLINE' ||
+                              pendingDeviceIds.has(device.id)
+                            }
+                            onClick={() =>
+                              void handleControlDevice(device)
+                            }
+                          >
+                            {pendingDeviceIds.has(device.id)
+                              ? 'Enviando orden...'
+                              : device.isOn
+                                ? 'Apagar'
+                                : 'Encender'}
+                          </Button>
+                        )}
 
                         <Button
                           type="button"

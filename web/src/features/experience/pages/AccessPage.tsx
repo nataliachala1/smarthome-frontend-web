@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useAuth } from '../../../app/contexts/AuthContext';
 import {
   inviteMember,
   listHomes,
@@ -39,11 +40,15 @@ const HomeIcon = () => (
 );
 
 export const AccessPage = () => {
+  const { user } = useAuth();
   const [homes, setHomes] = useState<Home[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState('');
   const [members, setMembers] = useState<HomeMember[]>([]);
+  const membersRequestId = useRef(0);
   const [isLoadingHomes, setIsLoadingHomes] = useState(true);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [homesLoadError, setHomesLoadError] = useState('');
+  const [membersLoadError, setMembersLoadError] = useState('');
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'MEMBER' | 'GUEST'>('MEMBER');
@@ -57,8 +62,17 @@ export const AccessPage = () => {
     [homes, selectedHomeId],
   );
 
+  const currentMembership = members.find(
+    (member) =>
+      member.homeId === selectedHomeId &&
+      member.userId === user?.id &&
+      member.status === 'ACTIVE',
+  );
+  const isOwner = currentMembership?.role === 'OWNER';
+
   const loadHomes = useCallback(async () => {
     setIsLoadingHomes(true);
+    setHomesLoadError('');
     setError('');
 
     try {
@@ -78,29 +92,52 @@ export const AccessPage = () => {
         return selectedId;
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar tus hogares.');
+      setHomesLoadError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible cargar tus hogares.',
+      );
     } finally {
       setIsLoadingHomes(false);
     }
   }, []);
 
   const loadMembers = useCallback(async (homeId: string) => {
+    const requestId = ++membersRequestId.current;
+
+    setMembers([]);
+    setMembersLoadError('');
+    setError('');
+
     if (!homeId) {
-      setMembers([]);
+      setIsLoadingMembers(false);
       return;
     }
 
     setIsLoadingMembers(true);
-    setError('');
 
     try {
-      setMembers(await listMembers(homeId));
+      const response = await listMembers(homeId);
+
+      if (requestId !== membersRequestId.current) return;
+      if (homeId !== selectedHomeId) return;
+
+      setMembers(response);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar los accesos del hogar.');
+      if (requestId !== membersRequestId.current) return;
+
+      setMembers([]);
+      setMembersLoadError(
+        cause instanceof Error
+          ? cause.message
+          : 'No fue posible verificar los accesos del hogar.',
+      );
     } finally {
-      setIsLoadingMembers(false);
+      if (requestId === membersRequestId.current) {
+        setIsLoadingMembers(false);
+      }
     }
-  }, []);
+  }, [selectedHomeId]);
 
   useEffect(() => {
     void loadHomes();
@@ -115,7 +152,7 @@ export const AccessPage = () => {
   const handleInvite = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!selectedHomeId) {
+    if (!selectedHomeId || !isOwner) {
       setError('Selecciona un hogar antes de enviar una invitación.');
       return;
     }
@@ -128,7 +165,7 @@ export const AccessPage = () => {
       await inviteMember(selectedHomeId, { email: email.trim(), role });
       setEmail('');
       setIsInviteOpen(false);
-      setSuccess('La invitación se creó correctamente.');
+      setSuccess('La invitación se envió correctamente por correo.');
       await loadMembers(selectedHomeId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No fue posible enviar la invitación.');
@@ -138,6 +175,8 @@ export const AccessPage = () => {
   };
 
   const handleRoleChange = async (member: HomeMember, nextRole: 'MEMBER' | 'GUEST') => {
+    if (!selectedHomeId || !isOwner) return;
+
     setBusyMemberId(member.id);
     setError('');
     setSuccess('');
@@ -154,6 +193,8 @@ export const AccessPage = () => {
   };
 
   const handleRevoke = async (member: HomeMember) => {
+    if (!selectedHomeId || !isOwner) return;
+
     const confirmed = window.confirm('¿Quieres retirar este acceso al hogar?');
     if (!confirmed) return;
 
@@ -176,7 +217,7 @@ export const AccessPage = () => {
     (member) => member.status === 'ACTIVE' || member.status === 'PENDING',
   );
   const canManageMember = (member: HomeMember) =>
-    member.role !== 'OWNER' && (member.status === 'ACTIVE' || member.status === 'PENDING');
+    isOwner && member.role !== 'OWNER' && (member.status === 'ACTIVE' || member.status === 'PENDING');
 
   return (
     <div className="mx-auto w-full max-w-[1000px] text-[#0f172a] dark:text-slate-100">
@@ -203,6 +244,18 @@ export const AccessPage = () => {
         <div className={`${panelClass} px-5 py-12 text-center text-sm text-[#64748b] dark:text-slate-400`}>
           Cargando hogares...
         </div>
+      ) : homesLoadError ? (
+        <section role="alert" className={`${panelClass} flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center`}>
+          <h2 className="text-lg font-semibold text-[#0f172a] dark:text-white">No fue posible cargar tus hogares</h2>
+          <p className="mt-2 max-w-md text-sm leading-6 text-[#64748b] dark:text-slate-400">{homesLoadError}</p>
+          <button
+            type="button"
+            onClick={() => void loadHomes()}
+            className="mt-4 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+          >
+            Reintentar
+          </button>
+        </section>
       ) : homes.length === 0 ? (
         <section className={`${panelClass} flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center`}>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eff6ff] text-[#1677f2] dark:bg-[#172b49] dark:text-[#75adff]">
@@ -256,6 +309,8 @@ export const AccessPage = () => {
                     Invita personas a usar {selectedHome?.name ?? 'este hogar'} y administra sus accesos.
                   </p>
                 </div>
+                {isOwner && (
+
                 <button
                   type="button"
                   onClick={() => {
@@ -268,6 +323,7 @@ export const AccessPage = () => {
                   <span aria-hidden="true" className="text-xl leading-none">+</span>
                   Invitar a una persona
                 </button>
+                )}
               </div>
               <div className="mb-4 mt-5">
                 <h3 className="text-base font-semibold text-[#0f172a] dark:text-white">Personas con acceso</h3>
@@ -278,6 +334,17 @@ export const AccessPage = () => {
 
             {isLoadingMembers ? (
               <div className="py-10 text-center text-sm text-[#64748b] dark:text-slate-400">Cargando accesos...</div>
+            ) : membersLoadError ? (
+              <div role="alert" className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-red-200 px-5 py-8 text-center dark:border-red-900/50">
+                <p className="text-sm text-red-700 dark:text-red-300">{membersLoadError}</p>
+                <button
+                  type="button"
+                  onClick={() => void loadMembers(selectedHomeId)}
+                  className="mt-3 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+                >
+                  Reintentar
+                </button>
+              </div>
             ) : visibleMembers.length === 0 ? (
               <div className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-[#d8e0eb] px-5 py-8 text-center dark:border-slate-700">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300"><PersonIcon /></span>
@@ -389,26 +456,42 @@ export const AccessPage = () => {
                 />
               </div>
 
-              <div>
-                <label htmlFor="invite-role" className="mb-1.5 block text-sm font-medium text-[#334155] dark:text-slate-200">Tipo de acceso</label>
-                <select
-                  id="invite-role"
-                  value={role}
-                  onChange={(event) => {
-                    const selectedRole = event.target.value;
-                    if (selectedRole === 'MEMBER' || selectedRole === 'GUEST') {
-                      setRole(selectedRole);
-                    }
-                  }}
-                  className="h-12 w-full rounded-xl border border-[#cfd8e5] bg-white px-4 text-base text-[#0f172a] outline-none transition focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 dark:border-slate-700 dark:bg-[#111827] dark:text-white"
+              <fieldset>
+                <legend className="mb-1.5 block text-sm font-medium text-[#334155] dark:text-slate-200">
+                  Tipo de acceso
+                </legend>
+                <div
+                  role="group"
+                  aria-label="Rol de la persona invitada"
+                  className="grid grid-cols-2 gap-3"
                 >
-                  <option value="MEMBER">Miembro — acceso de miembro</option>
-                  <option value="GUEST">Invitado — acceso de invitado</option>
-                </select>
+                  {([
+                    ['MEMBER', 'Miembro'],
+                    ['GUEST', 'Invitado'],
+                  ] as const).map(([value, label]) => {
+                    const isSelected = role === value;
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => setRole(value)}
+                        className={`min-h-12 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 ${
+                          isSelected
+                            ? 'border-[#1677f2] bg-[#eaf4ff] text-[#1455a0] dark:bg-[#172b49] dark:text-[#bedaff]'
+                            : 'border-[#cfd8e5] bg-white text-[#475569] hover:bg-[#f8fafc] dark:border-slate-700 dark:bg-[#111827] dark:text-slate-200'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <p className="mt-1.5 text-xs leading-5 text-[#64748b] dark:text-slate-400">
-                  La aplicación administra el acceso mediante estos roles; no configura permisos separados por dispositivo.
+                  La persona invitada será Miembro o Invitado. Propietario es el rol de quien administra y envía la invitación.
                 </p>
-              </div>
+              </fieldset>
 
               {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
 

@@ -16,13 +16,27 @@ export interface Device {
 }
 
 export const listDevices = (homeId: string) =>
-  apiClient<Device[]>(`/homes/${encodeURIComponent(homeId)}/devices`);
-export const createDevice = (homeId: string, payload: {
-  name: string;
-  manufacturerDeviceId?: string;
-  transportType?: 'WIFI' | 'BLUETOOTH';
-  messagingProtocol?: 'MQTT';
-}) => apiClient<Device>(`/homes/${encodeURIComponent(homeId)}/devices`, { method: 'POST', body: payload });
+  apiClient<Device[]>(
+    `/homes/${encodeURIComponent(homeId)}/devices`,
+  );
+
+export const createDevice = (
+  homeId: string,
+  payload: {
+    name: string;
+    manufacturerDeviceId?: string;
+    transportType?: 'WIFI' | 'BLUETOOTH';
+    messagingProtocol?: 'MQTT';
+  },
+) =>
+  apiClient<Device>(
+    `/homes/${encodeURIComponent(homeId)}/devices`,
+    {
+      method: 'POST',
+      body: payload,
+    },
+  );
+
 export const getDevice = (
   homeId: string,
   deviceId: string,
@@ -60,7 +74,12 @@ export const deactivateDevice = (
   );
 
 export interface ControlDeviceResponse {
-  accepted: boolean;
+  id: string;
+  homeId: string;
+  command: 'TURN_ON' | 'TURN_OFF';
+  status: 'COMMAND_PUBLISHED';
+  previousIsOn: boolean;
+  connectivityStatus: 'ONLINE' | 'OFFLINE';
 }
 
 export const controlDevice = (

@@ -10,7 +10,10 @@ export interface Notification {
   userId: string;
   alertId: string | null;
   homeId: string | null;
+  homeName?: string | null;
   deviceId: string | null;
+  deviceName?: string | null;
+  manufacturerDeviceId?: string | null;
   type: string;
   title: string;
   message: string;
