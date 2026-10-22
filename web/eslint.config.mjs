@@ -1,21 +1,24 @@
 import js from '@eslint/js';
-import react from 'eslint-plugin-react';
+import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettier from 'eslint-config-prettier';
 
-export default [
+export default tseslint.config(
+  { ignores: ['dist/**', 'node_modules/**'] },
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
+    rules: { 'no-undef': 'off' },
+  },
+  {
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      react,
       'react-hooks': reactHooks,
     },
     languageOptions: {
       parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
+        ecmaFeatures: { jsx: true },
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
@@ -25,6 +28,9 @@ export default [
         navigator: 'readonly',
         localStorage: 'readonly',
         console: 'readonly',
+        fetch: 'readonly',
+        Headers: 'readonly',
+        URL: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',
@@ -33,16 +39,12 @@ export default [
       },
     },
     rules: {
-      'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'off',
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
       'no-console': 'warn',
-    },
-    settings: {
-      react: {
-        version: 'detect',
-      },
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
   prettier,
-];
+);

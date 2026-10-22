@@ -43,7 +43,7 @@ export const Input = ({
       try {
         const re = new RegExp(String(pattern));
         if (!re.test(String(val))) return 'Formato inválido';
-      } catch (e) {
+      } catch {
         // invalid pattern - ignore here
       }
     }
