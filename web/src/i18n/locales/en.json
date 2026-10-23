@@ -26,10 +26,7 @@
     "notifications": "Notifications",
     "homes": "Homes",
     "settings": "Settings",
-    "profile": "Profile",
-    "alerts": "Alerts",
-    "favorites": "Favorites",
-    "access": "Access"
+    "profile": "Profile"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -86,9 +83,6 @@
   },
   "notifications": {
     "title": "Notifications",
-    "sectionNavigation": "Notification section",
-    "section": "Notifications",
-    "invitations": "Invitations",
     "markAsRead": "Mark as Read",
     "deleteAll": "Delete All",
     "highConsumption": "High Consumption",

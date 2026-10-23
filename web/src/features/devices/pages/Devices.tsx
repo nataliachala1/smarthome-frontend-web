@@ -1,782 +1,314 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import {
-  useNavigate,
-  useParams,
-} from 'react-router-dom';
+const Devices = () => {
+  const { t } = useTranslation();
 
-import {
-  controlDevice,
-  listDevices,
-  type Device,
-} from '../../../shared/api/devices.api';
+  const [devicesList, setDevicesList] = useState([]);
 
-import {
-  getHome,
-  listMembers,
-  type Home,
-  type HomeMember,
-} from '../../../shared/api/homes.api';
+  // 2. Estados para la barra de Smart Suggestion
+  const [showSuggestion, setShowSuggestion] = useState(true);
+  const [isOptimized, setIsOptimized] = useState(false);
 
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+  // 3. Estados para el modal "Agregar Dispositivo"
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newLocation, setNewLocation] = useState('SALA DE ESTAR');
+  const [newPower, setNewPower] = useState('');
 
-import {
-  Card,
-  CardContent,
-} from '../../../components/ui/Card';
-
-import { getRealtimeSocket } from '../../../shared/realtime/realtime-client';
-import { useAuth } from '../../../app/contexts/AuthContext';
-
-interface DeviceStatusUpdatedEvent {
-  id: string;
-  homeId: string;
-  connectivityStatus: 'ONLINE' | 'OFFLINE';
-  isOn: boolean;
-  currentPowerW: number | null;
-  updatedAt: string;
-}
-
-export const Devices = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const { homeId } =
-    useParams<{
-      homeId: string;
-    }>();
-
-  const [
-    home,
-    setHome,
-  ] =
-    useState<Home | null>(
-      null,
+  // Función para alternar encendido/apagado usando el Toggle Switch
+  const toggleDeviceActive = (id) => {
+    setDevicesList((prevList) =>
+      prevList.map((device) =>
+        device.id === id
+          ? { ...device, active: !device.active, consumption: !device.active ? '0.1 kWh' : '0.0 kWh' }
+          : device
+      )
     );
-
-  const [currentMembership, setCurrentMembership] =
-    useState<HomeMember | null>(null);
-
-  const hasActiveMembership =
-    currentMembership?.homeId === homeId &&
-    currentMembership?.userId === user?.id &&
-    currentMembership?.status === 'ACTIVE';
-
-  const isOwner =
-    hasActiveMembership && currentMembership?.role === 'OWNER';
-
-  const canControlDevice =
-    hasActiveMembership &&
-    (currentMembership?.role === 'OWNER' ||
-      currentMembership?.role === 'MEMBER');
-
-  const [
-    devices,
-    setDevices,
-  ] =
-    useState<Device[]>([]);
-
-  const [
-    search,
-    setSearch,
-  ] =
-    useState('');
-
-  const [
-    isLoading,
-    setIsLoading,
-  ] =
-    useState(true);
-
-
-  const [
-    error,
-    setError,
-  ] =
-    useState('');
-
-  const [pendingDeviceIds, setPendingDeviceIds] = useState<Set<string>>(
-    new Set(),
-  );
-
-
-  /*
-   * Cargar hogar + dispositivos
-   */
-  const loadDevicesPage =
-    useCallback(
-      async () => {
-        setCurrentMembership(null);
-
-        if (!homeId) {
-          setError(
-            'No se encontró el hogar seleccionado.',
-          );
-
-          setIsLoading(
-            false,
-          );
-
-          return;
-        }
-
-        setIsLoading(
-          true,
-        );
-
-        setError('');
-
-        try {
-          const [
-            homeResponse,
-            devicesResponse,
-          ] =
-            await Promise.all([
-              getHome(
-                homeId,
-              ),
-
-              listDevices(
-                homeId,
-              ),
-            ]);
-
-          setHome(
-            homeResponse,
-          );
-
-          setDevices(
-            devicesResponse,
-          );
-
-          try {
-            const membersResponse = await listMembers(homeId);
-            const membership = membersResponse.find(
-              (member) =>
-                member.homeId === homeId &&
-                member.userId === user?.id &&
-                member.status === 'ACTIVE',
-            ) ?? null;
-
-            setCurrentMembership(membership);
-
-            if (!membership) {
-              setError(
-                'No se pudo verificar tu membresía activa. Los controles permanecerán deshabilitados.',
-              );
-            }
-          } catch {
-            setCurrentMembership(null);
-            setError(
-              'No fue posible verificar los permisos del hogar. Los dispositivos permanecerán en modo de solo lectura.',
-            );
-          }
-
-          localStorage.setItem(
-            'activeHomeId',
-            homeId,
-          );
-        } catch (cause) {
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : 'No fue posible cargar los dispositivos.',
-          );
-        } finally {
-          setIsLoading(
-            false,
-          );
-        }
-      },
-      [homeId, user?.id],
-    );
-
-  /*
-   * Carga inicial
-   */
-  useEffect(() => {
-    void loadDevicesPage();
-  }, [loadDevicesPage]);
-
-  /*
-   * Actualizaciones en tiempo real
-   */
-  useEffect(() => {
-    const socket =
-      getRealtimeSocket();
-
-    if (
-      !socket ||
-      !homeId
-    ) {
-      return;
-    }
-
-    const handleConnected = (
-      payload: {
-        userId: string;
-      },
-    ) => {
-      console.log(
-        'Realtime conectado:',
-        payload,
-      );
-    };
-
-    const handleRealtimeError = (
-      payload: {
-        message: string;
-      },
-    ) => {
-      console.error(
-        'Realtime error:',
-        payload,
-      );
-    };
-
-    const handleDeviceStatusUpdated = (
-      payload:
-        DeviceStatusUpdatedEvent,
-    ) => {
-      if (
-        payload.homeId !==
-        homeId
-      ) {
-        return;
-      }
-
-      setDevices(
-        (
-          currentDevices,
-        ) =>
-          currentDevices.map(
-            (device) =>
-              device.id ===
-              payload.id
-                ? {
-                    ...device,
-
-                    connectivityStatus:
-                      payload.connectivityStatus,
-
-                    isOn:
-                      payload.isOn,
-
-                    currentPowerW:
-                      payload.currentPowerW,
-
-                    updatedAt:
-                      payload.updatedAt,
-                  }
-                : device,
-          ),
-      );
-    };
-
-    socket.on(
-      'realtime.connected',
-      handleConnected,
-    );
-
-    socket.on(
-      'realtime.error',
-      handleRealtimeError,
-    );
-
-    socket.on(
-      'device.status.updated',
-      handleDeviceStatusUpdated,
-    );
-
-    return () => {
-      socket.off(
-        'realtime.connected',
-        handleConnected,
-      );
-
-      socket.off(
-        'realtime.error',
-        handleRealtimeError,
-      );
-
-      socket.off(
-        'device.status.updated',
-        handleDeviceStatusUpdated,
-      );
-    };
-  }, [homeId]);
-
-  /*
-   * Buscador
-   */
-  const filteredDevices =
-    useMemo(() => {
-      const term =
-        search
-          .trim()
-          .toLowerCase();
-
-      if (!term) {
-        return devices;
-      }
-
-      return devices.filter(
-        (device) =>
-          device.name
-            .toLowerCase()
-            .includes(
-              term,
-            ),
-      );
-    }, [
-      devices,
-      search,
-    ]);
-
-  /*
-   * Estadísticas
-   */
-  const onlineCount =
-    devices.filter(
-      (device) =>
-        device.connectivityStatus ===
-        'ONLINE',
-    ).length;
-
-  const offlineCount =
-    devices.filter(
-      (device) =>
-        device.connectivityStatus ===
-        'OFFLINE',
-    ).length;
-
-  const onCount =
-    devices.filter(
-      (device) =>
-        device.isOn,
-    ).length;
-
-  /*
-   * Encender / apagar dispositivos
-   */
-  const handleControlDevice = async (device: Device) => {
-    if (!homeId || !canControlDevice) {
-      return;
-    }
-
-    if (device.connectivityStatus !== 'ONLINE') {
-      setError(
-        'El dispositivo está desconectado y no puede recibir órdenes.',
-      );
-      return;
-    }
-
-    if (pendingDeviceIds.has(device.id)) {
-      return;
-    }
-
-    const command = device.isOn ? 'TURN_OFF' : 'TURN_ON';
-
-    setPendingDeviceIds((current) => {
-      const next = new Set(current);
-      next.add(device.id);
-      return next;
-    });
-
-    setError('');
-
-    try {
-      const response = await controlDevice(homeId, device.id, command);
-
-      if (response.status !== 'COMMAND_PUBLISHED') {
-        setError('No se pudo confirmar la publicación de la orden.');
-      }
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'No fue posible enviar la orden al dispositivo.',
-      );
-    } finally {
-      setPendingDeviceIds((current) => {
-        const next = new Set(current);
-        next.delete(device.id);
-        return next;
-      });
-    }
   };
 
+  // Función para manejar el botón "Optimizar Ahora"
+  const handleOptimizeNow = () => {
+    setIsOptimized(true);
+  };
 
-  /*
-   * Loading
-   */
-  if (isLoading) {
-    return (
-      <main className="p-6">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
-          Cargando dispositivos...
-        </div>
-      </main>
-    );
-  }
+  // Función para guardar un nuevo dispositivo
+  const handleAddDevice = (e) => {
+    e.preventDefault();
+    if (!newName.trim() || !newPower.trim()) return;
 
-  /*
-   * Error que impide cargar
-   * completamente el hogar
-   */
-  if (
-    error &&
-    !home
-  ) {
-    return (
-      <main className="p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+    const newDevice = {
+      id: Date.now(),
+      name: newName,
+      location: newLocation.toUpperCase(),
+      power: `${newPower} W`,
+      consumption: '0.0 kWh',
+      active: false,
+    };
 
-          <p>
-            {error}
-          </p>
+    setDevicesList([...devicesList, newDevice]);
+    setNewName('');
+    setNewPower('');
+    setIsModalOpen(false);
+  };
 
-          <Button
-            type="button"
-            variant="secondary"
-            className="mt-4"
-            onClick={() =>
-              navigate(
-                '/homes',
-              )
-            }
-          >
-            Volver a Mis hogares
-          </Button>
+  const activeCount = devicesList.filter((d) => d.active).length;
+  const totalCount = devicesList.length;
 
-        </div>
-      </main>
-    );
-  }
-
-  /*
-   * Pantalla normal
-   */
   return (
-    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+    <div className="p-6 min-h-screen bg-[#f4f5f9] dark:bg-[#0f111a] font-sans antialiased text-gray-900 dark:text-white transition-colors duration-300">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-      <div className="mx-auto max-w-7xl space-y-7">
-
-        {/* ================================= */}
-        {/* HEADER                            */}
-        {/* ================================= */}
-
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
+        {/* ================= ENCABEZADO CORREGIDO (IMAGE_28279A.PNG) ================= */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#151824] p-4 rounded-2xl border border-gray-100 dark:border-gray-800/40 shadow-sm">
           <div>
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  `/homes/${homeId}/dashboard`,
-                )
-              }
-              className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
-            >
-              Volver al hogar
-            </button>
-
-            <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
-              Dispositivos
+            <h1 className="text-2xl font-bold tracking-tight text-[#1e1e2f] dark:text-white m-0">
+              {t('Mis Dispositivos')}
             </h1>
-
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {home?.name}
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              Gestiona y controla todos tus equipos IoT en tiempo real.
             </p>
-
           </div>
-          {isOwner && (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() =>
-                navigate(
-                  `/homes/${homeId}/devices/add`,
-                    )
-              }
+
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            {/* BARRA DE BÚSQUEDA REDONDEADA */}
+            <div className="relative flex-1 sm:flex-none">
+              <input
+                type="text"
+                placeholder="Buscar en reportes..."
+                className="w-full sm:w-60 bg-gray-50 dark:bg-gray-800/40 text-xs pl-4 pr-12 py-2.5 rounded-full border border-gray-200/60 dark:border-gray-800 focus:outline-none focus:border-[#4c3ff7] transition-colors placeholder-gray-400 text-gray-700 dark:text-gray-200"
+              />
+              <button 
+                type="button" 
+                aria-label={t('common.search')}
+                className="absolute right-1 top-1 bg-[#4c3ff7] hover:bg-[#3b31db] text-white p-1.5 rounded-full shadow-sm transition-all flex items-center justify-center w-7 h-7"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* CAMPANITA DE NOTIFICACIONES */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-label={t('nav.notifications')}
+                className="p-2.5 bg-white dark:bg-[#151824] text-gray-500 dark:text-gray-400 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm hover:scale-105 transition-all relative flex items-center justify-center w-10 h-10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-[#151824]">
+                  1
+                </span>
+              </button>
+            </div>
+
+            {/* BOTÓN AGREGAR DISPOSITIVO */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#1e56ff] hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1"
             >
-              + Agregar dispositivo
-            </Button>
-          )}
+              <span className="text-base font-bold">+</span> Agregar Dispositivo
+            </button>
+          </div>
+        </div>
 
-        </header>
-
-        {/* ================================= */}
-        {/* ERROR NO BLOQUEANTE               */}
-        {/* ================================= */}
-
-        {error && (
-          <div
-            role="alert"
-            className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
-          >
-            {error}
+        {/* ================= BARRA DE SMART SUGGESTION ================= */}
+        {showSuggestion && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h4 className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                <span>💡</span> Smart Suggestion
+              </h4>
+              <p className="text-[11px] font-medium text-amber-700/90 dark:text-gray-400 mt-1 max-w-xl">
+                {isOptimized 
+                  ? '¡El Calentador de Agua ha sido configurado en modo ecológico correctamente!' 
+                  : 'Detectamos que el Calentador de Agua consume el 40% de tu energía total. ¿Deseas programar un horario de bajo consumo?'}
+              </p>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button
+                onClick={handleOptimizeNow}
+                disabled={isOptimized}
+                className={`flex-1 sm:flex-none whitespace-nowrap text-[11px] font-bold px-4 py-2 rounded-lg transition-all ${
+                  isOptimized 
+                    ? 'bg-emerald-600 text-white cursor-default' 
+                    : 'bg-amber-950 text-white dark:bg-amber-500 dark:text-amber-950 hover:opacity-90'
+                }`}
+              >
+                {isOptimized ? '✓ Optimizado' : 'Optimizar Ahora'}
+              </button>
+              <button
+                onClick={() => setShowSuggestion(false)}
+                className="flex-1 sm:flex-none whitespace-nowrap bg-white/80 dark:bg-transparent border border-gray-200 dark:border-gray-700 text-xs font-bold px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-50"
+              >
+                {isOptimized ? 'Cerrar' : 'Más tarde'}
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ================================= */}
-        {/* RESUMEN                           */}
-        {/* ================================= */}
-
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-
-            <CardContent className="p-5">
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Total
-              </p>
-
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
-                {devices.length}
-              </p>
-
-            </CardContent>
-
-          </Card>
-
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-
-            <CardContent className="p-5">
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Online
-              </p>
-
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
-                {onlineCount}
-              </p>
-
-            </CardContent>
-
-          </Card>
-
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-
-            <CardContent className="p-5">
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Offline
-              </p>
-
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
-                {offlineCount}
-              </p>
-
-            </CardContent>
-
-          </Card>
-
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-
-            <CardContent className="p-5">
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Encendidos
-              </p>
-
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
-                {onCount}
-              </p>
-
-            </CardContent>
-
-          </Card>
-
-        </section>
-
-        {/* ================================= */}
-        {/* LISTADO                           */}
-        {/* ================================= */}
-
-        <section>
-
-          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-            <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
-              Dispositivos del hogar
-            </h2>
-
-            <div className="w-full sm:w-72">
-
-              <Input
-                label=""
-                type="text"
-                placeholder="Buscar dispositivo..."
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value,
-                  )
-                }
-              />
-
+        {/* ================= TARJETAS DE RESUMEN ================= */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* TARJETA 1 */}
+          <div className="bg-white dark:bg-[#151824] p-5 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/50 text-[#1e56ff] rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Consumo Total Hoy</span>
+                <p className="text-2xl font-extrabold text-[#1e1e2f] dark:text-white tracking-tight mt-0.5">14.3 kWh</p>
+              </div>
             </div>
-
+            <span className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> EN VIVO
+            </span>
           </div>
 
-          {filteredDevices.length ===
-          0 ? (
-            <div className="rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-[#151824]">
-
-              <p className="font-semibold text-[#1b254b] dark:text-white">
-                No hay dispositivos
+          {/* TARJETA 2 */}
+          <div className="bg-white dark:bg-[#151824] p-5 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 text-gray-500 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dispositivos Activos</span>
+              <p className="text-2xl font-extrabold text-[#1e1e2f] dark:text-white tracking-tight mt-0.5">
+                {activeCount < 10 ? `0${activeCount}` : activeCount} <span className="text-sm font-bold text-gray-400">/ {totalCount}</span>
               </p>
+            </div>
+          </div>
+        </div>
 
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Agrega tu primer dispositivo
-                para comenzar a controlarlo
-                desde SmartHome.
-              </p>
-              {isOwner && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="mt-5"
-                  onClick={() =>
-                    navigate(
-                      `/homes/${homeId}/devices/add`,
-                    )
-                  }
+        {/* ================= GRILLA DE DISPOSITIVOS ================= */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {devicesList.map((device) => (
+            <div
+              key={device.id}
+              className={`p-5 rounded-3xl transition-all duration-300 relative flex flex-col justify-between h-64 border ${
+                device.active
+                  ? 'bg-gradient-to-br from-[#0c4eff] to-[#0038cb] text-white shadow-lg border-transparent'
+                  : 'bg-white dark:bg-[#151824] text-gray-900 dark:text-white border-gray-100 dark:border-gray-800/70 shadow-sm'
+              }`}
+            >
+              {/* Indicador de Estado Superior Derecho */}
+              <div className="flex justify-end items-start w-full">
+                <span className={`w-2 h-2 rounded-full ${device.active ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
+              </div>
+
+              {/* Info Cuerpo */}
+              <div className="mt-2">
+                <h3 className={`text-lg font-bold tracking-tight ${device.active ? 'text-white' : 'text-gray-800 dark:text-white'}`}>
+                  {device.name}
+                </h3>
+                <span className={`text-[9px] font-bold tracking-wider uppercase block mt-0.5 ${device.active ? 'text-white/60' : 'text-gray-400'}`}>
+                  {device.location}
+                </span>
+              </div>
+
+              {/* Parámetros técnicos */}
+              <div className="flex justify-between items-center border-t border-dashed pt-4 mt-4 border-white/20 dark:border-gray-800/60">
+                <div>
+                  <p className={`text-[10px] font-medium ${device.active ? 'text-white/70' : 'text-gray-400'}`}>Potencia</p>
+                  <p className="text-xs font-bold">{device.power}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-[10px] font-medium ${device.active ? 'text-white/70' : 'text-gray-400'}`}>Consumo</p>
+                  <p className="text-xs font-bold font-mono">{device.consumption}</p>
+                </div>
+              </div>
+
+              {/* Switch de Encendido */}
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => toggleDeviceActive(device.id)}
+                  className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
+                    device.active ? 'bg-white' : 'bg-gray-200 dark:bg-gray-700'
+                  }`}
                 >
-                  + Agregar dispositivo
-                </Button>
-              )}
-
+                  <div
+                    className={`w-5 h-5 rounded-full shadow-sm transform transition-transform duration-200 ${
+                      device.active ? 'translate-x-5 bg-[#0038cb]' : 'translate-x-0 bg-white'
+                    }`}
+                  ></div>
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-
-              {filteredDevices.map(
-                (device) => (
-                  <Card
-                    key={
-                      device.id
-                    }
-                    className="rounded-2xl border border-gray-100 dark:border-gray-800"
-                  >
-
-                    <CardContent className="p-6">
-
-                      <div className="flex items-start justify-between gap-3">
-
-                        <div>
-
-                          <h3 className="text-lg font-semibold text-[#1b254b] dark:text-white">
-                            {
-                              device.name
-                            }
-                          </h3>
-
-                          <span
-                            className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-                              device.connectivityStatus ===
-                              'ONLINE'
-                                ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
-                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-                            }`}
-                          >
-                            {
-                              device.connectivityStatus
-                            }
-                          </span>
-
-                        </div>
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            device.isOn
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300'
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-                          }`}
-                        >
-                          {device.isOn
-                            ? 'Encendido'
-                            : 'Apagado'}
-                        </span>
-
-                      </div>
-
-                      <div className="mt-5 space-y-2 text-sm text-gray-500 dark:text-gray-400">
-
-                        <p>
-                          Potencia actual:{' '}
-
-                          <span className="font-semibold text-[#1b254b] dark:text-white">
-                            {device.currentPowerW === null
-                              ? 'Sin datos'
-                              : `${device.currentPowerW} W`}
-                          </span>
-                        </p>
-
-                      </div>
-
-                      <div className="mt-6 space-y-3">
-                        {canControlDevice && (
-
-                          <Button
-                            type="button"
-                            variant="primary"
-                            className="w-full"
-                            disabled={
-                              device.connectivityStatus !== 'ONLINE' ||
-                              pendingDeviceIds.has(device.id)
-                            }
-                            onClick={() =>
-                              void handleControlDevice(device)
-                            }
-                          >
-                            {pendingDeviceIds.has(device.id)
-                              ? 'Enviando orden...'
-                              : device.isOn
-                                ? 'Apagar'
-                                : 'Encender'}
-                          </Button>
-                        )}
-
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="w-full"
-                          onClick={() =>
-                            navigate(
-                              `/homes/${homeId}/devices/${device.id}`,
-                            )
-                          }
-                        >
-                          Ver detalle
-                        </Button>
-
-                      </div>
-
-                    </CardContent>
-
-                  </Card>
-                ),
-              )}
-
-            </div>
-          )}
-
-        </section>
+          ))}
+        </div>
 
       </div>
 
-    </main>
+      {/* ================= MODAL AGREGAR DISPOSITIVO ================= */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#151824] rounded-2xl max-w-md w-full p-6 border border-gray-100 dark:border-gray-800 shadow-xl">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">Añadir Nuevo Equipo IoT</h3>
+            <form onSubmit={handleAddDevice} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Nombre</label>
+                <input
+                  type="text"
+                  required
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Ej. Cafetera Smart"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Ubicación</label>
+                <select
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+                >
+                  <option value="SALA DE ESTAR">Sala de Estar</option>
+                  <option value="COCINA">Cocina</option>
+                  <option value="BAÑO">Baño</option>
+                  <option value="LAVANDERÍA">Lavandería</option>
+                  <option value="DORMITORIO">Dormitorio</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1">Potencia nominal (Watts)</label>
+                <input
+                  type="number"
+                  required
+                  value={newPower}
+                  onChange={(e) => setNewPower(e.target.value)}
+                  placeholder="Ej. 800"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-2 text-xs font-bold bg-gray-50 dark:bg-gray-800 text-gray-500 rounded-xl hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 text-xs font-bold bg-[#1e56ff] text-white rounded-xl hover:bg-blue-700"
+                >
+                  Guardar Nodo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
+export { Devices };
 export default Devices;
