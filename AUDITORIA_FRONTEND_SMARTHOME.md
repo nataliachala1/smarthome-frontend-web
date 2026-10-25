@@ -1,4 +1,4 @@
-SMTP_USER=kevinytkevinyt3@gmail.com
-SMTP_APP_PASSWORD=[REDACTADA - revocar y reemplazar]
-SMTP_FROM=tu_correo@gmail.com
+SMTP_USER=tu_usuario@example.com
+SMTP_APP_PASSWORD=replace_with_app_password
+SMTP_FROM=Smart Home <noreply@example.com>
 FRONTEND_URL=http://localhost:5173

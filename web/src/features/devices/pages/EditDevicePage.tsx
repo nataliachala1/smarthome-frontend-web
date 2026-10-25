@@ -291,4 +291,3 @@ export const EditDevicePage = () => {
 };
 
 export default EditDevicePage;
-
