@@ -41,6 +41,20 @@ jobs:
           load: true
           push: false
           tags: smarthome-frontend-web:ci
+      - name: Smoke test frontend container
+        shell: bash
+        run: |
+          docker run --detach --rm --name smarthome-frontend-web-ci --publish 127.0.0.1:18080:8080 smarthome-frontend-web:ci
+          trap 'docker stop smarthome-frontend-web-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 18); do
+            health="$(docker inspect --format '{{.State.Health.Status}}' smarthome-frontend-web-ci)"
+            if [ "$health" = "healthy" ]; then break; fi
+            if [ "$health" = "unhealthy" ]; then docker logs smarthome-frontend-web-ci; exit 1; fi
+            sleep 5
+          done
+          test "$health" = "healthy"
+          curl --fail --silent --show-error http://127.0.0.1:18080/ --output /dev/null
+          curl --fail --silent --show-error http://127.0.0.1:18080/dashboard --output /dev/null
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
