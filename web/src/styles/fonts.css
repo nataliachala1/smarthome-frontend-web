@@ -1,0 +1,4 @@
+/* Inter keeps dashboard labels and telemetry values readable at small sizes. */
+:root {
+  --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
