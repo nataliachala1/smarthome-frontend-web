@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'defaultValue'> {
   label?: string;
@@ -25,6 +25,8 @@ export const Input = ({
   defaultValue,
   ...props
 }: InputProps) => {
+  const generatedId = useId();
+  const inputId = props.id ?? generatedId;
   const [valueState, setValueState] = useState(value ?? defaultValue ?? '');
   const [touched, setTouched] = useState(false);
   const [internalError, setInternalError] = useState('');
@@ -33,7 +35,7 @@ export const Input = ({
     if (value !== undefined) setValueState(value);
   }, [value]);
 
-  const runValidation = (val) => {
+  const runValidation = (val: string) => {
     if (required && (!val || String(val).trim() === '')) return 'Este campo es obligatorio';
     if (minLength && String(val).length < minLength)
       return `Debe tener al menos ${minLength} caracteres`;
@@ -54,7 +56,7 @@ export const Input = ({
     return '';
   };
 
-  const handleBlur = (e) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
     if (actualValidateOn === 'blur' || actualValidateOn === 'change') {
       setInternalError(runValidationWrapped(valueState));
@@ -62,7 +64,7 @@ export const Input = ({
     if (props.onBlur) props.onBlur(e);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (value === undefined) setValueState(val);
     if (onChange) onChange(e);
@@ -70,7 +72,7 @@ export const Input = ({
   };
 
   const displayedError = externalError || (touched ? internalError : '');
-  const errorId = props.id ? `${props.id}-error` : undefined;
+  const errorId = displayedError ? `${inputId}-error` : undefined;
 
   const isPassword = props.type === 'password';
   const [showPassword, setShowPassword] = useState(false);
@@ -82,7 +84,7 @@ export const Input = ({
   const effectiveMinLength = isPassword && minLength === undefined ? 8 : minLength;
   const passwordPattern = /(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}/;
 
-  const effectiveValidate = (val) => {
+  const effectiveValidate = (val: string) => {
     if (isPassword) {
       const pw = String(val || '');
       if (effectiveMinLength && pw.length < effectiveMinLength)
@@ -96,7 +98,7 @@ export const Input = ({
 
   // If it's a password field and the user didn't provide a validate prop,
   // use effectiveValidate inside runValidation by wrapping.
-  const runValidationWrapped = (val) => {
+  const runValidationWrapped = (val: string) => {
     if (isPassword && !validate) return effectiveValidate(val);
     return runValidation(val);
   };
@@ -104,14 +106,14 @@ export const Input = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-slate-700 dark:text-slate-200 mb-2">
+        <label htmlFor={inputId} className="block text-slate-700 dark:text-slate-200 mb-2">
           {label} {required && <span className="text-[#dc2626]">*</span>}
         </label>
       )}
       <div className="relative">
         <input
           {...props}
-          id={props.id}
+          id={inputId}
           type={isPassword ? (showPassword ? 'text' : 'password') : props.type}
           // enforce HTML constraints for password fields
           required={isPassword ? (required === undefined ? true : required) : required}

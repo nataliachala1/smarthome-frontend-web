@@ -1,5 +1,19 @@
-export const Badge = ({ children, variant = 'default', className = '' }) => {
-  const variantStyles = {
+import type { ReactNode } from 'react';
+
+type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
+
+interface BadgeProps {
+  children: ReactNode;
+  variant?: BadgeVariant;
+  className?: string;
+}
+
+export const Badge = ({
+  children,
+  variant = 'default',
+  className = '',
+}: BadgeProps) => {
+  const variantStyles: Record<BadgeVariant, string> = {
     default: 'bg-[#f5f5f5] text-[#1a1a1a] dark:bg-[#262626] dark:text-[#e5e5e5]',
     success: 'bg-[#dcfce7] text-[#166534] dark:bg-[#14532d] dark:text-[#86efac]',
     warning: 'bg-[#fef3c7] text-[#92400e] dark:bg-[#78350f] dark:text-[#fde68a]',
