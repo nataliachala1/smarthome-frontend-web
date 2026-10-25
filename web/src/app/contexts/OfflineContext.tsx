@@ -1,8 +1,22 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
-const OfflineContext = createContext(undefined);
+interface OfflineContextValue {
+  isOnline: boolean;
+}
 
-export const OfflineProvider = ({ children }) => {
+interface OfflineProviderProps {
+  children: ReactNode;
+}
+
+const OfflineContext = createContext<OfflineContextValue | undefined>(undefined);
+
+export const OfflineProvider = ({ children }: OfflineProviderProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {

@@ -11,6 +11,6 @@ npm run typecheck
 npm run build
 ```
 
-`VITE_API_URL` is optional and defaults to `/api/v1`. It is embedded in public browser assets at build time and must never contain credentials or other secrets.
+`VITE_API_URL` is optional and defaults to `/api/v1`. It is embedded in public browser assets at build time and must never contain credentials or other secrets. `VITE_BACKEND_URL` configures the Vite development proxy and defaults to `http://localhost:3000`; it is not used by the production Nginx image. `VITE_REALTIME_URL` selects the Socket.IO namespace; the transport path remains `/socket.io/`.
 
-The `dev` branch workflow performs these checks, builds a Docker image, publishes `dev` and commit-SHA tags to GHCR, and then requests deployment through Dokploy.
+The workflow validates pull requests to `dev` and `main`, and on pushes to `dev` publishes `dev` and commit-SHA tags to GHCR. The Dokploy deployment job remains disabled until the VPS backup and restore audit is complete.

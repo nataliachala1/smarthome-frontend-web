@@ -46,9 +46,10 @@ The web application is located in web/ and uses the following Vite variables:
 
 VITE_API_URL
 VITE_REALTIME_URL
+VITE_BACKEND_URL
 VITE_APP_ENV
 
-The template is available at web/.env.example.
+The template is available at web/.env.example. `VITE_BACKEND_URL` configures only the Vite development proxy; the production Nginx image proxies to the `backend:3000` service on its private network.
 
 The frontend Docker image can be built independently with:
     docker build -t smarthome-frontend-web .\web
