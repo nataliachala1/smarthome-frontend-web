@@ -44,15 +44,17 @@ jobs:
       - name: Smoke test frontend container
         shell: bash
         run: |
-          docker run --detach --rm --name smarthome-frontend-web-ci --publish 127.0.0.1:18080:8080 smarthome-frontend-web:ci
-          trap 'docker stop smarthome-frontend-web-ci >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name smarthome-frontend-web-ci --publish 127.0.0.1:18080:8080 smarthome-frontend-web:ci
+          trap 'docker rm --force smarthome-frontend-web-ci >/dev/null 2>&1 || true' EXIT
           for attempt in $(seq 1 18); do
+            state="$(docker inspect --format '{{.State.Status}}' smarthome-frontend-web-ci)"
+            if [ "$state" != "running" ]; then docker logs smarthome-frontend-web-ci; exit 1; fi
             health="$(docker inspect --format '{{.State.Health.Status}}' smarthome-frontend-web-ci)"
             if [ "$health" = "healthy" ]; then break; fi
             if [ "$health" = "unhealthy" ]; then docker logs smarthome-frontend-web-ci; exit 1; fi
             sleep 5
           done
-          test "$health" = "healthy"
+          if [ "$health" != "healthy" ]; then docker inspect smarthome-frontend-web-ci; docker logs smarthome-frontend-web-ci; exit 1; fi
           curl --fail --silent --show-error http://127.0.0.1:18080/ --output /dev/null
           curl --fail --silent --show-error http://127.0.0.1:18080/dashboard --output /dev/null
 
