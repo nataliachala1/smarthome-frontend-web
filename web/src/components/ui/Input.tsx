@@ -1,10 +1,13 @@
-import React, { useEffect, useId, useState } from 'react';
+﻿import React, { useEffect, useId, useState } from 'react';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'defaultValue'> {
   label?: string;
   error?: string;
   validate?: (value: string) => string;
   validateOn?: 'blur' | 'change';
+  leadingIcon?: React.ReactNode;
+  passwordToggle?: 'text' | 'icon';
+  showPasswordStrength?: boolean;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   value?: string;
   defaultValue?: string;
@@ -19,7 +22,10 @@ export const Input = ({
   maxLength,
   pattern,
   validate,
-  validateOn = 'blur', // 'blur' | 'change'
+  validateOn = 'blur',
+  leadingIcon,
+  passwordToggle = 'text',
+  showPasswordStrength = false,
   onChange,
   value,
   defaultValue,
@@ -35,125 +41,120 @@ export const Input = ({
     if (value !== undefined) setValueState(value);
   }, [value]);
 
-  const runValidation = (val: string) => {
-    if (required && (!val || String(val).trim() === '')) return 'Este campo es obligatorio';
-    if (minLength && String(val).length < minLength)
-      return `Debe tener al menos ${minLength} caracteres`;
-    if (maxLength && String(val).length > maxLength)
-      return `Debe tener como máximo ${maxLength} caracteres`;
+  const runValidation = (rawValue: string) => {
+    if (required && (!rawValue || rawValue.trim() === '')) return 'Este campo es obligatorio';
+    if (minLength && rawValue.length < minLength) return `Debe tener al menos ${minLength} caracteres`;
+    if (maxLength && rawValue.length > maxLength) return `Debe tener como máximo ${maxLength} caracteres`;
     if (pattern) {
       try {
-        const re = new RegExp(String(pattern));
-        if (!re.test(String(val))) return 'Formato inválido';
+        if (!new RegExp(String(pattern)).test(rawValue)) return 'Formato inválido';
       } catch {
-        // invalid pattern - ignore here
+        // An invalid pattern should not block entry.
       }
     }
-    if (validate && typeof validate === 'function') {
-      const custom = validate(val);
-      if (custom) return custom;
-    }
-    return '';
+    return validate?.(rawValue) ?? '';
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
-    if (actualValidateOn === 'blur' || actualValidateOn === 'change') {
-      setInternalError(runValidationWrapped(valueState));
-    }
-    if (props.onBlur) props.onBlur(e);
+    setInternalError(runValidation(valueState));
+    props.onBlur?.(event);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (value === undefined) setValueState(val);
-    if (onChange) onChange(e);
-    if (actualValidateOn === 'change') setInternalError(runValidationWrapped(val));
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    if (value === undefined) setValueState(nextValue);
+    onChange?.(event);
+    if (validateOn === 'change' || touched) setInternalError(runValidation(nextValue));
   };
 
   const displayedError = externalError || (touched ? internalError : '');
   const errorId = displayedError ? `${inputId}-error` : undefined;
-
+  const describedBy = [props['aria-describedby'], errorId].filter(Boolean).join(' ') || undefined;
   const isPassword = props.type === 'password';
   const [showPassword, setShowPassword] = useState(false);
 
-  // for password fields, validate while typing and enforce stricter defaults
-  const actualValidateOn = isPassword ? 'change' : validateOn;
-
-  // Apply sensible defaults for password fields when not explicitly provided
-  const effectiveMinLength = isPassword && minLength === undefined ? 8 : minLength;
-  const passwordPattern = /(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}/;
-
-  const effectiveValidate = (val: string) => {
-    if (isPassword) {
-      const pw = String(val || '');
-      if (effectiveMinLength && pw.length < effectiveMinLength)
-        return `La contraseña debe tener al menos ${effectiveMinLength} caracteres`;
-      if (!/\d/.test(pw)) return 'La contraseña debe incluir al menos un número';
-      if (!/[^A-Za-z0-9]/.test(pw)) return 'La contraseña debe incluir al menos un carácter especial';
-    }
-    if (validate && typeof validate === 'function') return validate(val);
-    return '';
-  };
-
-  // If it's a password field and the user didn't provide a validate prop,
-  // use effectiveValidate inside runValidation by wrapping.
-  const runValidationWrapped = (val: string) => {
-    if (isPassword && !validate) return effectiveValidate(val);
-    return runValidation(val);
+  const passwordStrength = () => {
+    const password = String(valueState);
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (score <= 1) return 'Débil';
+    if (score < 4) return 'Media';
+    return 'Fuerte';
   };
 
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-slate-700 dark:text-slate-200 mb-2">
-          {label} {required && <span className="text-[#dc2626]">*</span>}
+        <label htmlFor={inputId} className="mb-2 block text-foreground">
+          {label} {required && <span className="text-destructive">*</span>}
         </label>
       )}
       <div className="relative">
+        {leadingIcon && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-4 z-10 flex items-center text-[#7180a0] dark:text-[#a3b2cc]"
+          >
+            {leadingIcon}
+          </span>
+        )}
         <input
           {...props}
           id={inputId}
           type={isPassword ? (showPassword ? 'text' : 'password') : props.type}
-          // enforce HTML constraints for password fields
-          required={isPassword ? (required === undefined ? true : required) : required}
-          minLength={isPassword ? effectiveMinLength : minLength}
-          pattern={isPassword ? passwordPattern.source : pattern}
+          required={required}
+          minLength={minLength}
+          maxLength={maxLength}
+          pattern={pattern}
           value={valueState}
           onChange={handleChange}
           onBlur={handleBlur}
-          aria-invalid={!!displayedError}
-          aria-describedby={displayedError && errorId}
-          className={`w-full px-4 py-3 bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#333333] text-[#1a1a1a] dark:text-[#e5e5e5] placeholder:text-[#8b98aa] dark:placeholder:text-[#7b8693] shadow-sm shadow-slate-900/5 dark:shadow-black/20 focus:outline-none focus:border-[#1866C1] focus:ring-2 focus:ring-[#1866C1]/20 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+          aria-invalid={Boolean(displayedError)}
+          aria-describedby={describedBy}
+          className={`w-full border border-input bg-input-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,background-color,color] duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-black/20 ${className}`}
         />
         {isPassword && (
           <button
             type="button"
-            onClick={() => setShowPassword((s) => !s)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#666666] dark:text-[#a3a3a3]"
+            onClick={() => setShowPassword((visible) => !visible)}
+            className={`absolute right-2 top-1/2 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-lg text-sm text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${passwordToggle === 'icon' ? 'sh-input-password-toggle' : ''}`}
             aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-pressed={showPassword}
           >
-            {showPassword ? 'Ocultar' : 'Mostrar'}
+            {passwordToggle === 'icon' ? (
+              <>
+                <span className="sr-only">{showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}</span>
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9.9 5.2A10.8 10.8 0 0112 5c5.2 0 8.8 4.6 9.5 6-.3.6-1.2 1.9-2.7 3.3M6.2 6.2C3.9 7.7 2.7 10.2 2.5 11c.7 1.4 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                    <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+                  </svg>
+                )}
+              </>
+            ) : (
+              showPassword ? 'Ocultar' : 'Mostrar'
+            )}
           </button>
         )}
       </div>
       {displayedError && (
-        <p id={errorId} className="mt-1 text-sm text-[#dc2626]">
+        <p id={errorId} aria-live="polite" className="mt-1 text-sm text-destructive">
           {displayedError}
         </p>
       )}
-      {isPassword && !displayedError && valueState && (
-        <p className="mt-1 text-sm text-[#6b7280] dark:text-[#9ca3af]">Nivel: {(() => {
-          const pw = String(valueState);
-          let score = 0;
-          if (pw.length >= (effectiveMinLength || 8)) score++;
-          if (/[A-Z]/.test(pw)) score++;
-          if (/\d/.test(pw)) score++;
-          if (/[^A-Za-z0-9]/.test(pw)) score++;
-          if (score <= 1) return 'Débil';
-          if (score === 2) return 'Media';
-          return 'Fuerte';
-        })()}</p>
+      {isPassword && showPasswordStrength && !displayedError && valueState && (
+        <p className="mt-1 text-sm text-[#6b7280] dark:text-[#9ca3af]">
+          Nivel: {passwordStrength()}
+        </p>
       )}
     </div>
   );

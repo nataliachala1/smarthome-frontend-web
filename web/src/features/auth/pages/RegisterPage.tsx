@@ -6,10 +6,10 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 
 const AuthLogo = () => (
-  <div className="grid h-14 w-14 place-items-center rounded-3xl bg-[#eff6ff] text-[#1866C1] shadow-sm shadow-[#1866C1]/10 dark:bg-[#111827] dark:text-[#bfdbfe]">
+  <div className="sh-login-logo-mark" aria-hidden="true">
     <svg
       viewBox="0 0 64 64"
-      className="h-8 w-8"
+      className="h-14 w-14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -115,104 +115,169 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-8 rounded-[32px] shadow-2xl shadow-slate-900/10">
-
-          <div className="mb-8 text-center">
-            <div className="flex items-center justify-center gap-4">
+    <main className="sh-login-page sh-register-page sh-register-page--fullscreen">
+      <section className="sh-login-card sh-register-card sh-register-card--fullscreen" aria-label="Crear cuenta en Smart Home">
+        <div className="sh-login-form sh-register-form">
+          <div className="sh-login-content sh-register-content">
+            <div className="sh-login-brand sh-register-brand sh-register-stagger">
               <AuthLogo />
-              <h1 className="text-[#1866C1] text-3xl font-semibold">
-                {t('app.name')}
-              </h1>
+              <span>{t('app.name')}</span>
             </div>
 
-            <p className="mt-4 text-sm text-[#666666] dark:text-[#a3a3a3]">
-              Crea tu cuenta de Smart Home
+            <header className="sh-login-heading sh-register-heading sh-register-stagger">
+              <h1>Crear cuenta</h1>
+              <p>Crea tu cuenta para administrar tus hogares y dispositivos inteligentes.</p>
+            </header>
+
+            <form onSubmit={handleSubmit} className="sh-login-fields sh-register-fields">
+              <Input
+                label={t('auth.name')}
+                type="text"
+                autoComplete="name"
+                placeholder="Nombre completo"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="M5.5 20c.6-3.1 3.1-5 6.5-5s5.9 1.9 6.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                )}
+                className="sh-login-input sh-register-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                validate={(value) =>
+                  /^[A-Za-zÀ-ÿ\s]+$/.test(String(value || '').trim())
+                    ? ''
+                    : 'El nombre no puede contener números ni caracteres especiales'
+                }
+                validateOn="change"
+              />
+
+              <Input
+                label={t('auth.email')}
+                type="email"
+                autoComplete="email"
+                placeholder="Correo electrónico"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                className="sh-login-input sh-register-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <Input
+                label={t('auth.password')}
+                type="password"
+                autoComplete="new-password"
+                placeholder="Crea una contraseña"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <rect x="4.5" y="10" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                )}
+                passwordToggle="icon"
+                className="sh-login-input sh-login-input--password sh-register-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                showPasswordStrength
+                validate={(value) => {
+                  const candidate = String(value);
+                  if (candidate.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+                  if (!/[A-Z]/.test(candidate)) return 'La contraseña debe incluir al menos una letra mayúscula';
+                  if (!/\d/.test(candidate)) return 'La contraseña debe incluir al menos un número';
+                  if (!/[^A-Za-z0-9]/.test(candidate)) return 'La contraseña debe incluir al menos un carácter especial';
+                  return '';
+                }}
+                validateOn="change"
+              />
+
+              <Input
+                label={t('auth.confirmPassword')}
+                type="password"
+                autoComplete="new-password"
+                placeholder="Confirma tu contraseña"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <rect x="4.5" y="10" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                )}
+                passwordToggle="icon"
+                className="sh-login-input sh-login-input--password sh-register-input"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                validate={(value) =>
+                  String(value) === password
+                    ? ''
+                    : 'Las contraseñas no coinciden'
+                }
+                validateOn="change"
+              />
+
+              {formError && (
+                <div role="alert" className="sh-login-error sh-animate-fade-in">
+                  {formError}
+                </div>
+              )}
+
+              {registrationMessage && (
+                <div role="status" aria-live="polite" className="sh-register-success sh-animate-fade-in">
+                  {registrationMessage}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full sh-login-submit sh-register-submit"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="sh-register-spinner" aria-hidden="true" />
+                    <span>Registrando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Crear cuenta</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="sh-login-divider sh-register-divider" aria-hidden="true"><span /></div>
+
+            <p className="sh-login-register sh-register-footer">
+              ¿Ya tienes una cuenta?{' '}
+              <button type="button" onClick={() => navigate('/login')}>
+                Inicia sesión
+              </button>
             </p>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            <Input
-              label={t('auth.name')}
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              validate={(value) =>
-                /^[A-Za-zÀ-ÿ\s]+$/.test(String(value || '').trim())
-                  ? ''
-                  : 'El nombre no puede contener números ni caracteres especiales'
-              }
-              validateOn="change"
-            />
-
-            <Input
-              label={t('auth.email')}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <Input
-              label={t('auth.password')}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <Input
-              label={t('auth.confirmPassword')}
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              validate={(value) =>
-                String(value) === password
-                  ? ''
-                  : 'Las contraseñas no coinciden'
-              }
-              validateOn="change"
-            />
-
-            {formError && (
-              <div className="text-sm text-[#dc2626]">
-                {formError}
-              </div>
-            )}
-
-            {registrationMessage && (
-              <div className="text-sm text-emerald-600">
-                {registrationMessage}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Registrando...' : t('auth.register')}
-            </Button>
-
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-sm text-[#1866C1] hover:underline"
-            >
-              ¿Ya tienes cuenta? Inicia sesión
-            </button>
-          </div>
-
         </div>
-      </div>
-    </div>
+
+        <aside className="sh-login-abstract-panel sh-register-abstract-panel" aria-labelledby="sh-register-message-title">
+          <div className="sh-login-abstract-copy sh-register-abstract-copy">
+            <h2 id="sh-register-message-title">
+              Tu hogar inteligente<br />
+              <span>comienza aquí.</span>
+            </h2>
+            <p>Crea tu cuenta y gestiona tus dispositivos desde un solo lugar.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
   );
 };

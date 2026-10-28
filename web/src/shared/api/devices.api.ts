@@ -94,3 +94,24 @@ export const controlDevice = (
       body: { command },
     },
   );
+
+export interface DeleteDeviceResponse {
+  message: string;
+}
+
+export const listInactiveDevices = (homeId: string) =>
+  apiClient<Device[]>(
+    `/homes/${encodeURIComponent(homeId)}/devices/inactive`,
+  );
+
+export const activateDevice = (homeId: string, deviceId: string) =>
+  apiClient<Device>(
+    `/homes/${encodeURIComponent(homeId)}/devices/${encodeURIComponent(deviceId)}/activate`,
+    { method: 'PATCH' },
+  );
+
+export const deleteDevice = (homeId: string, deviceId: string) =>
+  apiClient<DeleteDeviceResponse>(
+    `/homes/${encodeURIComponent(homeId)}/devices/${encodeURIComponent(deviceId)}`,
+    { method: 'DELETE' },
+  );

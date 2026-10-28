@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 import '../i18n/config';
 
@@ -25,6 +26,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { ActivateAccountPage } from '../features/auth/pages/ActivateAccountPage';
 import { ResendActivationPage } from '../features/auth/pages/ResendActivationPage';
+import { AccountReactivationPage } from '../features/auth/pages/AccountReactivationPage';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
 
@@ -76,6 +78,17 @@ interface RouteGuardProps {
   children: ReactNode;
 }
 
+const AuthInitializationStatus = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="sh-route-loading" role="status">
+      <span className="sh-route-loading__indicator" aria-hidden="true" />
+      <span>{t('common.loading')}</span>
+    </div>
+  );
+};
+
 const PrivateRoute = ({
   children,
 }: RouteGuardProps) => {
@@ -85,7 +98,7 @@ const PrivateRoute = ({
   } = useAuth();
 
   if (!initialized) {
-    return null;
+    return <AuthInitializationStatus />;
   }
 
   if (!isAuthenticated) {
@@ -109,7 +122,7 @@ const PublicRoute = ({
   } = useAuth();
 
   if (!initialized) {
-    return null;
+    return <AuthInitializationStatus />;
   }
 
   if (isAuthenticated) {
@@ -163,6 +176,15 @@ function AppRoutes() {
         element={
           <PublicRoute>
             <ResendActivationPage />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/reactivate-account"
+        element={
+          <PublicRoute>
+            <AccountReactivationPage />
           </PublicRoute>
         }
       />

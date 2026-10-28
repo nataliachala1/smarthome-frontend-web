@@ -90,6 +90,19 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
+const ArrowRightIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+  </svg>
+);
+
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -165,18 +178,18 @@ export const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-7xl">
-        <div className="rounded-2xl border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground shadow-sm">
+      <div className="mx-auto w-full max-w-[1300px]">
+        <div role="status" aria-live="polite" className="rounded-2xl border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground shadow-sm">
           Cargando dashboard...
         </div>
-      </main>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="mx-auto max-w-7xl">
-        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive dark:bg-destructive/10">
+      <div className="mx-auto w-full max-w-[1300px]">
+        <div role="alert" className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive shadow-sm dark:bg-destructive/10">
           <p>{error}</p>
           <button
             type="button"
@@ -186,59 +199,65 @@ export const DashboardPage = () => {
             Reintentar
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto max-w-7xl space-y-7 sm:space-y-8">
-      <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+    <div className="sh-dashboard mx-auto w-full max-w-[1300px] space-y-6 sm:space-y-7">
+      <header className="sh-dashboard-enter space-y-2.5">
+        <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
           Inicio
         </p>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="break-words text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           Hola, {user?.name ?? 'usuario'} <span aria-hidden="true">👋</span>
         </h1>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
           Administra tus hogares y dispositivos desde un solo lugar.
         </p>
       </header>
 
-      <section aria-label="Resumen" className="grid gap-4 md:grid-cols-2">
-        <div className="flex min-h-28 items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <HomeIcon className="h-6 w-6" />
+      <section aria-label="Resumen" className="sh-dashboard-enter grid gap-4 lg:grid-cols-2">
+        <div className="flex min-h-32 items-center gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:gap-5 sm:p-6">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:h-16 sm:w-16">
+            <HomeIcon className="h-7 w-7 sm:h-8 sm:w-8" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">Mis hogares</p>
-            <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+            <p className="text-base font-medium text-muted-foreground">Mis hogares</p>
+            <p className="mt-1 text-4xl font-bold leading-none tracking-tight tabular-nums text-foreground">
               {homeSummaries.length}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">hogares disponibles</p>
+            <p className="mt-1 text-sm text-muted-foreground">hogares disponibles</p>
           </div>
+          <span aria-hidden="true" className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+            <ArrowRightIcon />
+          </span>
         </div>
 
-        <div className="flex min-h-28 items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <DeviceIcon className="h-6 w-6" />
+        <div className="flex min-h-32 items-center gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:gap-5 sm:p-6">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:h-16 sm:w-16">
+            <DeviceIcon className="h-7 w-7 sm:h-8 sm:w-8" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">Dispositivos</p>
-            <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+            <p className="text-base font-medium text-muted-foreground">Dispositivos</p>
+            <p className="mt-1 break-words text-4xl font-bold leading-tight tracking-tight tabular-nums text-foreground">
               {totalDevices ?? 'No disponible'}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               {totalDevices === null
                 ? 'No fue posible consultar todos los hogares'
                 : 'dispositivos en total'}
             </p>
           </div>
+          <span aria-hidden="true" className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+            <ArrowRightIcon />
+          </span>
         </div>
       </section>
 
-      <section aria-labelledby="quick-access-heading" className="space-y-3">
+      <section aria-labelledby="quick-access-heading" className="sh-dashboard-enter space-y-3">
         <div>
-          <h2 id="quick-access-heading" className="text-lg font-semibold tracking-tight text-foreground">
+          <h2 id="quick-access-heading" className="text-xl font-semibold tracking-tight text-foreground">
             Accesos rápidos
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -246,20 +265,20 @@ export const DashboardPage = () => {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <button
             type="button"
             onClick={() => navigate('/homes')}
-            className="group flex min-h-20 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="sh-dashboard-interactive group flex min-h-20 items-center gap-3 rounded-2xl border border-border/80 bg-card px-4 py-3 text-left shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <HomeIcon className="h-5 w-5" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <HomeIcon className="h-6 w-6" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-foreground">Mis hogares</span>
+              <span className="block text-base font-semibold text-foreground">Mis hogares</span>
               <span className="mt-0.5 block text-sm text-muted-foreground">Consulta tus hogares</span>
             </span>
-            <span className="text-muted-foreground transition-transform group-hover:translate-x-0.5">
+            <span className="text-muted-foreground">
               <ChevronRightIcon />
             </span>
           </button>
@@ -275,16 +294,16 @@ export const DashboardPage = () => {
                 navigate('/homes');
               }
             }}
-            className="group flex min-h-20 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="sh-dashboard-interactive group flex min-h-20 items-center gap-3 rounded-2xl border border-border/80 bg-card px-4 py-3 text-left shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <DeviceIcon className="h-5 w-5" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <DeviceIcon className="h-6 w-6" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-foreground">Dispositivos</span>
+              <span className="block text-base font-semibold text-foreground">Dispositivos</span>
               <span className="mt-0.5 block text-sm text-muted-foreground">Consulta tus dispositivos</span>
             </span>
-            <span className="text-muted-foreground transition-transform group-hover:translate-x-0.5">
+            <span className="text-muted-foreground">
               <ChevronRightIcon />
             </span>
           </button>
@@ -293,21 +312,26 @@ export const DashboardPage = () => {
 
       <section
         aria-labelledby="homes-heading"
-        className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"
+        className="sh-dashboard-enter rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6"
       >
-        <div className="mb-5 flex items-center justify-between gap-4">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <HomeIcon className="h-5 w-5" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <HomeIcon className="h-6 w-6" />
             </span>
-            <h2 id="homes-heading" className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-              Mis hogares
-            </h2>
+            <div className="min-w-0">
+              <h2 id="homes-heading" className="text-xl font-semibold tracking-tight text-foreground">
+                Mis hogares
+              </h2>
+              <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
+                Selecciona un hogar para gestionar sus dispositivos.
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => navigate('/homes')}
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-base"
           >
             Ver todos
             <ChevronRightIcon />
@@ -335,42 +359,66 @@ export const DashboardPage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {homeSummaries.slice(0, 4).map(({ home, deviceCount, deviceError }) => (
               <article
                 key={home.id}
-                className="flex flex-col justify-between rounded-xl border border-border bg-background/50 p-5 transition-colors hover:border-primary/30"
+                className="sh-dashboard-interactive flex min-h-48 flex-col justify-between gap-5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
               >
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">{home.name}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {deviceCount === null
-                      ? 'Dispositivos: no disponible'
-                      : `${deviceCount} dispositivo${deviceCount === 1 ? '' : 's'}`}
-                  </p>
-                  {deviceError && (
-                    <p className="mt-1 text-xs text-destructive" role="status">
-                      {deviceError}
+                <div className="flex min-w-0 items-start gap-4">
+                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <HomeIcon className="h-8 w-8" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="break-words text-lg font-semibold text-foreground sm:text-xl">{home.name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {deviceCount === null
+                        ? 'Dispositivos: no disponible'
+                        : `${deviceCount} dispositivo${deviceCount === 1 ? '' : 's'}`}
                     </p>
-                  )}
+                    {deviceCount === 0 && (
+                      <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground">
+                        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-slate-400" />
+                        Sin dispositivos
+                      </span>
+                    )}
+                    {deviceError && (
+                      <p className="mt-2 text-xs leading-5 text-destructive" role="status">
+                        {deviceError}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => enterHome(home.id)}
-                  className="mt-5 self-start rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  Entrar al hogar
-                </button>
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => enterHome(home.id)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:text-base"
+                  >
+                    Entrar al hogar
+                    <ChevronRightIcon />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('activeHomeId', home.id);
+                      navigate(`/homes/${home.id}/devices`);
+                    }}
+                    className="inline-flex min-h-11 items-center rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:text-base"
+                  >
+                    Ver dispositivos
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </section>
 
-      <section aria-labelledby="attention-heading" className="space-y-3">
+      <section aria-labelledby="attention-heading" className="sh-dashboard-enter space-y-3">
         <div>
-          <h2 id="attention-heading" className="text-lg font-semibold tracking-tight text-foreground">
+          <h2 id="attention-heading" className="text-xl font-semibold tracking-tight text-foreground">
             Alertas y favoritos
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -378,15 +426,15 @@ export const DashboardPage = () => {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <article className="flex min-h-36 flex-col justify-between gap-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <article className="sh-dashboard-interactive flex min-h-24 flex-col justify-between gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm lg:flex-row lg:items-center lg:p-5">
             <div className="flex items-start gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                <AlertIcon className="h-5 w-5" />
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <AlertIcon className="h-6 w-6" />
               </span>
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="text-base font-semibold text-foreground">Alertas</h3>
-                <p className="mt-1 max-w-sm text-sm leading-5 text-muted-foreground">
+                <p className="mt-1 max-w-sm break-words text-sm leading-5 text-muted-foreground">
                   Consulta los eventos importantes y las alertas de tus hogares.
                 </p>
               </div>
@@ -394,21 +442,21 @@ export const DashboardPage = () => {
             <button
               type="button"
               onClick={() => navigate('/alerts')}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:self-center"
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:self-center"
             >
               Ver alertas
               <ChevronRightIcon />
             </button>
           </article>
 
-          <article className="flex min-h-36 flex-col justify-between gap-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
+          <article className="sh-dashboard-interactive flex min-h-24 flex-col justify-between gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm lg:flex-row lg:items-center lg:p-5">
             <div className="flex items-start gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <FavoriteIcon className="h-5 w-5" />
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <FavoriteIcon className="h-6 w-6" />
               </span>
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="text-base font-semibold text-foreground">Favoritos</h3>
-                <p className="mt-1 max-w-sm text-sm leading-5 text-muted-foreground">
+                <p className="mt-1 max-w-sm break-words text-sm leading-5 text-muted-foreground">
                   Accede rápidamente a tus hogares favoritos.
                 </p>
               </div>
@@ -416,7 +464,7 @@ export const DashboardPage = () => {
             <button
               type="button"
               onClick={() => navigate('/favorites')}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:self-center"
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:self-center"
             >
               Ver favoritos
               <ChevronRightIcon />
@@ -424,7 +472,7 @@ export const DashboardPage = () => {
           </article>
         </div>
       </section>
-    </main>
+    </div>
   );
 };
 

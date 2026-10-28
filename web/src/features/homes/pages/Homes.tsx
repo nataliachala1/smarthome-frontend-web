@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import LoginIcon from '@mui/icons-material/Login';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   createHome,
   deleteHome,
@@ -240,7 +246,7 @@ export const Homes = () => {
   };
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[1400px] flex-col px-1 py-3 text-[#0f172a] dark:text-slate-100 sm:px-2 sm:py-4">
+    <div className="mx-auto flex min-h-full w-full max-w-[1400px] flex-col px-1 py-3 text-[#0f172a] dark:text-slate-100 sm:px-2 sm:py-4 sh-page-enter">
       <header className="flex flex-col gap-5 border-b border-[#e2e8f0] pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-[30px] font-bold leading-9 tracking-[-0.035em] text-[#0f172a] dark:text-white sm:text-[32px]">
@@ -364,49 +370,76 @@ export const Homes = () => {
       )}
 
       {!isLoading && homes.length > 0 && (
-        <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <section className="mt-8 grid gap-5 md:grid-cols-2">
           {homes.map((home) => {
             const isEditing = editingHomeId === home.id;
 
             return (
               <Card
                 key={home.id}
-                className="rounded-xl border border-[#e2e8f0] shadow-[0_2px_8px_rgba(15,23,42,0.04)] dark:border-slate-700"
+                noPadding
+                className="h-full rounded-[26px] border-[#e5edf7] shadow-[0_12px_30px_-24px_rgba(15,55,100,0.38)] transition-[border-color,box-shadow] duration-200 ease-out hover:border-[#d5e5f8] hover:shadow-[0_18px_36px_-25px_rgba(15,55,100,0.42)] motion-reduce:transition-none dark:border-slate-700 dark:hover:border-slate-600"
               >
-                <CardContent className="p-6">
+                <CardContent className="flex h-full min-h-[356px] flex-col p-5 sm:min-h-[382px] sm:p-7">
                   {!isEditing ? (
                     <>
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h2 className="text-xl font-semibold text-[#0f172a] dark:text-white">
-                            {home.name}
-                          </h2>
+                        <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+                          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-[#edf6ff] text-[#1683ec] sm:h-[68px] sm:w-[68px] dark:bg-[#172b49] dark:text-[#75adff]">
+                            <HomeOutlinedIcon aria-hidden="true" className="h-8 w-8 sm:h-9 sm:w-9" />
+                          </span>
+                          <div className="min-w-0">
+                            <h2 className="break-words text-xl font-semibold tracking-[-0.02em] text-[#10294f] dark:text-white sm:text-2xl">
+                              {home.name}
+                            </h2>
 
-                          <p className="mt-2 text-sm text-[#64748b] dark:text-slate-400">
-                            Estado: {home.status}
-                          </p>
+                            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#71829d] dark:text-slate-400 sm:text-base">
+                              <span
+                                aria-hidden="true"
+                                className={`h-2.5 w-2.5 shrink-0 rounded-full ${home.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}
+                              />
+                              <span>Estado: {home.status}</span>
+                            </p>
+                          </div>
                         </div>
+                        <span aria-hidden="true" className="mt-0.5 flex shrink-0 text-[#60799d] dark:text-slate-400">
+                          <MoreVertIcon className="h-6 w-6" />
+                        </span>
                       </div>
 
-                      <div className="mt-6 space-y-3">
+                      <div className="mt-auto space-y-3 pt-6">
                         <Button
                           type="button"
                           variant="primary"
-                          className="w-full rounded-[11px] bg-[#0d6efd] shadow-none hover:bg-[#0b5ed7]"
+                          className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-transparent bg-[#1866C1] px-4 py-2 text-left text-[15px] font-semibold text-white shadow-sm shadow-[#1866C1]/15 transition-[background-color,box-shadow] duration-200 ease-out hover:bg-[#165bb0] hover:shadow-md hover:shadow-[#1866C1]/15 focus-visible:ring-2 focus-visible:ring-[#1683ec]/40 focus-visible:ring-offset-2 motion-reduce:transition-none sm:min-h-14"
                           disabled={deletingHomeId !== null}
                           onClick={() => enterHome(home.id)}
                         >
-                          Entrar al hogar
+                          <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
+                            <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                              <LoginIcon aria-hidden="true" className="h-5 w-5" />
+                            </span>
+                            <span className="min-w-0">Entrar al hogar</span>
+                            <ChevronRightIcon aria-hidden="true" className="h-5 w-5 shrink-0" />
+                          </span>
                         </Button>
                         {isHomeOwner(home.id) && (
                           <Button
                             type="button"
                             variant="secondary"
-                            className="w-full rounded-[11px]"
+                            className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-[#deebf8] bg-[#f7faff] px-4 py-2 text-left text-[15px] font-semibold text-[#19355e] transition-[background-color,border-color] duration-200 ease-out hover:border-[#d2e2f2] hover:bg-[#f0f6fd] focus-visible:ring-2 focus-visible:ring-[#1683ec]/35 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800 sm:min-h-14"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={() => startEditing(home)}
                           >
-                            Editar nombre
+                            <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
+                              <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e8f1fb] text-[#5279a7] dark:bg-slate-800 dark:text-blue-300">
+                                  <EditOutlinedIcon aria-hidden="true" className="h-4 w-4" />
+                                </span>
+                              </span>
+                              <span className="min-w-0">Editar nombre</span>
+                              <ChevronRightIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-[#7890aa] dark:text-slate-400" />
+                            </span>
                           </Button>
                         )}
 
@@ -414,11 +447,21 @@ export const Homes = () => {
                           <Button
                             type="button"
                             variant="secondary"
-                            className="w-full rounded-[11px] border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30"
+                            className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-[#f2dfe2] bg-[#fff6f7] px-4 py-2 text-left text-[15px] font-semibold text-[#cf4e59] transition-[background-color,border-color] duration-200 ease-out hover:border-[#ebd2d6] hover:bg-[#fff1f3] focus-visible:ring-2 focus-visible:ring-rose-300/50 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-300 dark:hover:border-red-900 dark:hover:bg-red-950/35 sm:min-h-14"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={() => void handleDeleteHome(home)}
                           >
-                            {deletingHomeId === home.id ? 'Eliminando...' : 'Eliminar hogar'}
+                            <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
+                              <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fbe8ea] text-[#d65a64] dark:bg-red-950/60 dark:text-red-300">
+                                  <DeleteOutlineIcon aria-hidden="true" className="h-4 w-4" />
+                                </span>
+                              </span>
+                              <span className="min-w-0">
+                                {deletingHomeId === home.id ? 'Eliminando...' : 'Eliminar hogar'}
+                              </span>
+                              <ChevronRightIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-[#d8868d] dark:text-red-300" />
+                            </span>
                           </Button>
                         )}
                       </div>

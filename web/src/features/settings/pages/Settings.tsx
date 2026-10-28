@@ -1,9 +1,10 @@
 import appPackage from '../../../../package.json';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/contexts/AuthContext';
 import { useTheme } from '../../../app/contexts/ThemeContext';
+import { getMyPreferences, updateMyPreferences } from '../../../shared/api/users.api';
 
 type IconProps = {
   children: ReactNode;
@@ -54,16 +55,104 @@ const cardClassName =
 
 export const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { logoutAll } = useAuth();
+  const { logoutAll, changePassword } = useAuth();
+  const navigate = useNavigate();
   const { theme: currentTheme, setTheme } = useTheme();
   const [lang, setLang] = useState(i18n.language || 'es');
   const [activeTab, setActiveTab] = useState('general');
+  const [preferenceError, setPreferenceError] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirmation, setNewPasswordConfirmation] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void getMyPreferences()
+      .then((preferences) => {
+        if (!active) return;
+
+        setLang(preferences.language);
+        void i18n.changeLanguage(preferences.language);
+        setTheme(
+          preferences.theme === 'claro'
+            ? 'light'
+            : preferences.theme === 'oscuro'
+              ? 'dark'
+              : 'system',
+        );
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setPreferenceError(
+          error instanceof Error
+            ? error.message
+            : 'No fue posible cargar tus preferencias.',
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [i18n, setTheme]);
+
+  const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
+    setTheme(theme);
+    setPreferenceError('');
+
+    try {
+      await updateMyPreferences({
+        theme: theme === 'light' ? 'claro' : theme === 'dark' ? 'oscuro' : 'automatico',
+      });
+    } catch (error) {
+      setPreferenceError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible guardar el tema.',
+      );
+    }
+  };
 
   const handleLangChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextLanguage = event.target.value;
     setLang(nextLanguage);
     void i18n.changeLanguage(nextLanguage);
     localStorage.setItem('i18nextLng', nextLanguage);
+    setPreferenceError('');
+    void updateMyPreferences({ language: nextLanguage as 'es' | 'en' | 'fr' | 'de' }).catch(
+      (error: unknown) => {
+        setPreferenceError(
+          error instanceof Error
+            ? error.message
+            : 'No fue posible guardar el idioma.',
+        );
+      },
+    );
+  };
+
+  const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordError('');
+    setIsChangingPassword(true);
+
+    try {
+      await changePassword({
+        currentPassword,
+        newPassword,
+        newPasswordConfirmation,
+      });
+      navigate('/login', { replace: true });
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible cambiar la contraseña.',
+      );
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const tabs = [
@@ -99,6 +188,12 @@ export const Settings = () => {
           Personaliza tu experiencia en Smart Home y gestiona tu cuenta.
         </p>
       </div>
+
+      {preferenceError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+          {preferenceError}
+        </div>
+      )}
 
       <div role="tablist" aria-label="Secciones de configuración" className="mb-4 flex max-w-full gap-2 overflow-x-auto border-b border-[#e5edf8] dark:border-slate-700">
         {tabs.map((tab) => (
@@ -141,7 +236,7 @@ export const Settings = () => {
                 <button
                   key={theme}
                   type="button"
-                  onClick={() => setTheme(theme)}
+                  onClick={() => void handleThemeChange(theme)}
                   aria-pressed={isSelected}
                   className={`relative flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 ${
                     isSelected
@@ -187,8 +282,61 @@ export const Settings = () => {
             description="Protege tu cuenta y gestiona el acceso."
             icon={<Icon><path d="m12 22 1.5-.7C18.3 19 21 15.5 21 10V5l-9-3-9 3v5c0 5.5 2.7 9 7.5 11.3L12 22Z" /><path d="m9 12 2 2 4-4" /></Icon>}
           />
-          <div className="space-y-2">
-          </div>
+          <form onSubmit={handleChangePassword} className="max-w-xl space-y-3">
+            <h3 className="text-sm font-semibold text-[#0a1740] dark:text-slate-100">
+              Cambiar contraseña
+            </h3>
+            <label className="block text-xs font-medium text-[#50658c] dark:text-slate-300">
+              Contraseña actual
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                required
+                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+              />
+            </label>
+            <label className="block text-xs font-medium text-[#50658c] dark:text-slate-300">
+              Nueva contraseña
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                minLength={8}
+                required
+                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+              />
+            </label>
+            <label className="block text-xs font-medium text-[#50658c] dark:text-slate-300">
+              Confirmar nueva contraseña
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPasswordConfirmation}
+                onChange={(event) => setNewPasswordConfirmation(event.target.value)}
+                minLength={8}
+                required
+                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+              />
+            </label>
+            <p className="text-xs text-[#687b9e] dark:text-slate-400">
+              Usa al menos 8 caracteres, una mayúscula, un número y un símbolo. Al cambiarla, se cerrarán tus sesiones.
+            </p>
+            {passwordError && (
+              <p role="alert" className="text-sm text-red-600 dark:text-red-300">
+                {passwordError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={isChangingPassword}
+              className="rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0564d4] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isChangingPassword ? 'Actualizando…' : 'Cambiar contraseña'}
+            </button>
+          </form>
           <div className="mt-4 flex min-h-[54px] items-center justify-between gap-4 rounded-xl border border-[#ffe0e0] bg-[#fff7f7] px-4 py-2.5 dark:border-red-900/60 dark:bg-red-950/20">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ffe9e9] text-[#ed2929] dark:bg-red-950/60"><Icon><path d="M10 17l5-5-5-5m5 5H3" /><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" /></Icon></span>

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+﻿import type { ButtonHTMLAttributes } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -16,14 +16,14 @@ export const Button = ({
   className = '',
   ...props
 }: ButtonProps) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-full font-medium transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#1866C1]/40 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full font-medium transition-[transform,color,background-color,border-color,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:transform-none';
 
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-[#1866C1] text-white hover:bg-[#145199] border border-transparent shadow-sm shadow-[#1866C1]/20',
-    secondary: 'bg-[#e7f5ff] text-[#0f3c67] hover:bg-[#d7ecff] border border-transparent',
-    outline: 'bg-transparent text-[#1866C1] hover:bg-[#eff6ff] border border-[#dbeafe] dark:border-[#2f3c59] dark:text-[#cbd5e1] dark:hover:bg-[#1f2937]',
-    ghost: 'bg-transparent text-[#1a1a1a] hover:bg-[#f5f7fc] dark:text-[#e5e5e5] dark:hover:bg-[#1f2937]',
-    destructive: 'bg-[#dc2626] text-white hover:bg-[#b91c1c] border border-transparent shadow-sm shadow-red-500/10',
+    primary: 'border border-transparent bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary-hover',
+    secondary: 'border border-transparent bg-primary-soft text-primary hover:bg-primary-soft-hover',
+    outline: 'border border-border bg-transparent text-primary hover:bg-primary-soft dark:text-sky-200',
+    ghost: 'border border-transparent bg-transparent text-foreground hover:bg-muted',
+    destructive: 'border border-transparent bg-destructive text-destructive-foreground shadow-sm shadow-destructive/10 hover:bg-destructive-hover',
   };
 
   const sizeStyles: Record<ButtonSize, string> = {

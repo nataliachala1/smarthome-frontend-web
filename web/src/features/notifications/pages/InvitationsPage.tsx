@@ -6,7 +6,6 @@ import {
   rejectInvitation,
   type Invitation,
 } from '../../../shared/api/homes.api';
-import { NotificationsSectionNav } from '../components/NotificationsSectionNav';
 
 export const InvitationsPage = () => {
   const navigate = useNavigate();
@@ -75,7 +74,7 @@ export const InvitationsPage = () => {
     }).format(new Date(value));
 
   return (
-    <main className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8">
+    <div className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8 sh-page-enter">
       <div className="mx-auto min-h-[calc(100vh-7rem)] w-full max-w-[1240px]">
         <header className="mb-6">
           <h1 className="text-[30px] font-bold leading-9 tracking-[-0.035em] text-[#0f172a] dark:text-white sm:text-[34px]">
@@ -85,8 +84,6 @@ export const InvitationsPage = () => {
             Revisa las invitaciones que recibiste para acceder a un hogar.
           </p>
         </header>
-
-        <NotificationsSectionNav />
 
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <button
@@ -258,6 +255,6 @@ export const InvitationsPage = () => {
           </section>
         )}
       </div>
-    </main>
+    </div>
   );
 };

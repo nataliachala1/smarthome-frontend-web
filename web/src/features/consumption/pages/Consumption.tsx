@@ -515,17 +515,17 @@ export const Consumption = () => {
 
   if (isLoading && !summary) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
           Cargando consumo...
         </div>
-      </main>
+      </div>
     );
   }
 
   if (error && !summary) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
           <p>{error}</p>
 
@@ -550,13 +550,13 @@ export const Consumption = () => {
             </button>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
-      <div className="mx-auto max-w-7xl space-y-7">
+    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0b1120]">
+      <div className="mx-auto max-w-7xl space-y-7 sh-page-enter">
 
         {/* ENCABEZADO */}
 
@@ -957,7 +957,7 @@ export const Consumption = () => {
         </section>}
 
       </div>
-    </main>
+    </div>
   );
 };
 

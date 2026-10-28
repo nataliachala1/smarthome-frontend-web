@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import * as authApi from '../../shared/api/auth.api';
+import * as usersApi from '../../shared/api/users.api';
 import { disconnectRealtimeSocket } from '../../shared/realtime/realtime-client';
 
 export type AuthUser = authApi.AuthUser;
@@ -21,6 +22,9 @@ interface AuthContextValue {
     password: string,
     passwordConfirmation: string,
   ) => Promise<authApi.ResetPasswordResponse>;
+  changePassword: (payload: authApi.ChangePasswordPayload) => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
+  deactivateAccount: () => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
 }
@@ -123,6 +127,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       passwordConfirmation,
     });
 
+  const changePassword = async (payload: authApi.ChangePasswordPayload) => {
+    const response = await authApi.changePassword(payload);
+
+    if (response.changed) {
+      disconnectRealtimeSocket();
+      clearLocalSession();
+    }
+  };
+
+  const updateProfile = async (name: string) => {
+    const profile = await usersApi.updateMyProfile({ name });
+    if (!user) return;
+
+    const updatedUser = {
+      ...user,
+      name: profile.name,
+      email: profile.email,
+      role: profile.role,
+    };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
+  const deactivateAccount = async () => {
+    await usersApi.deactivateMyAccount();
+    disconnectRealtimeSocket();
+    clearLocalSession();
+  };
+
   const logout = async () => {
     disconnectRealtimeSocket();
 
@@ -157,6 +190,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         forgotPassword,
         resetPassword,
+        changePassword,
+        updateProfile,
+        deactivateAccount,
         logout,
         logoutAll,
       }}

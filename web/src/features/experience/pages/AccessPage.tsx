@@ -220,7 +220,7 @@ export const AccessPage = () => {
     isOwner && member.role !== 'OWNER' && (member.status === 'ACTIVE' || member.status === 'PENDING');
 
   return (
-    <div className="mx-auto w-full max-w-[1000px] text-[#0f172a] dark:text-slate-100">
+    <div className="mx-auto w-full max-w-[1000px] text-[#0f172a] dark:text-slate-100 sh-page-enter">
       <header className="mb-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#71819b] dark:text-slate-400">Hogares</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#0f172a] dark:text-white sm:text-[34px]">Accesos del hogar</h1>
@@ -417,7 +417,7 @@ export const AccessPage = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="invite-heading"
-            className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] border border-[#e2e8f0] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:border-slate-700 dark:bg-[#151824] sm:max-w-xl sm:rounded-2xl sm:p-7"
+            className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] border border-[#e2e8f0] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:border-slate-700 dark:bg-[#151824] sm:max-w-xl sm:rounded-2xl sm:p-7 sh-animate-scale-in"
           >
             <div className="mx-auto mb-5 h-1.5 w-14 rounded-full bg-[#d2d7df] sm:hidden" />
             <div className="mb-5 flex items-start justify-between gap-4">
