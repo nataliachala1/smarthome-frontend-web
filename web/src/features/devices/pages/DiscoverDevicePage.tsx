@@ -270,35 +270,35 @@ export const DiscoverDevicePage = () => {
 
   if (!homeId) {
     return (
-      <main className="p-6">
+      <div className="p-6 sh-page-enter">
         <p>
           No se encontró el hogar.
         </p>
-      </main>
+      </div>
     );
   }
 
   if (isLoadingHome) {
     return (
-      <main className="p-6">
+      <div className="p-6 sh-page-enter">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
           Verificando permisos...
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!isOwner) {
     return (
-      <main className="p-6">
+      <div className="p-6 sh-page-enter">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
           No tienes permisos para agregar dispositivos a este hogar.
         </div>
-      </main>
+      </div>
     );
   }
   return (
-    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a] sh-page-enter">
       <div className="mx-auto max-w-4xl space-y-6">
 
         <header>
@@ -520,6 +520,6 @@ export const DiscoverDevicePage = () => {
         )}
 
       </div>
-    </main>
+    </div>
   );
 };

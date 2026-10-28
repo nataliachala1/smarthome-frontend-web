@@ -125,3 +125,39 @@ export const logoutAll = () =>
   apiClient<LogoutResponse>('/auth/logout-all', {
     method: 'POST',
   });
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
+export interface ChangePasswordResponse {
+  changed: boolean;
+}
+
+export const changePassword = (payload: ChangePasswordPayload) =>
+  apiClient<ChangePasswordResponse>('/auth/change-password', {
+    method: 'PATCH',
+    body: payload,
+  });
+
+export interface RequestReactivationResponse {
+  sent: boolean;
+}
+
+export const requestAccountReactivation = (email: string) =>
+  apiClient<RequestReactivationResponse>('/auth/request-reactivation', {
+    method: 'POST',
+    body: { email },
+  });
+
+export interface ReactivateAccountResponse {
+  reactivated: boolean;
+}
+
+export const reactivateAccount = (token: string) =>
+  apiClient<ReactivateAccountResponse>('/auth/reactivate', {
+    method: 'POST',
+    body: { token },
+  });

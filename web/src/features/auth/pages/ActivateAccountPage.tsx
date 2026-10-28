@@ -54,9 +54,9 @@ export const ActivateAccountPage = () => {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
+    <div className="sh-auth-viewport flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
       <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-8 rounded-[32px] shadow-2xl shadow-slate-900/10 text-center">
+        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-6 sm:p-8 rounded-2xl sm:rounded-[24px] shadow-lg shadow-slate-900/5 dark:shadow-black/20 text-center sh-animate-scale-in">
 
           <h1 className="text-[#1866C1] text-3xl font-semibold">
             Smart Home

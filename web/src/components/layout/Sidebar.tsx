@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -46,53 +46,68 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      document.getElementById('smarthome-navigation')
+        ?.querySelector<HTMLElement>('a[href]')
+        ?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [isOpen]);
+
   return (
     <aside
-      aria-label={t('common.navigation')}
-      className={`relative z-40 flex h-screen w-60 shrink-0 select-none flex-col overflow-y-auto border-r border-[#e8eef7] bg-[#f7faff] p-4 transition-all duration-300 dark:border-slate-800 dark:bg-[#101a2b] ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0 ${isCollapsed ? 'lg:w-20' : 'lg:w-60'}`}
+      id="smarthome-navigation"
+      className={`fixed inset-y-0 left-0 z-40 flex h-dvh w-[225px] max-w-[calc(100vw_-_2rem)] shrink-0 select-none flex-col overflow-y-auto border-r border-[#dce8f6] bg-[#f7faff] px-4 py-6 transition-transform duration-200 ease-out motion-reduce:transition-none dark:border-slate-800 dark:bg-[#101a2b] ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:z-auto lg:h-full lg:max-w-none lg:translate-x-0 ${isCollapsed ? 'lg:w-20' : 'lg:w-[225px]'}`}
     >
       <div>
-        <div className={`flex items-center gap-2.5 border-b border-[#e5edf8] pb-5 dark:border-slate-800 ${isCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center gap-2.5 border-b border-[#e1ecf8] pb-5 dark:border-slate-800 ${isCollapsed ? 'justify-center' : ''}`}>
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? t('common.expandNavigation') : t('common.collapseNavigation')}
             aria-expanded={!isCollapsed}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#0877f9] shadow-sm ring-1 ring-[#e8eef7] transition hover:bg-[#eef5ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/30 dark:bg-slate-800 dark:ring-slate-700 dark:hover:bg-slate-700"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#e8f3ff] text-[#0877f9] transition-colors duration-200 hover:bg-[#dfedfc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/35 motion-reduce:transition-none dark:bg-slate-800 dark:hover:bg-slate-700"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 10.6 12 3l9 7.6V21a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V10.6Z" />
+            <svg aria-hidden="true" viewBox="0 0 64 64" className="h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 24L32 8L56 24V52C56 54.2091 54.2091 56 52 56H12C9.79086 56 8 54.2091 8 52V24Z" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M36 22L26 36H38L28 50" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
 
-          {!isCollapsed && (
-            <h2 className="m-0 whitespace-nowrap text-[16px] font-extrabold tracking-tight text-[#0a1740] dark:text-white">
-              <span className="text-[#0877f9]">Smart</span> Home
-            </h2>
-          )}
+          <h2 className={`m-0 whitespace-nowrap text-[18px] font-bold tracking-[-0.04em] text-[#0a1740] dark:text-white sh-animate-fade-in ${isCollapsed ? 'lg:hidden' : ''}`}>
+            <span className="text-[#0877f9]">Smart</span> Home
+          </h2>
         </div>
 
-        <nav className="mt-6 space-y-2.5">
+        <nav aria-label={t('common.navigation')} className="mt-7 space-y-2">
           {opcionesMenu.map((opcion) => {
             const target = opcion.ruta;
             const isActive =
               location.pathname === target ||
-              location.pathname.startsWith(`${target}/`);
+              location.pathname.startsWith(`${target}/`) ||
+              (opcion.ruta === '/reports' && /^\/homes\/[^/]+\/consumption(?:\/|$)/.test(location.pathname));
 
             return (
               <Link
                 key={opcion.ruta}
                 to={target}
                 onClick={onClose}
+                aria-label={isCollapsed ? t(opcion.clave) : undefined}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative flex min-h-12 items-center rounded-xl px-3 py-3 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/30 ${isCollapsed ? 'justify-center' : 'justify-start'} ${isActive ? 'bg-white font-semibold text-[#0877f9] shadow-sm ring-1 ring-[#e4edf9] before:absolute before:bottom-3 before:left-0 before:top-3 before:w-[3px] before:rounded-r-full before:bg-[#0877f9] dark:bg-[#172b49] dark:ring-slate-700' : 'text-[#50658c] hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                className={`group relative flex min-h-14 items-center rounded-2xl px-4 py-3 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/30 motion-reduce:transition-none ${isCollapsed ? 'justify-center lg:px-0' : 'justify-start'} ${isActive ? 'bg-[#e8f2ff] font-semibold text-[#0877f9] before:absolute before:bottom-2.5 before:left-0 before:top-2.5 before:w-1 before:rounded-r-full before:bg-[#0877f9] dark:bg-[#172b49] dark:before:bg-[#75adff]' : 'font-medium text-[#526789] hover:bg-[#edf4fc] dark:text-slate-400 dark:hover:bg-slate-800'}`}
               >
-                {opcion.icono(`h-5 w-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`)}
+                {opcion.icono(`h-6 w-6 shrink-0 ${isActive ? 'text-[#0877f9]' : 'text-[#526789] dark:text-slate-400'}`)}
 
-                {!isCollapsed && <span className="ml-3 text-sm">{t(opcion.clave)}</span>}
+                <span className={`ml-4 text-base leading-5 ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  {t(opcion.clave)}
+                </span>
 
                 {isCollapsed && (
-                  <div className="pointer-events-none absolute left-full z-50 ml-4 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                  <div className="pointer-events-none absolute left-full z-50 ml-4 hidden -translate-x-1 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-[opacity,transform] duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 motion-reduce:transition-none lg:block">
                     {t(opcion.clave)}
                   </div>
                 )}

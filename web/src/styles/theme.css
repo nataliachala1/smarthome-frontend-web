@@ -17,6 +17,17 @@
   --popover: #FFFFFF;
   --popover-foreground: #172033;
   --primary: #1866C1;
+  --primary-hover: #145199;
+  --primary-soft: #EAF4FF;
+  --primary-soft-hover: #DCEEFF;
+  --destructive-hover: #B91C1C;
+  --destructive-soft: #FEE2E2;
+  --success: #166534;
+  --success-soft: #DCFCE7;
+  --warning: #92400E;
+  --warning-soft: #FEF3C7;
+  --info: #1E40AF;
+  --info-soft: #DBEAFE;
   --primary-foreground: #FFFFFF;
   --secondary: #87CEEB;
   --secondary-foreground: #172033;
@@ -57,6 +68,17 @@
   --popover: #172033;
   --popover-foreground: #E5E7EB;
   --primary: #2C78CF;
+  --primary-hover: #3D85D5;
+  --primary-soft: #172B49;
+  --primary-soft-hover: #213B60;
+  --destructive-hover: #EF4444;
+  --destructive-soft: #381E25;
+  --success: #86EFAC;
+  --success-soft: #123522;
+  --warning: #FDE68A;
+  --warning-soft: #422E12;
+  --info: #93C5FD;
+  --info-soft: #1E3A8A;
   --primary-foreground: #FFFFFF;
   --secondary: #87CEEB;
   --secondary-foreground: #1a1a1a;
@@ -68,6 +90,7 @@
   --destructive-foreground: #FFFFFF;
   --border: #334155;
   --input: #334155;
+  --input-background: #111b2d;
   --ring: #1866C1;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
@@ -94,6 +117,15 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-hover: var(--primary-soft-hover);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -102,6 +134,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-soft: var(--destructive-soft);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
@@ -234,4 +268,856 @@
   textarea {
     border-radius: var(--radius-lg);
   }
+}
+
+
+/* ===================================================================
+   SmartHome Animations — moderate, performant, respectful of motion
+   Only animates transform & opacity (GPU-composited properties).
+   =================================================================== */
+
+@keyframes sh-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes sh-fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sh-fade-in-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sh-scale-in {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sh-slide-down {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Utility classes — used via className in React */
+
+.sh-animate-fade-in      { animation: sh-fade-in .22s ease-out both; }
+.sh-animate-fade-in-up   { animation: sh-fade-in-up .26s cubic-bezier(.2,.8,.2,1) both; }
+.sh-animate-fade-in-down { animation: sh-fade-in-down .22s ease-out both; }
+.sh-animate-scale-in     { animation: sh-scale-in .2s cubic-bezier(.2,.8,.2,1) both; }
+.sh-animate-slide-down   { animation: sh-slide-down .18s cubic-bezier(.2,.8,.2,1) both; }
+.sh-page-enter           { animation: sh-fade-in-up .24s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Shared feedback for native controls used across every feature screen. */
+button:not(:disabled) {
+  transition-property: transform, color, background-color, border-color, box-shadow;
+  transition-duration: .16s;
+  transition-timing-function: ease-out;
+}
+button:not(:disabled):active {
+  transform: scale(.985);
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: .16s;
+  transition-timing-function: ease-out;
+}
+
+:where([role="alert"], [role="status"]) {
+  animation: sh-fade-in .18s ease-out both;
+}
+
+/* Respect prefers-reduced-motion — collapse all custom animations */
+@media (prefers-reduced-motion: reduce) {
+  .sh-animate-fade-in,
+  .sh-animate-fade-in-up,
+  .sh-animate-fade-in-down,
+  .sh-animate-scale-in,
+  .sh-animate-slide-down,
+  .sh-page-enter,
+  [role="alert"],
+  [role="status"] {
+    animation: none !important;
+  }
+
+  button:not(:disabled) {
+    transition-duration: .01ms !important;
+  }
+  button:not(:disabled):active {
+    transform: none;
+  }
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Smooth interactive surfaces — hover lift for cards */
+.sh-card-interactive {
+  transition: transform .18s ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sh-card-interactive:hover {
+    transform: translateY(-1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-card-interactive:hover {
+    transform: none;
+  }
+}
+
+/* Code-native isometric home scene, kept small and scroll-linked. */
+.sh-isometric-scene {
+  --sh-scene-outline: #1866C1;
+  --sh-scene-wall: #eef5fc;
+  --sh-scene-roof: #dcecf9;
+  --sh-scene-glass: #87CEEB;
+  --sh-scene-door: #bddcf5;
+  position: relative;
+  display: grid;
+  justify-self: center;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(24, 102, 193, .1);
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 68%, rgba(135, 206, 235, .22), transparent 65%), rgba(255, 255, 255, .64);
+  box-shadow: 0 16px 38px rgba(23, 32, 51, .08);
+}
+.sh-isometric-scene--hero {
+  width: min(100%, 280px);
+  height: 214px;
+  justify-self: end;
+}
+.sh-isometric-scene--compact {
+  width: 176px;
+  height: 136px;
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(23, 32, 51, .07);
+}
+.sh-login-page {
+  --sh-login-navy: #17264b;
+  --sh-login-muted: #657394;
+  --sh-login-border: #dce4f0;
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 32px 24px;
+  background:
+    radial-gradient(ellipse at 7% 63%, rgba(175, 216, 255, .24), transparent 30%),
+    radial-gradient(ellipse at 90% 5%, rgba(162, 207, 255, .25), transparent 29%),
+    linear-gradient(140deg, #f8fbff 0%, #fff 46%, #f6faff 100%);
+}
+.sh-login-page::before,
+.sh-login-page::after {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(125, 187, 246, .12);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+.sh-login-page::before {
+  top: -260px;
+  right: -100px;
+  width: 620px;
+  height: 620px;
+  background: linear-gradient(135deg, rgba(205, 228, 255, .18), transparent 64%);
+}
+.sh-login-page::after {
+  bottom: -510px;
+  left: -210px;
+  width: 870px;
+  height: 680px;
+  background: linear-gradient(22deg, rgba(194, 223, 255, .14), transparent 68%);
+}
+.sh-login-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, .84fr);
+  width: min(100%, 1210px);
+  min-height: 690px;
+  overflow: hidden;
+  border: 1px solid rgba(191, 216, 246, .66);
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 24px 68px rgba(53, 120, 195, .15), 0 3px 12px rgba(53, 120, 195, .05);
+  animation-duration: .48s;
+}
+.sh-login-form {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 54px clamp(36px, 5.1vw, 78px);
+  background: #fff;
+}
+.sh-login-content { width: min(100%, 540px); margin: 0 auto; }
+.sh-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1265cf;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -.045em;
+  line-height: 1;
+}
+.sh-login-logo-mark { display: grid; flex: none; place-items: center; color: #1265cf; }
+.sh-login-heading { margin-top: 42px; }
+.sh-login-heading h1 {
+  margin: 0;
+  color: var(--sh-login-navy);
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: 1.13;
+}
+.sh-login-heading p {
+  margin: 10px 0 0;
+  color: var(--sh-login-muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+.sh-login-fields { display: grid; gap: 18px; margin-top: 32px; }
+.sh-login-form .sh-login-fields label {
+  margin-bottom: 8px;
+  color: #344568;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sh-login-form .sh-login-input {
+  min-height: 58px;
+  padding: 14px 16px 14px 48px;
+  border: 1px solid var(--sh-login-border);
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(23, 38, 75, .025);
+  color: #17264b;
+  font-size: 16px;
+}
+.sh-login-form .sh-login-input::placeholder { color: #8a98b4; opacity: 1; }
+.sh-login-form .sh-login-input:focus {
+  border-color: #5a9bec;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(24, 102, 193, .12);
+}
+.sh-login-form .sh-login-input--password { padding-right: 54px; }
+.sh-login-form .sh-login-input:disabled { opacity: .62; }
+.sh-login-form .sh-input-password-toggle {
+  right: 12px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 9px;
+  transition: color .16s ease-out, background-color .16s ease-out;
+}
+.sh-login-form .sh-input-password-toggle svg { width: 21px; height: 21px; }
+.sh-login-form .sh-input-password-toggle:focus-visible { outline: 2px solid rgba(24, 102, 193, .45); outline-offset: 1px; }
+.sh-login-options {
+  display: flex;
+  min-height: 24px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: -4px;
+}
+.sh-login-link,
+.sh-login-register button,
+.sh-login-secondary-links button { border: 0; background: none; cursor: pointer; font: inherit; }
+.sh-login-link {
+  padding: 4px 0;
+  color: #1265cf;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color .18s ease-out;
+}
+.sh-login-error {
+  margin-top: -4px;
+  border: 1px solid rgba(220, 38, 38, .18);
+  border-radius: 10px;
+  background: #fff7f7;
+  padding: 10px 12px;
+  color: #b42318;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.sh-login-form .sh-login-submit {
+  position: relative;
+  min-height: 62px;
+  margin-top: 2px;
+  padding: 12px 58px;
+  border: 0;
+  background-image: linear-gradient(105deg, #1768f5 0%, #07a7df 100%);
+  box-shadow: 0 8px 20px rgba(24, 102, 193, .2);
+  font-size: 17px;
+  font-weight: 650;
+  transition: transform .18s ease-out, box-shadow .18s ease-out, filter .18s ease-out;
+}
+.sh-login-form .sh-login-submit svg {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .18);
+}
+.sh-login-form .sh-login-submit:focus-visible { outline: 3px solid rgba(24, 102, 193, .34); outline-offset: 3px; }
+.sh-login-form .sh-login-submit:active:not(:disabled) { transform: scale(.99); }
+.sh-login-form .sh-login-submit:disabled { filter: saturate(.72); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) {
+  .sh-login-form .sh-login-submit:hover:not(:disabled) {
+    filter: saturate(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 11px 24px rgba(24, 102, 193, .25);
+  }
+}
+.sh-login-divider { display: flex; align-items: center; gap: 18px; margin: 34px 0 24px; }
+.sh-login-divider::before,
+.sh-login-divider::after { height: 1px; flex: 1; background: #e1e7f0; content: ""; }
+.sh-login-divider span { width: 8px; height: 8px; border: 1.5px solid #7184ad; border-radius: 50%; }
+.sh-login-register { margin: 0; color: #657394; text-align: center; font-size: 15px; }
+.sh-login-register button { padding: 0; color: #1265cf; font-weight: 650; }
+.sh-login-secondary-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 18px; }
+.sh-login-secondary-links button {
+  padding: 2px 0;
+  color: #7886a2;
+  font-size: 12px;
+  line-height: 1.45;
+  transition: color .18s ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sh-login-form .sh-input-password-toggle:hover { color: #1265cf; }
+  .sh-login-link:hover { color: #0b4fa8; text-decoration: underline; }
+  .sh-login-register button:hover { text-decoration: underline; }
+  .sh-login-secondary-links button:hover { color: #1265cf; text-decoration: underline; }
+}
+.sh-login-abstract-panel {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 101% 103%, transparent 0 178px, rgba(255, 255, 255, .86) 179px 181px, transparent 182px),
+    radial-gradient(circle at 101% 103%, transparent 0 263px, rgba(255, 255, 255, .35) 264px 266px, transparent 267px),
+    linear-gradient(151deg, transparent 0 48%, rgba(255, 255, 255, .44) 48.12%, transparent 48.35%),
+    linear-gradient(145deg, #83bdf7 0%, #d8eaff 46%, #74b5f5 100%);
+}
+.sh-login-abstract-panel::before {
+  position: absolute;
+  top: -14%;
+  bottom: -14%;
+  left: -300px;
+  width: 520px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 8px 0 16px rgba(255, 255, 255, .34);
+  content: "";
+}
+.sh-login-abstract-copy { position: relative; z-index: 1; width: min(82%, 340px); margin: 0 8% 0 37%; }
+.sh-login-abstract-copy h2 {
+  margin: 0;
+  color: #17264b;
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 720;
+  letter-spacing: -.045em;
+  line-height: 1.12;
+}
+.sh-login-abstract-copy h2 span { color: #1265cf; }
+.sh-login-abstract-copy p { max-width: 320px; margin: 20px 0 0; color: #596a8f; font-size: 16px; line-height: 1.62; }
+.sh-isometric-scene svg {
+  width: 90%;
+  max-height: 94%;
+  overflow: visible;
+}
+.sh-scene-ground { fill: rgba(24, 102, 193, .045); }
+.sh-scene-link {
+  stroke: var(--sh-scene-outline);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 3 5;
+  opacity: .48;
+}
+.sh-scene-wall {
+  fill: var(--sh-scene-wall);
+  stroke: var(--sh-scene-outline);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.sh-scene-edge {
+  stroke: var(--sh-scene-outline);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: .8;
+}
+.sh-scene-roof {
+  fill: var(--sh-scene-roof);
+  stroke: var(--sh-scene-outline);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.sh-scene-door { fill: var(--sh-scene-door); }
+.sh-scene-window {
+  fill: var(--sh-scene-glass);
+  stroke: var(--sh-scene-outline);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.sh-scene-node { fill: var(--sh-scene-glass); }
+.sh-scene-node--two { fill: var(--sh-scene-outline); }
+.sh-scene-node--three { fill: #87CEEB; }
+.sh-device-state {
+  transition: color .18s ease-out, background-color .18s ease-out;
+}
+.dark .sh-isometric-scene {
+  --sh-scene-wall: #243047;
+  --sh-scene-roof: #1d3d62;
+  --sh-scene-glass: #3478b8;
+  --sh-scene-door: #3478b8;
+  border-color: rgba(135, 206, 235, .15);
+  background: radial-gradient(ellipse at 50% 68%, rgba(24, 102, 193, .25), transparent 65%), rgba(23, 32, 51, .78);
+}
+.dark .sh-login-page {
+  --sh-login-navy: #e8efff;
+  --sh-login-muted: #a8b7d4;
+  --sh-login-border: #34445f;
+  background:
+    radial-gradient(ellipse at 7% 63%, rgba(24, 102, 193, .15), transparent 30%),
+    radial-gradient(ellipse at 90% 5%, rgba(53, 116, 190, .14), transparent 29%),
+    #0c1422;
+}
+.dark .sh-login-page::before,
+.dark .sh-login-page::after { border-color: rgba(135, 206, 235, .08); }
+.dark .sh-login-card {
+  border-color: #263651;
+  background: #111c2d;
+  box-shadow: 0 24px 68px rgba(0, 0, 0, .36), 0 3px 12px rgba(0, 0, 0, .18);
+}
+.dark .sh-login-form { background: #111c2d; }
+.dark .sh-login-brand,
+.dark .sh-login-logo-mark,
+.dark .sh-login-link,
+.dark .sh-login-register button { color: #75b5ff; }
+.dark .sh-login-form .sh-login-fields label { color: #c4d0e6; }
+.dark .sh-login-form .sh-login-input {
+  border-color: #34445f;
+  background: #142137;
+  color: #e8efff;
+  box-shadow: none;
+}
+.dark .sh-login-form .sh-login-input:focus {
+  border-color: #75b5ff;
+  background: #142137;
+  box-shadow: 0 0 0 3px rgba(117, 181, 255, .16);
+}
+.dark .sh-login-form .sh-login-input::placeholder { color: #8b9bb8; }
+@media (hover: hover) and (pointer: fine) {
+  .dark .sh-login-form .sh-input-password-toggle:hover { color: #75b5ff; }
+  .dark .sh-login-options .sh-login-link:hover,
+  .dark .sh-login-register button:hover { color: #a6d1ff; }
+}
+.dark .sh-login-error { border-color: rgba(248, 113, 113, .26); background: #321e27; color: #fecaca; }
+.dark .sh-login-divider::before,
+.dark .sh-login-divider::after { background: #34445f; }
+.dark .sh-login-divider span { border-color: #8ca0c4; }
+.dark .sh-login-register { color: #a8b7d4; }
+.dark .sh-login-secondary-links button { color: #91a1bf; }
+.dark .sh-login-abstract-panel {
+  background:
+    radial-gradient(circle at 101% 103%, transparent 0 178px, rgba(255, 255, 255, .48) 179px 181px, transparent 182px),
+    radial-gradient(circle at 101% 103%, transparent 0 263px, rgba(255, 255, 255, .2) 264px 266px, transparent 267px),
+    linear-gradient(145deg, #2769ad 0%, #1c3b66 55%, #4388ce 100%);
+}
+.dark .sh-login-abstract-panel::before { background: #111c2d; }
+.dark .sh-login-abstract-copy h2 { color: #f1f6ff; }
+.dark .sh-login-abstract-copy h2 span { color: #75b5ff; }
+.dark .sh-login-abstract-copy p { color: #c4d0e6; }
+@supports (animation-timeline: view()) {
+  .sh-isometric-scene--hero {
+    animation: sh-world-scroll-glide 1ms linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 100%;
+  }
+}
+@keyframes sh-world-scroll-glide {
+  from { transform: translateY(8px) scale(.98); }
+  to { transform: translateY(-12px) scale(1.015); }
+}
+@media (max-width: 639px) {
+  .sh-isometric-scene--hero {
+    width: 200px;
+    height: 152px;
+    border-radius: 22px;
+    justify-self: center;
+  }
+  .sh-isometric-scene--compact {
+    width: 148px;
+    height: 112px;
+    border-radius: 20px;
+  }
+}
+@media (max-width: 960px) {
+  .sh-login-page { padding: 24px 18px; }
+  .sh-login-card { grid-template-columns: minmax(0, 1fr); width: min(100%, 680px); min-height: 0; }
+  .sh-login-form { padding: 48px clamp(28px, 7vw, 56px) 42px; }
+  .sh-login-content { max-width: 540px; }
+  .sh-login-abstract-panel { min-height: 210px; }
+  .sh-login-abstract-panel::before { display: none; }
+  .sh-login-abstract-copy { width: min(86%, 440px); margin: 38px auto; text-align: center; }
+  .sh-login-abstract-copy p { margin-right: auto; margin-left: auto; }
+}
+@media (max-width: 560px) {
+  .sh-login-page { align-items: flex-start; padding: 12px; }
+  .sh-login-card { border-radius: 22px; }
+  .sh-login-form { padding: 30px 22px 28px; }
+  .sh-login-brand { gap: 9px; font-size: 24px; }
+  .sh-login-logo-mark svg { width: 48px; height: 48px; }
+  .sh-login-heading { margin-top: 28px; }
+  .sh-login-heading h1 { font-size: 31px; }
+  .sh-login-heading p { margin-top: 8px; font-size: 15px; }
+  .sh-login-fields { gap: 15px; margin-top: 24px; }
+  .sh-login-form .sh-login-input { min-height: 54px; font-size: 16px; }
+  .sh-login-form .sh-login-submit { min-height: 56px; font-size: 16px; }
+  .sh-login-divider { margin: 26px 0 20px; }
+  .sh-login-secondary-links { gap: 5px 12px; margin-top: 14px; }
+  .sh-login-secondary-links button { font-size: 11px; }
+  .sh-login-abstract-panel { min-height: 176px; }
+  .sh-login-abstract-copy { margin: 28px auto; }
+  .sh-login-abstract-copy h2 { font-size: 28px; }
+  .sh-login-abstract-copy p { margin-top: 10px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-isometric-scene { animation: none !important; transform: none !important; }
+  .sh-login-form .sh-login-submit:hover:not(:disabled) { transform: none; }
+  .sh-login-card { animation-duration: .01ms !important; }
+  .sh-login-form .sh-login-submit,
+  .sh-login-link,
+  .sh-login-secondary-links button { transition-duration: .01ms !important; }
+}
+
+/* Registration screen shares the login composition and brand surfaces. */
+.sh-register-page { --sh-register-ease: cubic-bezier(.23, 1, .32, 1); }
+.sh-register-card {
+  min-height: 780px;
+  animation: sh-register-card-enter 300ms var(--sh-register-ease) both;
+}
+.sh-register-form { padding-top: 36px; padding-bottom: 36px; }
+.sh-register-heading { margin-top: 22px; }
+.sh-register-fields { gap: 12px; margin-top: 20px; }
+.sh-register-form .sh-register-input {
+  min-height: 52px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.sh-register-form .sh-register-submit { gap: 10px; }
+.sh-register-brand,
+.sh-register-heading,
+.sh-register-fields > div:nth-child(-n+4),
+.sh-register-submit {
+  animation: sh-register-item-enter 240ms var(--sh-register-ease) both;
+}
+.sh-register-brand { animation-delay: 30ms; }
+.sh-register-heading { animation-delay: 70ms; }
+.sh-register-fields > div:nth-child(1) { animation-delay: 100ms; }
+.sh-register-fields > div:nth-child(2) { animation-delay: 145ms; }
+.sh-register-fields > div:nth-child(3) { animation-delay: 190ms; }
+.sh-register-fields > div:nth-child(4) { animation-delay: 235ms; }
+.sh-register-submit { animation-delay: 280ms; }
+.sh-register-abstract-panel { animation: sh-register-panel-enter 280ms var(--sh-register-ease) 60ms both; }
+.sh-register-abstract-panel::after {
+  position: absolute;
+  top: -108px;
+  right: -118px;
+  width: 370px;
+  height: 290px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 42% 58%, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 72%);
+  content: "";
+  pointer-events: none;
+  animation: sh-register-shape-enter 480ms var(--sh-register-ease) 90ms both;
+}
+.sh-register-divider,
+.sh-register-footer { animation: sh-register-item-enter 220ms var(--sh-register-ease) 240ms both; }
+.sh-register-success {
+  border: 1px solid rgba(16, 150, 105, .18);
+  border-radius: 10px;
+  background: #f0fbf6;
+  padding: 10px 12px;
+  color: #08764f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sh-register-spinner {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  border: 2px solid rgba(255, 255, 255, .4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: sh-register-spinner-turn 800ms linear infinite;
+}
+@keyframes sh-register-card-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sh-register-item-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sh-register-panel-enter {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes sh-register-shape-enter {
+  from { opacity: 0; transform: translate3d(12px, -8px, 0) scale(.97); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes sh-register-spinner-turn { to { transform: rotate(360deg); } }
+.dark .sh-register-success {
+  border-color: rgba(52, 211, 153, .24);
+  background: #102c29;
+  color: #9be6c7;
+}
+@media (max-width: 960px) {
+  .sh-register-card { min-height: 0; }
+  .sh-register-form { padding: 40px clamp(28px, 7vw, 56px) 34px; }
+  .sh-register-abstract-panel { min-height: 190px; }
+  .sh-register-abstract-panel::after { top: -76px; right: -112px; width: 290px; height: 220px; }
+  .sh-register-abstract-copy { margin-top: 28px; margin-bottom: 28px; }
+}
+@media (max-width: 560px) {
+  .sh-register-form { padding: 25px 22px 24px; }
+  .sh-register-heading { margin-top: 18px; }
+  .sh-register-heading h1 { font-size: 29px; }
+  .sh-register-heading p { font-size: 14px; }
+  .sh-register-fields { gap: 11px; margin-top: 18px; }
+  .sh-register-form .sh-register-input { min-height: 50px; }
+  .sh-register-form .sh-login-fields label { margin-bottom: 5px; font-size: 13px; }
+  .sh-register-form .sh-login-submit { min-height: 54px; }
+  .sh-register-divider { margin: 22px 0 18px; }
+  .sh-register-abstract-panel { min-height: 164px; }
+  .sh-register-abstract-panel::after { top: -72px; right: -96px; width: 230px; height: 176px; }
+  .sh-register-abstract-copy h2 { font-size: 25px; }
+  .sh-register-abstract-copy p { max-width: 290px; font-size: 13px; }
+}
+@media (max-height: 860px) and (min-width: 561px) {
+  .sh-register-page { align-items: flex-start; padding-top: 12px; padding-bottom: 12px; }
+  .sh-register-card { min-height: 0; }
+  .sh-register-form { padding-top: 26px; padding-bottom: 26px; }
+  .sh-register-heading { margin-top: 16px; }
+  .sh-register-fields { gap: 9px; margin-top: 14px; }
+  .sh-register-form .sh-register-input { min-height: 48px; }
+  .sh-register-divider { margin-top: 18px; margin-bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-register-card,
+  .sh-register-brand,
+  .sh-register-heading,
+  .sh-register-fields > div,
+  .sh-register-submit,
+  .sh-register-abstract-panel,
+  .sh-register-abstract-panel::after,
+  .sh-register-divider,
+  .sh-register-footer {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sh-register-spinner { animation: none; }
+}
+
+/* Dashboard: restrained entrance and hover feedback for interactive surfaces. */
+.sh-dashboard { --sh-dashboard-ease: cubic-bezier(.23, 1, .32, 1); }
+.sh-dashboard-enter {
+  animation: sh-dashboard-enter 300ms var(--sh-dashboard-ease) both;
+}
+.sh-dashboard > .sh-dashboard-enter:nth-child(2) { animation-delay: 45ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(3) { animation-delay: 90ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(4) { animation-delay: 135ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(5) { animation-delay: 180ms; }
+.sh-dashboard-interactive {
+  transition:
+    transform 180ms var(--sh-dashboard-ease),
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.sh-dashboard button:not(:disabled) {
+  transition:
+    transform 150ms ease-out,
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.sh-dashboard button:not(:disabled):active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) {
+  .sh-dashboard-interactive:hover {
+    transform: translateY(-1px);
+    border-color: rgba(24, 102, 193, .3);
+    box-shadow: 0 8px 20px -18px rgba(24, 67, 120, .42);
+  }
+}
+@keyframes sh-dashboard-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-dashboard-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sh-dashboard-interactive,
+  .sh-dashboard button:not(:disabled) { transition: none !important; }
+  .sh-dashboard-interactive:hover,
+  .sh-dashboard button:not(:disabled):active { transform: none !important; }
+}
+
+.sh-app-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+.sh-auth-viewport {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.sh-route-loading {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+.sh-route-loading__indicator {
+  width: 20px;
+  height: 20px;
+  border: 2px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: sh-route-loading-spin 700ms linear infinite;
+}
+@keyframes sh-route-loading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-route-loading__indicator { animation: none; }
+}
+
+/* Full-viewport composition is scoped to the login route only. */
+.sh-login-page--fullscreen {
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 0;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.sh-login-card--fullscreen {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+@media (max-width: 960px) {
+  .sh-login-page--fullscreen .sh-login-abstract-panel { display: none; }
+}
+@media (max-height: 780px) {
+  .sh-login-page--fullscreen .sh-login-form {
+    padding-top: clamp(18px, 4vh, 32px);
+    padding-bottom: clamp(18px, 4vh, 32px);
+  }
+  .sh-login-page--fullscreen .sh-login-heading { margin-top: 24px; }
+  .sh-login-page--fullscreen .sh-login-fields { gap: 14px; margin-top: 22px; }
+  .sh-login-page--fullscreen .sh-login-input { min-height: 52px; }
+  .sh-login-page--fullscreen .sh-login-submit { min-height: 54px; }
+  .sh-login-page--fullscreen .sh-login-divider { margin: 22px 0 16px; }
+  .sh-login-page--fullscreen .sh-login-secondary-links { margin-top: 12px; }
+}
+@media (max-height: 680px) {
+  .sh-login-page--fullscreen .sh-login-form { padding-top: 14px; padding-bottom: 14px; }
+  .sh-login-page--fullscreen .sh-login-brand { gap: 8px; font-size: 22px; }
+  .sh-login-page--fullscreen .sh-login-logo-mark svg { width: 42px; height: 42px; }
+  .sh-login-page--fullscreen .sh-login-heading { margin-top: 14px; }
+  .sh-login-page--fullscreen .sh-login-heading h1 { font-size: 28px; }
+  .sh-login-page--fullscreen .sh-login-heading p { margin-top: 5px; font-size: 14px; }
+  .sh-login-page--fullscreen .sh-login-fields { gap: 9px; margin-top: 14px; }
+  .sh-login-page--fullscreen .sh-login-fields label { margin-bottom: 4px; font-size: 13px; }
+  .sh-login-page--fullscreen .sh-login-input { min-height: 44px; padding-top: 8px; padding-bottom: 8px; }
+  .sh-login-page--fullscreen .sh-login-options { min-height: 20px; }
+  .sh-login-page--fullscreen .sh-login-link { font-size: 12px; }
+  .sh-login-page--fullscreen .sh-login-submit { min-height: 46px; font-size: 14px; }
+  .sh-login-page--fullscreen .sh-login-divider { margin: 12px 0 10px; }
+  .sh-login-page--fullscreen .sh-login-register { font-size: 13px; }
+  .sh-login-page--fullscreen .sh-login-secondary-links { gap: 4px 10px; margin-top: 8px; }
+  .sh-login-page--fullscreen .sh-login-secondary-links button { font-size: 11px; }
+}
+
+/* Registration keeps the same no-scroll viewport treatment as login. */
+.sh-register-page--fullscreen {
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 0;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.sh-register-card--fullscreen {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+@media (max-width: 960px) {
+  .sh-register-page--fullscreen .sh-register-abstract-panel { display: none; }
+}
+@media (max-height: 860px) {
+  .sh-register-page--fullscreen .sh-register-form { padding-top: 16px; padding-bottom: 16px; }
+  .sh-register-page--fullscreen .sh-register-heading { margin-top: 14px; }
+  .sh-register-page--fullscreen .sh-register-fields { gap: 8px; margin-top: 14px; }
+  .sh-register-page--fullscreen .sh-register-form .sh-register-input { min-height: 48px; }
+  .sh-register-page--fullscreen .sh-register-divider { margin: 18px 0 14px; }
+}
+@media (max-height: 680px) {
+  .sh-register-page--fullscreen .sh-register-form { padding-top: 8px; padding-bottom: 8px; }
+  .sh-register-page--fullscreen .sh-register-brand { gap: 8px; font-size: 22px; }
+  .sh-register-page--fullscreen .sh-login-logo-mark svg { width: 42px; height: 42px; }
+  .sh-register-page--fullscreen .sh-register-heading { margin-top: 10px; }
+  .sh-register-page--fullscreen .sh-register-heading h1 { font-size: 27px; }
+  .sh-register-page--fullscreen .sh-register-heading p { margin-top: 4px; font-size: 13px; }
+  .sh-register-page--fullscreen .sh-register-fields { gap: 5px; margin-top: 8px; }
+  .sh-register-page--fullscreen .sh-register-form .sh-register-input { min-height: 44px; padding-top: 8px; padding-bottom: 8px; }
+  .sh-register-page--fullscreen .sh-register-form .sh-login-fields label { margin-bottom: 3px; font-size: 12px; }
+  .sh-register-page--fullscreen .sh-register-form .sh-login-submit { min-height: 44px; font-size: 14px; }
+  .sh-register-page--fullscreen .sh-register-divider { margin: 10px 0 8px; }
+  .sh-register-page--fullscreen .sh-register-footer { font-size: 13px; }
+  .sh-register-page--fullscreen .sh-register-success { padding: 6px 8px; font-size: 12px; line-height: 1.3; }
 }

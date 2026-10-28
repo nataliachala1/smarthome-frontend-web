@@ -53,6 +53,17 @@ export interface DeviceConsumptionSummary {
   latestReadAt: string | null;
 }
 
+export interface DeviceDailyConsumption {
+  homeId: string;
+  deviceId: string;
+  periodStart: string;
+  readingsCount: number;
+  totalEnergyDeltaKwh: number;
+  averagePowerW: number | null;
+  maxPowerW: number | null;
+  minPowerW: number | null;
+}
+
 interface ConsumptionQuery {
   from?: string;
   to?: string;
@@ -124,4 +135,21 @@ export const getDeviceConsumptionSummary = (
     )}/devices/${encodeURIComponent(
       deviceId,
     )}/consumption/summary${buildQueryString(query)}`,
+  );
+export const getDeviceDailyConsumption = (
+  homeId: string,
+  deviceId: string,
+  query: Omit<ConsumptionQuery, 'limit'> = {},
+) =>
+  apiClient<DeviceDailyConsumption[]>(
+    `/homes/${encodeURIComponent(homeId)}/devices/${encodeURIComponent(deviceId)}/consumption/daily${buildQueryString(query)}`,
+  );
+
+export const listDeviceConsumption = (
+  homeId: string,
+  deviceId: string,
+  query: ConsumptionQuery = {},
+) =>
+  apiClient<ConsumptionReading[]>(
+    `/homes/${encodeURIComponent(homeId)}/devices/${encodeURIComponent(deviceId)}/consumption${buildQueryString(query)}`,
   );

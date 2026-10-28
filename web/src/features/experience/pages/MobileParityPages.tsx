@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { listNotifications, type Notification } from '../../../shared/api/notifications.api';
 import appPackage from '../../../../package.json';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../app/contexts/AuthContext';
 import { Settings } from '../../settings/pages/Settings';
+import { getMyProfile } from '../../../shared/api/users.api';
 
 type IconName =
   | 'alert'
@@ -57,7 +58,7 @@ const pageTitle: Record<string, { title: string; description: string }> = {
   about: { title: 'Acerca de Smart Home', description: 'Información de la aplicación.' },
 };
 
-const contentClass = 'mx-auto w-full max-w-[1200px] text-[#0f172a] dark:text-slate-100';
+const contentClass = 'mx-auto w-full max-w-[1200px] text-[#0f172a] dark:text-slate-100 sh-page-enter';
 const panelClass = 'rounded-xl border border-[#e2e8f0] bg-white dark:border-slate-700 dark:bg-[#151824]';
 
 const PageHeading = ({ page }: { page: string }) => {
@@ -76,7 +77,7 @@ const EmptyState = ({ icon, title, description, action }: {
   description: string;
   action?: { label: string; to: string };
 }) => (
-  <div className={`${panelClass} flex min-h-[300px] flex-col items-center justify-center px-6 py-12 text-center`}>
+  <div className={`${panelClass} flex min-h-[300px] flex-col items-center justify-center px-6 py-12 text-center sh-animate-fade-in`}>
     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eff6ff] text-[#1677f2] dark:bg-[#172b49] dark:text-[#75adff]">
       <Icon name={icon} className="h-7 w-7" />
     </div>
@@ -127,7 +128,7 @@ export const AlertsPage = () => {
     return () => { live = false; };
   }, []);
   return <div className={contentClass}><PageHeading page="alerts" />
-    {loading ? <p role="status" className={panelClass + ' p-5'}>Cargando notificaciones?</p>
+    {loading ? <p role="status" className={panelClass + ' p-5'}>Cargando notificaciones...</p>
       : error ? <p role="alert" className={panelClass + ' p-5 text-red-700'}>{error}</p>
       : notifications.length === 0 ? <EmptyState icon="alert" title="No hay notificaciones" description="El backend no reporta notificaciones para tu cuenta." action={{ label: 'Ver notificaciones', to: '/notifications' }} />
       : <section aria-label="Notificaciones" className={panelClass + ' divide-y divide-slate-100 dark:divide-slate-700'}>{notifications.map((item) => <article key={item.id} className="p-4 sm:p-5">
@@ -176,11 +177,90 @@ export const ProfilePage = () => {
 
 export const AccountPage = () => {
   const { page = 'personal' } = useParams<{ page: string }>();
-  const { user } = useAuth();
-  const profileName = user?.name || 'Usuario';
-  const profileEmail = user?.email || 'Correo no disponible';
+  const navigate = useNavigate();
+  const { user, updateProfile, deactivateAccount } = useAuth();
+  const [profileName, setProfileName] = useState(user?.name || 'Usuario');
+  const [profileEmail, setProfileEmail] = useState(user?.email || 'Correo no disponible');
+  const [nameDraft, setNameDraft] = useState(user?.name || '');
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
   const supportedAccountPages = ['personal', 'security', 'sessions', 'activity', 'close-sessions', 'language'];
   const currentPage = page;
+
+  useEffect(() => {
+    if (currentPage !== 'personal') return;
+
+    let active = true;
+    void getMyProfile()
+      .then((profile) => {
+        if (!active) return;
+        setProfileName(profile.name);
+        setProfileEmail(profile.email);
+        setNameDraft(profile.name);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setProfileError(
+          error instanceof Error
+            ? error.message
+            : 'No fue posible cargar el perfil.',
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentPage]);
+
+  const handleSaveProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextName = nameDraft.trim();
+    if (nextName.length < 2) {
+      setProfileError('El nombre debe tener al menos 2 caracteres.');
+      return;
+    }
+
+    setProfileError('');
+    setProfileSuccess('');
+    setIsSavingProfile(true);
+
+    try {
+      await updateProfile(nextName);
+      setProfileName(nextName);
+      setProfileSuccess('Tu nombre fue actualizado.');
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible actualizar el perfil.',
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    const confirmed = window.confirm(
+      '¿Desactivar temporalmente tu cuenta? Se cerrará tu sesión y podrás solicitar la reactivación por correo.',
+    );
+    if (!confirmed) return;
+
+    setProfileError('');
+    setIsDeactivating(true);
+    try {
+      await deactivateAccount();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible desactivar la cuenta.',
+      );
+      setIsDeactivating(false);
+    }
+  };
 
   if (!supportedAccountPages.includes(currentPage)) {
     return <Navigate to="/account/personal" replace />;
@@ -190,10 +270,45 @@ export const AccountPage = () => {
     return (
       <div className={contentClass}>
         <PageHeading page={currentPage} />
-        <section className={panelClass}>
-          <InfoRow label="Nombre" value={profileName} />
+        <section className={`${panelClass} space-y-4`}>
+          <form onSubmit={handleSaveProfile} className="max-w-xl space-y-3">
+            <label className="block text-sm font-medium text-[#334155] dark:text-slate-200">
+              Nombre
+              <input
+                value={nameDraft}
+                onChange={(event) => setNameDraft(event.target.value)}
+                minLength={2}
+                maxLength={100}
+                required
+                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+              />
+            </label>
+            {profileError && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{profileError}</p>}
+            {profileSuccess && <p role="status" className="text-sm text-emerald-600">{profileSuccess}</p>}
+            <button
+              type="submit"
+              disabled={isSavingProfile}
+              className="rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0564d4] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSavingProfile ? 'Guardando…' : 'Guardar cambios'}
+            </button>
+          </form>
           <InfoRow label="Correo electrónico" value={profileEmail} />
           <InfoRow label="Rol" value={user?.role || 'No disponible'} />
+          <div className="border-t border-[#edf1f5] pt-4 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-red-700 dark:text-red-300">Desactivar cuenta</h2>
+            <p className="mt-1 text-sm text-[#64748b] dark:text-slate-400">
+              La desactivación cerrará tu sesión. Puedes pedir un enlace por correo para reactivar tu cuenta.
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleDeactivateAccount()}
+              disabled={isDeactivating}
+              className="mt-3 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
+            >
+              {isDeactivating ? 'Desactivando…' : 'Desactivar cuenta'}
+            </button>
+          </div>
         </section>
       </div>
     );

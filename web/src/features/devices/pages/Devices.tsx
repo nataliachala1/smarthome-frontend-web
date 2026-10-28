@@ -418,11 +418,11 @@ export const Devices = () => {
    */
   if (isLoading) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivos...
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -435,7 +435,7 @@ export const Devices = () => {
     !home
   ) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
 
           <p>
@@ -456,7 +456,7 @@ export const Devices = () => {
           </Button>
 
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -464,9 +464,9 @@ export const Devices = () => {
    * Pantalla normal
    */
   return (
-    <main className="min-h-screen bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
 
-      <div className="mx-auto max-w-7xl space-y-7">
+      <div className="mx-auto max-w-7xl space-y-7 sh-page-enter">
 
         {/* ================================= */}
         {/* HEADER                            */}
@@ -613,7 +613,7 @@ export const Devices = () => {
             <div className="w-full sm:w-72">
 
               <Input
-                label=""
+                aria-label="Buscar dispositivo"
                 type="text"
                 placeholder="Buscar dispositivo..."
                 value={search}
@@ -775,7 +775,7 @@ export const Devices = () => {
 
       </div>
 
-    </main>
+    </div>
   );
 };
 

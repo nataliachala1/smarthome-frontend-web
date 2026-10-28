@@ -111,3 +111,54 @@ export const acceptInvitation = (memberId: string) =>
   apiClient<InvitationActionResponse>(`/invitations/${encodeURIComponent(memberId)}/accept`, { method: 'PATCH' });
 export const rejectInvitation = (memberId: string) =>
   apiClient<InvitationActionResponse>(`/invitations/${encodeURIComponent(memberId)}/reject`, { method: 'PATCH' });
+
+export interface HomeMemberPermissions {
+  canViewDevices: boolean;
+  canViewConsumption: boolean;
+  canControlDevices: boolean;
+}
+
+export interface DevicePermissionOverrides {
+  canViewDevice: boolean | null;
+  canViewConsumption: boolean | null;
+  canControlDevice: boolean | null;
+}
+
+export type UpdateDevicePermissionOverrides = Partial<DevicePermissionOverrides>;
+
+const memberPermissionsPath = (homeId: string, memberId: string) =>
+  `/homes/${encodeURIComponent(homeId)}/members/${encodeURIComponent(memberId)}/permissions`;
+
+export const getHomeMemberPermissions = (homeId: string, memberId: string) =>
+  apiClient<HomeMemberPermissions>(memberPermissionsPath(homeId, memberId));
+
+export const updateHomeMemberPermissions = (
+  homeId: string,
+  memberId: string,
+  permissions: HomeMemberPermissions,
+) =>
+  apiClient<HomeMemberPermissions>(memberPermissionsPath(homeId, memberId), {
+    method: 'PUT',
+    body: permissions,
+  });
+
+const devicePermissionsPath = (homeId: string, memberId: string, deviceId: string) =>
+  `${memberPermissionsPath(homeId, memberId).replace(/\/permissions$/, '')}/devices/${encodeURIComponent(deviceId)}/permissions`;
+
+export const getMemberDevicePermissions = (
+  homeId: string,
+  memberId: string,
+  deviceId: string,
+) =>
+  apiClient<DevicePermissionOverrides>(devicePermissionsPath(homeId, memberId, deviceId));
+
+export const updateMemberDevicePermissions = (
+  homeId: string,
+  memberId: string,
+  deviceId: string,
+  permissions: UpdateDevicePermissionOverrides,
+) =>
+  apiClient<DevicePermissionOverrides>(devicePermissionsPath(homeId, memberId, deviceId), {
+    method: 'PUT',
+    body: permissions,
+  });

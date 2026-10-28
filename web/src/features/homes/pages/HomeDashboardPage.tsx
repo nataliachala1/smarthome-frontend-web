@@ -6,6 +6,7 @@ import {
   type Device,
 } from '../../../shared/api/devices.api';
 import { Card, CardContent } from '../../../components/ui/Card';
+import { IsometricHomeScene } from '../../../components/ui/IsometricHomeScene';
 
 export const HomeDashboardPage = () => {
   const navigate = useNavigate();
@@ -65,17 +66,17 @@ export const HomeDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <div className="p-6 sh-page-enter">
         <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
           Cargando hogar...
         </div>
-      </main>
+      </div>
     );
   }
 
   if (error || !home) {
     return (
-      <main className="p-6">
+      <div className="p-6 sh-page-enter">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
           <p>{error || 'No se encontró el hogar.'}</p>
 
@@ -87,12 +88,12 @@ export const HomeDashboardPage = () => {
             Volver a Mis hogares
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="p-6 space-y-8">
+    <div className="p-6 space-y-8 sh-page-enter">
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -112,6 +113,8 @@ export const HomeDashboardPage = () => {
             Resumen del hogar seleccionado
           </p>
         </div>
+
+        <IsometricHomeScene variant="compact" />
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -208,7 +211,7 @@ export const HomeDashboardPage = () => {
                     </div>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`sh-device-state rounded-full px-3 py-1 text-xs font-semibold ${
                         device.isOn
                           ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
                           : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
@@ -260,7 +263,7 @@ export const HomeDashboardPage = () => {
         </div>
       </section>
 
-    </main>
+    </div>
   );
 };
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+﻿import type { ReactNode } from 'react';
 
 interface CardProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ interface CardPartProps {
 export const Card = ({ children, className = '', noPadding = false }: CardProps) => {
   return (
     <div
-      className={`bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#232323] shadow-lg shadow-slate-200/40 dark:shadow-black/20 rounded-[28px] ${
+      className={`rounded-2xl border border-border bg-card text-card-foreground shadow-sm shadow-slate-900/5 dark:shadow-black/20 ${
         !noPadding ? 'p-6' : ''
       } ${className}`}
     >
@@ -28,7 +28,7 @@ export const CardHeader = ({ children, className = '' }: CardPartProps) => {
 };
 
 export const CardTitle = ({ children, className = '' }: CardPartProps) => {
-  return <h3 className={`${className}`}>{children}</h3>;
+  return <h3 className={className}>{children}</h3>;
 };
 
 export const CardContent = ({ children, className = '' }: CardPartProps) => {

@@ -22,6 +22,8 @@ export interface ApiClientOptions extends Omit<RequestInit, 'body'> {
 }
 
 const pathsWithoutRefresh = new Set([
+  '/auth/request-reactivation',
+  '/auth/reactivate',
   '/auth/login',
   '/auth/register',
   '/auth/activate',

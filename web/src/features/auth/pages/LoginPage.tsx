@@ -6,10 +6,10 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 
 const AuthLogo = () => (
-  <div className="grid h-14 w-14 place-items-center rounded-3xl bg-[#eff6ff] text-[#1866C1] shadow-sm shadow-[#1866C1]/10 dark:bg-[#111827] dark:text-[#bfdbfe]">
+  <div className="sh-login-logo-mark" aria-hidden="true">
     <svg
       viewBox="0 0 64 64"
-      className="h-8 w-8"
+      className="h-14 w-14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -61,91 +61,118 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-8 rounded-[32px] shadow-2xl shadow-slate-900/10">
-
-          <div className="mb-8 text-center">
-            <div className="flex items-center justify-center gap-4">
+    <main className="sh-login-page sh-login-page--fullscreen">
+      <section className="sh-login-card sh-login-card--fullscreen sh-animate-scale-in" aria-label="Acceso a Smart Home">
+        <div className="sh-login-form">
+          <div className="sh-login-content">
+            <div className="sh-login-brand">
               <AuthLogo />
-
-              <h1 className="text-[#1866C1] text-3xl font-semibold">
-                {t('app.name')}
-              </h1>
+              <span>{t('app.name')}</span>
             </div>
 
-            <p className="mt-4 text-sm text-[#666666] dark:text-[#a3a3a3]">
-              Inicia sesión para administrar tu hogar inteligente
-            </p>
-          </div>
+            <header className="sh-login-heading">
+              <h1>{t('auth.login')}</h1>
+              <p>Accede para administrar tus hogares y dispositivos.</p>
+            </header>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="sh-login-fields">
+              <Input
+                label={t('auth.email')}
+                type="email"
+                autoComplete="email"
+                placeholder="Correo electrónico"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                className="sh-login-input sh-login-input--icon"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
-            <Input
-              label={t('auth.email')}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+              <Input
+                label={t('auth.password')}
+                type="password"
+                autoComplete="current-password"
+                placeholder="Ingresa tu contraseña"
+                leadingIcon={(
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <rect x="4.5" y="10" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                )}
+                passwordToggle="icon"
+                className="sh-login-input sh-login-input--icon sh-login-input--password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
 
-            <Input
-              label={t('auth.password')}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              {formError && (
+                <div role="alert" className="sh-login-error sh-animate-fade-in">
+                  {formError}
+                </div>
+              )}
 
-            {formError && (
-              <div className="text-sm text-[#dc2626]">
-                {formError}
+              <div className="sh-login-options">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="sh-login-link"
+                >
+                  {t('auth.forgotPassword')}
+                </button>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Iniciando sesión...' : t('auth.login')}
-            </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full sh-login-submit"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+              >
+                <span>{isSubmitting ? 'Iniciando sesión...' : t('auth.login')}</span>
+                {!isSubmitting && (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </Button>
+            </form>
 
-          </form>
+            <div className="sh-login-divider" aria-hidden="true"><span /></div>
 
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => navigate('/resend-activation')}
-              className="text-sm text-[#666666] dark:text-[#a3a3a3] hover:underline"
-            >
-              ¿No recibiste el correo de activación?
-            </button>
+            <p className="sh-login-register">
+              ¿No tienes cuenta?{' '}
+              <button type="button" onClick={() => navigate('/register')}>
+                Regístrate
+              </button>
+            </p>
+
+            <nav className="sh-login-secondary-links" aria-label="Opciones adicionales de cuenta">
+              <button type="button" onClick={() => navigate('/resend-activation')}>
+                ¿No recibiste el correo de activación?
+              </button>
+              <button type="button" onClick={() => navigate('/reactivate-account')}>
+                ¿Tu cuenta está desactivada? Solicita reactivarla
+              </button>
+            </nav>
           </div>
-
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => navigate('/forgot-password')}
-              className="text-sm text-[#666666] dark:text-[#a3a3a3] hover:underline"
-               >
-              {t('auth.forgotPassword')}
-            </button>
-          </div>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => navigate('/register')}
-              className="text-sm text-[#1866C1] hover:underline"
-            >
-              ¿No tienes cuenta? Regístrate
-            </button>
-          </div>
-
         </div>
-      </div>
-    </div>
+
+        <aside className="sh-login-abstract-panel" aria-labelledby="sh-login-message-title">
+          <div className="sh-login-abstract-copy">
+            <h2 id="sh-login-message-title">
+              Tu hogar inteligente,<br />
+              <span>más simple.</span>
+            </h2>
+            <p>Controla, monitorea y administra tus dispositivos desde un solo lugar.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
   );
 };

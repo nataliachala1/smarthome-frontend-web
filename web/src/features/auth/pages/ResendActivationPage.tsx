@@ -37,9 +37,9 @@ export const ResendActivationPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
+    <div className="sh-auth-viewport flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
       <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-8 rounded-[32px] shadow-2xl shadow-slate-900/10">
+        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-6 sm:p-8 rounded-2xl sm:rounded-[24px] shadow-lg shadow-slate-900/5 dark:shadow-black/20 sh-animate-scale-in">
 
           <div className="text-center mb-8">
             <h1 className="text-[#1866C1] text-3xl font-semibold">
@@ -66,13 +66,13 @@ export const ResendActivationPage = () => {
             />
 
             {formError && (
-              <div className="text-sm text-[#dc2626]">
+              <div role="alert" className="text-sm text-[#dc2626] sh-animate-fade-in">
                 {formError}
               </div>
             )}
 
             {successMessage && (
-              <div className="text-sm text-emerald-600">
+              <div role="status" className="text-sm text-emerald-600 sh-animate-fade-in">
                 {successMessage}
               </div>
             )}

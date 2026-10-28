@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 import { createShellyPairingCredentials } from '../../../shared/api/shelly-pairing-contract';
@@ -89,7 +89,7 @@ export const ShellyPairingPage = () => {
   const ap = capabilities?.methods.AP;
 
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-5 sm:p-8">
+    <div className="mx-auto max-w-4xl space-y-6 p-5 sm:p-8 sh-page-enter">
       <header>
         <Link to={`/homes/${homeId}/devices/add`} className="text-sm font-semibold text-blue-700 hover:underline dark:text-blue-300">← Volver a métodos de alta</Link>
         <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Alta Shelly · sesión AP</p>
@@ -138,6 +138,6 @@ export const ShellyPairingPage = () => {
         {session.failureCode && <p className="mt-4 text-sm text-red-700">Código reportado: {session.failureCode}</p>}
         {!terminal && token && <Button type="button" variant="outline" disabled={busy} className="mt-5" onClick={() => void cancel()}>Cancelar sesión</Button>}
       </section>}
-    </main>
+    </div>
   );
 };

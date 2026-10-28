@@ -10,7 +10,6 @@ import {
   type Notification,
   type NotificationStatus,
 } from '../../../shared/api/notifications.api';
-import { NotificationsSectionNav } from '../components/NotificationsSectionNav';
 
 import {
   Card,
@@ -239,8 +238,8 @@ export const Notifications = () => {
   };
 
   return (
-    <main className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-[1240px] flex-col">
+    <div className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-[1240px] flex-col sh-page-enter">
 
         <header className="mb-7">
 
@@ -267,8 +266,6 @@ export const Notifications = () => {
           )}
 
         </header>
-
-        <NotificationsSectionNav />
 
         {/* FILTROS */}
 
@@ -506,7 +503,7 @@ export const Notifications = () => {
         )}
 
       </div>
-    </main>
+    </div>
   );
 };
 
