@@ -418,8 +418,8 @@ export const Devices = () => {
    */
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivos...
         </div>
       </div>
@@ -435,8 +435,8 @@ export const Devices = () => {
     !home
   ) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
 
           <p>
             {error}
@@ -464,7 +464,7 @@ export const Devices = () => {
    * Pantalla normal
    */
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a]">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a]">
 
       <div className="mx-auto max-w-7xl space-y-7 sh-page-enter">
 
@@ -474,7 +474,7 @@ export const Devices = () => {
 
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-          <div>
+          <div className="min-w-0 flex-1">
 
             <button
               type="button"
@@ -483,16 +483,16 @@ export const Devices = () => {
                   `/homes/${homeId}/dashboard`,
                 )
               }
-              className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+              className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
             >
               Volver al hogar
             </button>
 
-            <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
               Dispositivos
             </h1>
 
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 break-words text-sm leading-6 text-gray-500 dark:text-gray-400">
               {home?.name}
             </p>
 
@@ -501,6 +501,7 @@ export const Devices = () => {
             <Button
               type="button"
               variant="primary"
+              className="w-full sm:w-auto"
               onClick={() =>
                 navigate(
                   `/homes/${homeId}/devices/add`,
@@ -520,7 +521,7 @@ export const Devices = () => {
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
+            className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300 sm:p-5"
           >
             {error}
           </div>
@@ -532,15 +533,15 @@ export const Devices = () => {
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
 
-            <CardContent className="p-5">
+            <CardContent className="p-5 sm:p-6">
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
                 {devices.length}
               </p>
 
@@ -548,15 +549,15 @@ export const Devices = () => {
 
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
 
-            <CardContent className="p-5">
+            <CardContent className="p-5 sm:p-6">
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Online
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
                 {onlineCount}
               </p>
 
@@ -564,15 +565,15 @@ export const Devices = () => {
 
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
 
-            <CardContent className="p-5">
+            <CardContent className="p-5 sm:p-6">
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Offline
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
                 {offlineCount}
               </p>
 
@@ -580,15 +581,15 @@ export const Devices = () => {
 
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
 
-            <CardContent className="p-5">
+            <CardContent className="p-5 sm:p-6">
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Encendidos
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
                 {onCount}
               </p>
 
@@ -606,7 +607,7 @@ export const Devices = () => {
 
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-            <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+            <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
               Dispositivos del hogar
             </h2>
 
@@ -630,9 +631,9 @@ export const Devices = () => {
 
           {filteredDevices.length ===
           0 ? (
-            <div className="rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-[#151824]">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 text-center shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] sm:p-8">
 
-              <p className="font-semibold text-[#1b254b] dark:text-white">
+              <p className="font-semibold tracking-tight text-[#1b254b] dark:text-white">
                 No hay dispositivos
               </p>
 
@@ -658,7 +659,7 @@ export const Devices = () => {
 
             </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 
               {filteredDevices.map(
                 (device) => (
@@ -666,23 +667,23 @@ export const Devices = () => {
                     key={
                       device.id
                     }
-                    className="rounded-2xl border border-gray-100 dark:border-gray-800"
+                    className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-md motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900"
                   >
 
-                    <CardContent className="p-6">
+                    <CardContent className="p-5 sm:p-6">
 
                       <div className="flex items-start justify-between gap-3">
 
-                        <div>
+                        <div className="min-w-0 flex-1">
 
-                          <h3 className="text-lg font-semibold text-[#1b254b] dark:text-white">
+                          <h3 className="break-words text-lg font-semibold tracking-tight text-[#1b254b] dark:text-white">
                             {
                               device.name
                             }
                           </h3>
 
                           <span
-                            className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                            className={`mt-2 inline-flex min-h-6 items-center rounded-full px-3 py-1 text-xs font-semibold ${
                               device.connectivityStatus ===
                               'ONLINE'
                                 ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
@@ -697,7 +698,7 @@ export const Devices = () => {
                         </div>
 
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
                             device.isOn
                               ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
@@ -710,7 +711,7 @@ export const Devices = () => {
 
                       </div>
 
-                      <div className="mt-5 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="mt-5 border-t border-slate-100 pt-4 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
 
                         <p>
                           Potencia actual:{' '}
@@ -724,7 +725,7 @@ export const Devices = () => {
 
                       </div>
 
-                      <div className="mt-6 space-y-3">
+                      <div className="mt-5 space-y-3">
                         {canControlDevice && (
 
                           <Button

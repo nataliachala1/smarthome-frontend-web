@@ -56,32 +56,32 @@ export const ActivateAccountPage = () => {
   return (
     <div className="sh-auth-viewport flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
       <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-6 sm:p-8 rounded-2xl sm:rounded-[24px] shadow-lg shadow-slate-900/5 dark:shadow-black/20 text-center sh-animate-scale-in">
+        <div className="rounded-2xl border border-[#dce8f8] bg-white/95 p-6 text-center shadow-[0_20px_55px_rgba(22,82,155,0.10)] dark:border-slate-800 dark:bg-[#111827] dark:shadow-black/20 sm:rounded-[24px] sm:p-8 sh-animate-scale-in">
 
-          <h1 className="text-[#1866C1] text-3xl font-semibold">
+          <h1 className="text-3xl font-bold tracking-[-0.03em] text-[#1866C1]">
             Smart Home
           </h1>
 
-          <h2 className="mt-6 text-xl font-semibold text-[#222222] dark:text-white">
+          <h2 className="mt-6 text-xl font-semibold tracking-tight text-[#162544] dark:text-white">
             Activación de cuenta
           </h2>
 
           {status === 'loading' && (
-            <p className="mt-4 text-sm text-[#666666] dark:text-[#a3a3a3]">
+            <p role="status" className="mt-4 rounded-xl border border-[#dce8f8] bg-[#f5f9ff] px-4 py-3 text-sm leading-6 text-[#526789] dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
               {message}
             </p>
           )}
 
           {status === 'success' && (
             <div className="mt-4">
-              <p className="text-sm text-emerald-600">
+              <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
                 {message}
               </p>
 
               <Button
                 type="button"
                 variant="primary"
-                className="w-full mt-6"
+                className="mt-6 w-full"
                 onClick={() => navigate('/login')}
               >
                 Ir a iniciar sesión
@@ -91,14 +91,14 @@ export const ActivateAccountPage = () => {
 
           {status === 'error' && (
             <div className="mt-4">
-              <p className="text-sm text-[#dc2626]">
+              <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
                 {message}
               </p>
 
               <Button
                 type="button"
                 variant="primary"
-                className="w-full mt-6"
+                className="mt-6 w-full"
                 onClick={() => navigate('/login')}
               >
                 Volver al inicio de sesión

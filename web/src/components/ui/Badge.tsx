@@ -23,7 +23,7 @@ export const Badge = ({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${variantStyles[variant]} ${className}`}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full border border-current/10 px-2.5 py-1 text-xs font-medium leading-4 ${variantStyles[variant]} ${className}`}
     >
       {children}
     </span>

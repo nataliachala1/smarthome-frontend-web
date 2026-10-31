@@ -115,13 +115,13 @@ export const Input = ({
           onBlur={handleBlur}
           aria-invalid={Boolean(displayedError)}
           aria-describedby={describedBy}
-          className={`w-full border border-input bg-input-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,background-color,color] duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-black/20 ${className}`}
+          className={`w-full border border-input bg-input-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,background-color,color] duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none dark:shadow-black/20 ${className}`}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword((visible) => !visible)}
-            className={`absolute right-2 top-1/2 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-lg text-sm text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${passwordToggle === 'icon' ? 'sh-input-password-toggle' : ''}`}
+            className={`absolute right-2 top-1/2 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-lg text-sm text-muted-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 motion-reduce:transition-none ${passwordToggle === 'icon' ? 'sh-input-password-toggle' : ''}`}
             aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
             aria-pressed={showPassword}
           >

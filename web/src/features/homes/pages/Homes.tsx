@@ -265,7 +265,7 @@ export const Homes = () => {
             setError('');
           }}
           aria-expanded={isCreating}
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[11px] bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 focus-visible:ring-offset-2 sm:self-center"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[11px] bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 focus-visible:ring-offset-2 motion-reduce:transition-none sm:self-center"
         >
           <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
             <path strokeLinecap="round" d="M12 5v14M5 12h14" />
@@ -277,7 +277,7 @@ export const Homes = () => {
       {error && (
         <div
           role="alert"
-          className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+          className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
         >
           {error}
         </div>
@@ -285,13 +285,13 @@ export const Homes = () => {
 
       {isCreating && (
         <form
-          className="mx-auto mt-8 w-full max-w-lg"
+          className="mx-auto mt-8 w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-900/5 sh-animate-fade-in-up dark:border-gray-800 dark:bg-[#151824] sm:p-6"
           onSubmit={(event) => {
             event.preventDefault();
             void handleCreateHome();
           }}
         >
-          <h2 className="text-lg font-semibold text-[#0f172a] dark:text-white">
+          <h2 className="text-lg font-semibold tracking-tight text-[#0f172a] dark:text-white">
             Crear nuevo hogar
           </h2>
 
@@ -303,14 +303,14 @@ export const Homes = () => {
               onChange={(event) => setNewHomeName(event.target.value)}
               maxLength={100}
               required
-              className="rounded-lg border-[#e2e8f0] shadow-none focus:border-[#0d6efd] focus:ring-[#0d6efd]/15"
+              className="rounded-xl border-slate-200 shadow-sm shadow-slate-900/5 focus:border-[#0d6efd] focus:ring-[#0d6efd]/15 dark:border-slate-700 dark:shadow-black/20"
             />
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="submit"
                 disabled={isSaving}
-                className="inline-flex h-11 items-center justify-center rounded-[11px] bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-11 items-center justify-center rounded-[11px] bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
               >
                 {isSaving ? 'Guardando...' : 'Crear hogar'}
               </button>
@@ -323,7 +323,7 @@ export const Homes = () => {
                   setNewHomeName('');
                   setError('');
                 }}
-                className="inline-flex h-11 items-center justify-center rounded-[11px] border border-[#e2e8f0] bg-white px-5 text-sm font-medium text-[#475569] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/30 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-[#151824] dark:text-slate-200 dark:hover:bg-slate-800"
+                className="inline-flex min-h-11 items-center justify-center rounded-[11px] border border-[#e2e8f0] bg-white px-5 text-sm font-medium text-[#475569] transition-colors duration-200 hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/30 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none dark:border-slate-700 dark:bg-[#151824] dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancelar
               </button>
@@ -339,7 +339,7 @@ export const Homes = () => {
       )}
 
       {!isLoading && !isCreating && homes.length === 0 && (
-        <section className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+        <section className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center sh-animate-fade-in-up">
           <div className="flex h-[84px] w-[84px] items-center justify-center rounded-full bg-[#eff6ff] text-[#0d6efd] dark:bg-[#172b49] dark:text-[#75adff]">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" d="M12 5v14M5 12h14" />
@@ -370,7 +370,7 @@ export const Homes = () => {
       )}
 
       {!isLoading && homes.length > 0 && (
-        <section className="mt-8 grid gap-5 md:grid-cols-2">
+        <section className="mt-8 grid gap-5 sh-animate-fade-in-up md:grid-cols-2">
           {homes.map((home) => {
             const isEditing = editingHomeId === home.id;
 
@@ -378,9 +378,9 @@ export const Homes = () => {
               <Card
                 key={home.id}
                 noPadding
-                className="h-full rounded-[26px] border-[#e5edf7] shadow-[0_12px_30px_-24px_rgba(15,55,100,0.38)] transition-[border-color,box-shadow] duration-200 ease-out hover:border-[#d5e5f8] hover:shadow-[0_18px_36px_-25px_rgba(15,55,100,0.42)] motion-reduce:transition-none dark:border-slate-700 dark:hover:border-slate-600"
+                className="h-full rounded-[22px] border-[#e3eaf3] shadow-[0_4px_16px_-12px_rgba(15,55,100,0.24)] transition-[border-color,box-shadow] duration-200 ease-out hover:border-[#cadcf0] hover:shadow-[0_6px_18px_-12px_rgba(15,55,100,0.28)] motion-reduce:transition-none dark:border-slate-700 dark:hover:border-slate-600"
               >
-                <CardContent className="flex h-full min-h-[356px] flex-col p-5 sm:min-h-[382px] sm:p-7">
+                <CardContent className="flex h-full min-h-[348px] flex-col p-5 sm:min-h-[364px] sm:p-7">
                   {!isEditing ? (
                     <>
                       <div className="flex items-start justify-between gap-3">
@@ -407,16 +407,16 @@ export const Homes = () => {
                         </span>
                       </div>
 
-                      <div className="mt-auto space-y-3 pt-6">
+                      <div className="mt-auto space-y-2.5 pt-6">
                         <Button
                           type="button"
                           variant="primary"
-                          className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-transparent bg-[#1866C1] px-4 py-2 text-left text-[15px] font-semibold text-white shadow-sm shadow-[#1866C1]/15 transition-[background-color,box-shadow] duration-200 ease-out hover:bg-[#165bb0] hover:shadow-md hover:shadow-[#1866C1]/15 focus-visible:ring-2 focus-visible:ring-[#1683ec]/40 focus-visible:ring-offset-2 motion-reduce:transition-none sm:min-h-14"
+                          className="flex min-h-[50px] w-full items-center justify-start rounded-full border border-transparent bg-[#1866C1] px-4 py-2 text-left text-[15px] font-semibold text-white shadow-none transition-colors duration-200 ease-out hover:bg-[#165bb0] focus-visible:ring-2 focus-visible:ring-[#1683ec]/40 focus-visible:ring-offset-2 motion-reduce:transition-none"
                           disabled={deletingHomeId !== null}
                           onClick={() => enterHome(home.id)}
                         >
-                          <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
-                            <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                          <span className="grid w-full grid-cols-[36px_minmax(0,1fr)_20px] items-center gap-3">
+                            <span className="flex h-8 w-9 shrink-0 items-center justify-center">
                               <LoginIcon aria-hidden="true" className="h-5 w-5" />
                             </span>
                             <span className="min-w-0">Entrar al hogar</span>
@@ -427,12 +427,12 @@ export const Homes = () => {
                           <Button
                             type="button"
                             variant="secondary"
-                            className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-[#deebf8] bg-[#f7faff] px-4 py-2 text-left text-[15px] font-semibold text-[#19355e] transition-[background-color,border-color] duration-200 ease-out hover:border-[#d2e2f2] hover:bg-[#f0f6fd] focus-visible:ring-2 focus-visible:ring-[#1683ec]/35 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800 sm:min-h-14"
+                            className="flex min-h-[50px] w-full items-center justify-start rounded-full border border-[#deebf8] bg-[#f7faff] px-4 py-2 text-left text-[15px] font-semibold text-[#19355e] transition-[background-color,border-color] duration-200 ease-out hover:border-[#d2e2f2] hover:bg-[#f0f6fd] focus-visible:ring-2 focus-visible:ring-[#1683ec]/35 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-800"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={() => startEditing(home)}
                           >
-                            <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
-                              <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                            <span className="grid w-full grid-cols-[36px_minmax(0,1fr)_20px] items-center gap-3">
+                              <span className="flex h-8 w-9 shrink-0 items-center justify-center">
                                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e8f1fb] text-[#5279a7] dark:bg-slate-800 dark:text-blue-300">
                                   <EditOutlinedIcon aria-hidden="true" className="h-4 w-4" />
                                 </span>
@@ -447,13 +447,13 @@ export const Homes = () => {
                           <Button
                             type="button"
                             variant="secondary"
-                            className="flex min-h-[54px] w-full items-center justify-start rounded-[18px] border border-[#f2dfe2] bg-[#fff6f7] px-4 py-2 text-left text-[15px] font-semibold text-[#cf4e59] transition-[background-color,border-color] duration-200 ease-out hover:border-[#ebd2d6] hover:bg-[#fff1f3] focus-visible:ring-2 focus-visible:ring-rose-300/50 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-300 dark:hover:border-red-900 dark:hover:bg-red-950/35 sm:min-h-14"
+                            className="flex min-h-[50px] w-full items-center justify-start rounded-full border border-[#f2dfe2] bg-[#fff6f7] px-4 py-2 text-left text-[15px] font-semibold text-[#b93842] transition-[background-color,border-color] duration-200 ease-out hover:border-[#ebd2d6] hover:bg-[#fff1f3] focus-visible:ring-2 focus-visible:ring-rose-300/50 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-300 dark:hover:border-red-900 dark:hover:bg-red-950/35"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={() => void handleDeleteHome(home)}
                           >
-                            <span className="grid w-full grid-cols-[44px_minmax(0,1fr)_20px] items-center gap-3">
-                              <span className="flex h-8 w-11 shrink-0 items-center justify-center">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fbe8ea] text-[#d65a64] dark:bg-red-950/60 dark:text-red-300">
+                            <span className="grid w-full grid-cols-[36px_minmax(0,1fr)_20px] items-center gap-3">
+                              <span className="flex h-8 w-9 shrink-0 items-center justify-center">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fbe8ea] text-[#b93842] dark:bg-red-950/60 dark:text-red-300">
                                   <DeleteOutlineIcon aria-hidden="true" className="h-4 w-4" />
                                 </span>
                               </span>
@@ -468,7 +468,7 @@ export const Homes = () => {
                     </>
                   ) : (
                     <>
-                      <h2 className="text-lg font-semibold text-[#0f172a] dark:text-white">
+                          <h2 className="text-lg font-semibold tracking-tight text-[#0f172a] dark:text-white">
                         Editar hogar
                       </h2>
 
@@ -482,10 +482,11 @@ export const Homes = () => {
                           required
                         />
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-gray-800 sm:flex-row">
                           <Button
                             type="button"
                             variant="primary"
+                            className="w-full sm:w-auto"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={() => void handleUpdateHome(home.id)}
                           >
@@ -495,6 +496,7 @@ export const Homes = () => {
                           <Button
                             type="button"
                             variant="secondary"
+                            className="w-full sm:w-auto"
                             disabled={isSaving || deletingHomeId !== null}
                             onClick={cancelEditing}
                           >

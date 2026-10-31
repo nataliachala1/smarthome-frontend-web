@@ -331,7 +331,7 @@ export const DashboardPage = () => {
           <button
             type="button"
             onClick={() => navigate('/homes')}
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-base"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm font-semibold text-primary transition-colors duration-200 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none sm:text-base"
           >
             Ver todos
             <ChevronRightIcon />
@@ -390,11 +390,11 @@ export const DashboardPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+                <div className="mt-auto grid grid-cols-1 gap-2 border-t border-border/70 pt-3 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => enterHome(home.id)}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:text-base"
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none sm:text-base"
                   >
                     Entrar al hogar
                     <ChevronRightIcon />
@@ -405,7 +405,7 @@ export const DashboardPage = () => {
                       localStorage.setItem('activeHomeId', home.id);
                       navigate(`/homes/${home.id}/devices`);
                     }}
-                    className="inline-flex min-h-11 items-center rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:text-base"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors duration-200 hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none sm:text-base"
                   >
                     Ver dispositivos
                   </button>
@@ -442,7 +442,7 @@ export const DashboardPage = () => {
             <button
               type="button"
               onClick={() => navigate('/alerts')}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:self-center"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none lg:self-center"
             >
               Ver alertas
               <ChevronRightIcon />
@@ -464,7 +464,7 @@ export const DashboardPage = () => {
             <button
               type="button"
               onClick={() => navigate('/favorites')}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:self-center"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1 self-start rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none lg:self-center"
             >
               Ver favoritos
               <ChevronRightIcon />

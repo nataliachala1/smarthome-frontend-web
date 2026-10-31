@@ -29,6 +29,7 @@ import { ResendActivationPage } from '../features/auth/pages/ResendActivationPag
 import { AccountReactivationPage } from '../features/auth/pages/AccountReactivationPage';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage';
+import { TermsPage } from '../features/experience/pages/TermsPage';
 
 // DASHBOARD
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
@@ -143,6 +144,11 @@ function AppRoutes() {
       {/* ====================================== */}
       {/* RUTAS PÚBLICAS                        */}
       {/* ====================================== */}
+
+      <Route
+        path="/terms"
+        element={<TermsPage />}
+      />
 
       <Route
         path="/login"
@@ -396,8 +402,11 @@ export default function App() {
               toastOptions={{
                 duration: 3000,
                 style: {
-                  background: '#1a1a1a',
-                  color: '#e5e5e5',
+                  background: 'var(--card)',
+                  color: 'var(--card-foreground)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
                 },
               }}
             />

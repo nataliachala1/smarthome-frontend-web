@@ -66,8 +66,8 @@ export const HomeDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Cargando hogar...
         </div>
       </div>
@@ -76,14 +76,14 @@ export const HomeDashboardPage = () => {
 
   if (error || !home) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           <p>{error || 'No se encontró el hogar.'}</p>
 
           <button
             type="button"
             onClick={() => navigate('/homes')}
-            className="mt-3 font-semibold underline"
+            className="mt-3 inline-flex min-h-11 items-center rounded-lg font-semibold underline underline-offset-4 transition-colors duration-200 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:hover:text-red-200 dark:focus-visible:ring-offset-gray-950 motion-reduce:transition-none"
           >
             Volver a Mis hogares
           </button>
@@ -93,23 +93,23 @@ export const HomeDashboardPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-8 sh-page-enter">
+    <div className="mx-auto max-w-7xl space-y-6 sh-page-enter sm:space-y-8">
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <button
             type="button"
             onClick={() => navigate('/dashboard')}
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver al Dashboard
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             {home.name}
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
             Resumen del hogar seleccionado
           </p>
         </div>
@@ -119,49 +119,49 @@ export const HomeDashboardPage = () => {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-md motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900">
+          <CardContent className="p-5 sm:p-6">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Dispositivos
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+            <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
               {devices.length}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-md motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900">
+          <CardContent className="p-5 sm:p-6">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Online
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+            <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
               {onlineDevices}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-md motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900">
+          <CardContent className="p-5 sm:p-6">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Offline
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+            <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
               {offlineDevices}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-md motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900">
+          <CardContent className="p-5 sm:p-6">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Encendidos
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+            <p className="mt-2 text-3xl font-bold tracking-tight text-[#1b254b] dark:text-white">
               {activeDevices}
             </p>
           </CardContent>
@@ -172,21 +172,21 @@ export const HomeDashboardPage = () => {
       <section className="space-y-4">
 
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+          <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
             Dispositivos del hogar
           </h2>
 
           <button
             type="button"
             onClick={() => navigate(`/homes/${home.id}/devices`)}
-            className="text-sm font-semibold text-[#1866C1] hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             Ver todos
           </button>
         </div>
 
         {devices.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
             Este hogar no tiene dispositivos registrados.
           </div>
         ) : (
@@ -195,23 +195,23 @@ export const HomeDashboardPage = () => {
             {devices.slice(0, 6).map((device) => (
               <Card
                 key={device.id}
-                className="rounded-2xl border border-gray-100 dark:border-gray-800"
+                className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none dark:border-gray-800 dark:hover:border-blue-900"
               >
                 <CardContent className="p-5">
 
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-[#1b254b] dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="break-words font-semibold tracking-tight text-[#1b254b] dark:text-white">
                         {device.name}
                       </h3>
 
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-gray-800 dark:text-gray-300">
                         {device.connectivityStatus}
                       </p>
                     </div>
 
                     <span
-                      className={`sh-device-state rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`sh-device-state shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
                         device.isOn
                           ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
                           : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
@@ -221,7 +221,7 @@ export const HomeDashboardPage = () => {
                     </span>
                   </div>
 
-                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mt-4 border-t border-slate-100 pt-4 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
                     Potencia actual:{' '}
                     <span className="font-semibold text-[#1b254b] dark:text-white">
                       {device.currentPowerW === null
@@ -240,7 +240,7 @@ export const HomeDashboardPage = () => {
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-bold text-[#1b254b] dark:text-white">
+        <h2 className="mb-4 text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
           Accesos del hogar
         </h2>
 
@@ -249,7 +249,7 @@ export const HomeDashboardPage = () => {
           <button
             type="button"
             onClick={() => navigate(`/homes/${home.id}/devices`)}
-            className="rounded-2xl border border-gray-100 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 dark:border-gray-800 dark:bg-[#151824]"
+            className="min-h-28 rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none dark:border-gray-800 dark:bg-[#151824] dark:hover:border-blue-900 dark:focus-visible:ring-offset-gray-950"
           >
             <p className="font-semibold text-[#1b254b] dark:text-white">
               Dispositivos

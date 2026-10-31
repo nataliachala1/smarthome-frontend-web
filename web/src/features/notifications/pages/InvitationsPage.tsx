@@ -74,13 +74,13 @@ export const InvitationsPage = () => {
     }).format(new Date(value));
 
   return (
-    <div className="min-h-full bg-[#f8fafc] px-4 py-6 dark:bg-[#0f111a] sm:px-6 lg:px-8 sh-page-enter">
-      <div className="mx-auto min-h-[calc(100vh-7rem)] w-full max-w-[1240px]">
+    <div className="min-h-full bg-[#f8fafc] dark:bg-[#0f111a] sh-page-enter">
+      <div className="mx-auto min-h-full w-full max-w-[1240px]">
         <header className="mb-6">
-          <h1 className="text-[30px] font-bold leading-9 tracking-[-0.035em] text-[#0f172a] dark:text-white sm:text-[34px]">
+          <h1 className="text-2xl font-bold leading-9 tracking-tight text-[#0f172a] dark:text-white sm:text-[34px]">
             Invitaciones
           </h1>
-          <p className="mt-1 text-[15px] leading-6 text-[#64748b] dark:text-slate-400">
+          <p className="mt-1 text-sm leading-6 text-[#64748b] dark:text-slate-400 sm:text-[15px]">
             Revisa las invitaciones que recibiste para acceder a un hogar.
           </p>
         </header>
@@ -89,7 +89,7 @@ export const InvitationsPage = () => {
           <button
             type="button"
             onClick={() => navigate('/access')}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 focus-visible:ring-offset-2 motion-reduce:transition-none"
           >
             Invitar a una persona
           </button>
@@ -101,14 +101,14 @@ export const InvitationsPage = () => {
         {error && (
           <div
             role="alert"
-            className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+            className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
           >
             <p>{error}</p>
             {!invitations.length && (
               <button
                 type="button"
                 onClick={() => void loadInvitations()}
-                className="mt-2 font-semibold underline"
+                className="mt-2 inline-flex min-h-11 items-center rounded-md font-semibold underline underline-offset-4 transition-colors duration-200 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:text-red-200 motion-reduce:transition-none"
               >
                 Intentar de nuevo
               </button>
@@ -119,7 +119,7 @@ export const InvitationsPage = () => {
         {success && (
           <div
             role="status"
-            className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"
+            className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"
           >
             {success}
           </div>
@@ -128,25 +128,25 @@ export const InvitationsPage = () => {
         {isLoading ? (
           <div
             role="status"
-            className="flex min-h-72 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-8 text-center text-sm text-[#64748b] dark:border-slate-700 dark:bg-[#151824] dark:text-slate-400"
+            className="flex min-h-64 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-8 text-center text-sm text-[#64748b] shadow-sm shadow-slate-900/5 dark:border-slate-700 dark:bg-[#151824] dark:text-slate-400 sm:min-h-72"
           >
             Cargando invitaciones...
           </div>
         ) : error && invitations.length === 0 ? (
-          <section className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:px-10">
-            <h2 className="text-xl font-bold text-[#0f172a] dark:text-white">
+          <section className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-10 text-center shadow-sm shadow-slate-900/5 dark:border-slate-700 dark:bg-[#151824] sm:min-h-72 sm:px-10 sm:py-12">
+            <h2 className="text-lg font-bold tracking-tight text-[#0f172a] dark:text-white sm:text-xl">
               No fue posible cargar las invitaciones
             </h2>
             <button
               type="button"
               onClick={() => void loadInvitations()}
-              className="mt-5 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7]"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 motion-reduce:transition-none"
             >
               Reintentar
             </button>
           </section>
         ) : invitations.length === 0 ? (
-          <section className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-12 text-center dark:border-slate-700 dark:bg-[#151824] sm:px-10">
+          <section className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white px-5 py-10 text-center shadow-sm shadow-slate-900/5 dark:border-slate-700 dark:bg-[#151824] sm:min-h-72 sm:px-10 sm:py-12">
             <span
               aria-hidden="true"
               className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eff6ff] text-[#0d6efd] dark:bg-[#172b49] dark:text-[#75adff]"
@@ -165,7 +165,7 @@ export const InvitationsPage = () => {
                 <path d="M20 8v6m3-3h-6" />
               </svg>
             </span>
-            <h2 className="mt-5 text-xl font-bold text-[#0f172a] dark:text-white">
+            <h2 className="mt-5 text-lg font-bold tracking-tight text-[#0f172a] dark:text-white sm:text-xl">
               No tienes invitaciones pendientes
             </h2>
             <p className="mt-2 max-w-lg text-sm leading-6 text-[#64748b] dark:text-slate-400">
@@ -180,15 +180,15 @@ export const InvitationsPage = () => {
               return (
                 <article
                   key={invitation.id}
-                  className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-[#151824] sm:p-6"
+                className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm shadow-slate-900/5 dark:border-slate-700 dark:bg-[#151824] dark:shadow-black/20 sm:p-6"
                 >
                   <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-lg font-semibold text-[#0f172a] dark:text-white">
+                        <h2 className="break-words text-lg font-semibold tracking-tight text-[#0f172a] dark:text-white">
                           Invitación a un hogar
                         </h2>
-                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                        <span className="inline-flex min-h-6 items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                           Pendiente
                         </span>
                       </div>
@@ -230,12 +230,12 @@ export const InvitationsPage = () => {
                       </dl>
                     </div>
 
-                    <div className="flex shrink-0 flex-col gap-2 sm:min-w-36">
+                    <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:min-w-36">
                       <button
                         type="button"
                         disabled={isBusy || busyInvitationId !== null}
                         onClick={() => void respondToInvitation(invitation, 'accept')}
-                        className="min-h-10 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0b5ed7] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="min-h-11 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
                       >
                         {isBusy ? 'Procesando...' : 'Aceptar'}
                       </button>
@@ -243,7 +243,7 @@ export const InvitationsPage = () => {
                         type="button"
                         disabled={isBusy || busyInvitationId !== null}
                         onClick={() => void respondToInvitation(invitation, 'reject')}
-                        className="min-h-10 rounded-lg border border-[#e2e8f0] bg-white px-4 py-2 text-sm font-semibold text-[#475569] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                        className="min-h-11 rounded-lg border border-[#e2e8f0] bg-white px-4 py-2 text-sm font-semibold text-[#475569] transition-colors duration-200 hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6efd]/35 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 motion-reduce:transition-none"
                       >
                         Rechazar
                       </button>

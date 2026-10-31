@@ -151,16 +151,18 @@ export const AddDevicePage = () => {
 
   if (!homeId) {
     return (
-      <div className="p-6 sh-page-enter">
-        <p>No se encontró el hogar.</p>
+      <div className="sh-page-enter">
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+          No se encontró el hogar.
+        </p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Verificando permisos...
         </div>
       </div>
@@ -169,8 +171,8 @@ export const AddDevicePage = () => {
 
   if (!isOwner) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
           No tienes permisos para agregar dispositivos a este hogar.
         </div>
       </div>
@@ -235,7 +237,7 @@ export const AddDevicePage = () => {
               className={'group h-full overflow-hidden rounded-[22px] border border-[#e1ebf7] bg-white shadow-[0_10px_30px_rgba(32,92,151,0.07)] transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbdff5] hover:shadow-[0_14px_34px_rgba(32,92,151,0.11)] motion-reduce:transform-none motion-reduce:transition-none dark:border-slate-700 dark:bg-[#111b2c] dark:shadow-black/20' + (method.recommended ? ' ring-1 ring-[#d9eaff]' : '')}
             >
               <CardContent className="h-full p-6 sm:p-7">
-                <div className="flex h-full min-h-[500px] flex-col sh-animate-fade-in-up" style={{ animationDelay: String(index * 65) + 'ms' }}>
+                <div className="flex h-full min-h-[440px] flex-col sh-animate-fade-in-up sm:min-h-[500px]" style={{ animationDelay: String(index * 65) + 'ms' }}>
                   <div className="relative mb-5 flex h-[176px] shrink-0 items-center justify-center">
                     {method.illustration}
                     {method.recommended && (
@@ -259,12 +261,12 @@ export const AddDevicePage = () => {
                     type="button"
                     variant={method.recommended ? 'primary' : 'secondary'}
                     className={method.recommended
-                      ? 'mt-auto h-14 w-full justify-between rounded-2xl border-0 bg-gradient-to-r from-[#1686f5] to-[#0874de] px-5 text-base font-semibold text-white shadow-[0_8px_18px_rgba(14,116,221,0.18)] hover:from-[#1178e1] hover:to-[#0966c2] hover:shadow-[0_10px_22px_rgba(14,116,221,0.22)]'
-                      : 'mt-auto h-14 w-full justify-between rounded-2xl border border-[#d5e9ff] bg-[#f1f8ff] px-5 text-base font-semibold text-[#0759a8] hover:border-[#b8d9ff] hover:bg-[#e8f3ff] dark:border-slate-600 dark:bg-slate-800 dark:text-sky-200 dark:hover:bg-slate-700'}
+                      ? 'mt-auto h-auto min-h-14 w-full gap-3 justify-between rounded-2xl border-0 bg-gradient-to-r from-[#1686f5] to-[#0874de] px-5 py-3 text-base font-semibold text-white shadow-[0_8px_18px_rgba(14,116,221,0.18)] hover:from-[#1178e1] hover:to-[#0966c2] hover:shadow-[0_10px_22px_rgba(14,116,221,0.22)]'
+                      : 'mt-auto h-auto min-h-14 w-full gap-3 justify-between rounded-2xl border border-[#d5e9ff] bg-[#f1f8ff] px-5 py-3 text-base font-semibold text-[#0759a8] hover:border-[#b8d9ff] hover:bg-[#e8f3ff] dark:border-slate-600 dark:bg-slate-800 dark:text-sky-200 dark:hover:bg-slate-700'}
                     onClick={() => navigate('/homes/' + homeId + method.destination)}
                   >
-                    <span>{method.action}</span>
-                    <ArrowRightIcon />
+                    <span className="min-w-0 break-words text-left">{method.action}</span>
+                    <span className="shrink-0"><ArrowRightIcon /></span>
                   </Button>
                 </div>
               </CardContent>

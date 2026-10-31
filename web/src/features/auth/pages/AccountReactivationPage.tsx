@@ -66,19 +66,19 @@ export const AccountReactivationPage = () => {
   return (
     <div className="sh-auth-viewport flex items-center justify-center p-4 bg-[radial-gradient(circle,_rgba(24,102,193,0.12),_transparent_25%),radial-gradient(circle_at_top_right,_rgba(135,206,235,0.08),_transparent_18%)] dark:bg-[#05060a]">
       <div className="w-full max-w-md">
-        <div className="bg-white/95 dark:bg-[#111111] border border-[#e5e5e5] dark:border-[#111827] p-8 rounded-[32px] shadow-2xl shadow-slate-900/10">
+        <div className="rounded-2xl border border-[#dce8f8] bg-white/95 p-6 shadow-[0_20px_55px_rgba(22,82,155,0.10)] dark:border-slate-800 dark:bg-[#111827] dark:shadow-black/20 sm:rounded-[24px] sm:p-8">
           <div className="text-center mb-8">
-            <h1 className="text-[#1866C1] text-3xl font-semibold">Smart Home</h1>
-            <h2 className="mt-4 text-xl font-semibold text-[#222222] dark:text-white">
+            <h1 className="text-3xl font-bold tracking-[-0.03em] text-[#1866C1]">Smart Home</h1>
+            <h2 className="mt-4 text-xl font-semibold tracking-tight text-[#162544] dark:text-white">
               Reactivar cuenta
             </h2>
-            <p className="mt-2 text-sm text-[#666666] dark:text-[#a3a3a3]">
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#667895] dark:text-slate-400">
               Solicita un enlace por correo para recuperar el acceso a tu cuenta.
             </p>
           </div>
 
           {token && !successMessage && (
-            <div className="mb-5 rounded-xl border border-[#dfe7f2] p-4 dark:border-slate-700">
+            <div className="mb-5 rounded-xl border border-[#dce8f8] bg-[#f7faff] p-4 dark:border-slate-700 dark:bg-slate-900/50">
               <p className="mb-3 text-sm text-[#50658c] dark:text-slate-300">
                 Confirma para reactivar tu cuenta con este enlace.
               </p>
@@ -95,13 +95,13 @@ export const AccountReactivationPage = () => {
           )}
 
           {formError && (
-            <div role="alert" className="mb-4 text-sm text-[#dc2626]">
+            <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm leading-5 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
               {formError}
             </div>
           )}
 
           {successMessage && (
-            <div role="status" className="mb-4 text-sm text-emerald-600">
+            <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-sm leading-5 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
               {successMessage}
             </div>
           )}
@@ -129,7 +129,7 @@ export const AccountReactivationPage = () => {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="text-sm text-[#1866C1] hover:underline"
+              className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-medium text-[#1866C1] transition-colors duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-2 motion-reduce:transition-none"
             >
               Volver al inicio de sesión
             </button>

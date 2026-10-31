@@ -174,7 +174,7 @@ export const Settings = () => {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] pb-2 text-[#0a1740] dark:text-slate-100">
+    <div className="mx-auto w-full max-w-[1440px] pb-2 text-[#0a1740] dark:text-slate-100 sh-page-enter">
       <div className="mb-4">
         <div className="mb-2 flex items-center gap-2 text-[11px] text-[#8090ad]">
           <Link to="/profile" className="transition-colors hover:text-[#0877f9]">Perfil</Link>
@@ -205,9 +205,9 @@ export const Settings = () => {
             aria-selected={activeTab === tab.id}
             aria-controls={`settings-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-t-lg border-b-2 px-3 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 sm:px-4 motion-reduce:transition-none ${
               activeTab === tab.id
-                ? 'border-[#0877f9] text-[#0877f9]'
+                ? 'border-[#0877f9] bg-[#f4f8ff] text-[#0877f9] dark:bg-[#152747]'
                 : 'border-transparent text-[#50658c] hover:text-[#0877f9] dark:text-slate-400'
             }`}
           >
@@ -238,9 +238,9 @@ export const Settings = () => {
                   type="button"
                   onClick={() => void handleThemeChange(theme)}
                   aria-pressed={isSelected}
-                  className={`relative flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 ${
+                  className={`relative flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-[transform,border-color,background-color,box-shadow,color] duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(26,65,119,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none ${
                     isSelected
-                      ? 'border-[#0877f9] bg-[#edf5ff] text-[#0877f9] dark:bg-[#172b49]'
+                      ? 'border-[#0877f9] bg-[#edf5ff] text-[#0877f9] shadow-[0_4px_12px_rgba(8,119,249,0.08)] dark:bg-[#172b49]'
                       : 'border-[#e1e9f4] bg-white text-[#18264a] hover:border-[#93bdff] dark:border-slate-600 dark:bg-[#172236] dark:text-slate-200'
                   }`}
                 >
@@ -263,7 +263,7 @@ export const Settings = () => {
                   id="settings-language"
                   value={lang}
                   onChange={handleLangChange}
-                  className="h-11 w-full appearance-none rounded-lg border border-[#dfe7f2] bg-white px-3 pr-9 text-sm font-medium text-[#18264a] outline-none transition focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                  className="h-11 w-full appearance-none rounded-lg border border-[#dfe7f2] bg-white px-3 pr-9 text-sm font-medium text-[#18264a] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100 motion-reduce:transition-none"
                 >
                   <option value="es">ES&nbsp; Español</option>
                   <option value="en">EN&nbsp; English</option>
@@ -294,7 +294,7 @@ export const Settings = () => {
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 required
-                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100 motion-reduce:transition-none"
               />
             </label>
             <label className="block text-xs font-medium text-[#50658c] dark:text-slate-300">
@@ -306,7 +306,7 @@ export const Settings = () => {
                 onChange={(event) => setNewPassword(event.target.value)}
                 minLength={8}
                 required
-                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100 motion-reduce:transition-none"
               />
             </label>
             <label className="block text-xs font-medium text-[#50658c] dark:text-slate-300">
@@ -318,7 +318,7 @@ export const Settings = () => {
                 onChange={(event) => setNewPasswordConfirmation(event.target.value)}
                 minLength={8}
                 required
-                className="mt-1.5 h-10 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100 motion-reduce:transition-none"
               />
             </label>
             <p className="text-xs text-[#687b9e] dark:text-slate-400">
@@ -332,12 +332,12 @@ export const Settings = () => {
             <button
               type="submit"
               disabled={isChangingPassword}
-              className="rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0564d4] disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-11 rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0564d4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
             >
               {isChangingPassword ? 'Actualizando…' : 'Cambiar contraseña'}
             </button>
           </form>
-          <div className="mt-4 flex min-h-[54px] items-center justify-between gap-4 rounded-xl border border-[#ffe0e0] bg-[#fff7f7] px-4 py-2.5 dark:border-red-900/60 dark:bg-red-950/20">
+          <div className="mt-4 flex min-h-[54px] flex-col items-start justify-between gap-3 rounded-xl border border-[#ffe0e0] bg-[#fff7f7] px-4 py-3 dark:border-red-900/60 dark:bg-red-950/20 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ffe9e9] text-[#ed2929] dark:bg-red-950/60"><Icon><path d="M10 17l5-5-5-5m5 5H3" /><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" /></Icon></span>
               <div>
@@ -348,7 +348,7 @@ export const Settings = () => {
             <button
               type="button"
               onClick={logoutAll}
-              className="shrink-0 rounded-lg bg-[#ed2424] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#d51c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+              className="min-h-11 w-full shrink-0 rounded-lg bg-[#ed2424] px-4 py-2 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[#d51c1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-2 motion-reduce:transition-none sm:w-auto"
             >
               Cerrar sesión
             </button>
@@ -366,7 +366,7 @@ export const Settings = () => {
             <div className="flex min-h-[34px] items-center gap-3 text-xs">
               <Icon className="h-4 w-4 text-[#26385f] dark:text-slate-300"><path d="M3 12a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-2v-6h4M3 13h4v6H5a2 2 0 0 1-2-2v-4Zm4 6a5 5 0 0 0 5 2" /></Icon>
               <span className="flex-1">Soporte</span>
-              <Link to="/help" className="inline-flex items-center gap-1 font-semibold text-[#0877f9] hover:underline">
+              <Link to="/help" className="inline-flex min-h-11 items-center gap-1 rounded-md font-semibold text-[#0877f9] transition-colors duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 focus-visible:ring-offset-2 motion-reduce:transition-none">
                 Contactar
                 <Icon className="h-3.5 w-3.5"><path d="M14 4h6v6m-11 5L20 4" /><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></Icon>
               </Link>

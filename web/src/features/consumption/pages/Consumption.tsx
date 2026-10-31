@@ -58,6 +58,29 @@ interface DeviceConsumptionCard {
   errorMessage: string | null;
 }
 
+const chartTickStyle = {
+  fill: 'var(--muted-foreground)',
+  fontSize: 12,
+};
+
+const chartTooltipContentStyle = {
+  borderRadius: 12,
+  borderColor: 'var(--border)',
+  backgroundColor: 'var(--popover)',
+  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.14)',
+};
+
+const chartTooltipLabelStyle = {
+  color: 'var(--popover-foreground)',
+  fontWeight: 600,
+  marginBottom: 4,
+};
+
+const chartTooltipItemStyle = {
+  color: 'var(--primary)',
+  fontSize: 13,
+};
+
 const getStartOfDay = (date: Date) => {
   const result = new Date(date);
 
@@ -206,6 +229,9 @@ const getConsumptionTitle = (
 export const Consumption = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
 
   const { homeId } = useParams<{
     homeId: string;
@@ -237,6 +263,19 @@ export const Consumption = () => {
 
   const [error, setError] =
     useState('');
+
+  useEffect(() => {
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotionPreference = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    motionPreference.addEventListener('change', updateMotionPreference);
+
+    return () => {
+      motionPreference.removeEventListener('change', updateMotionPreference);
+    };
+  }, []);
 
   const dateRange = useMemo(
     () => getDateRange(period, selectedDate),
@@ -515,8 +554,8 @@ export const Consumption = () => {
 
   if (isLoading && !summary) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Cargando consumo...
         </div>
       </div>
@@ -525,15 +564,15 @@ export const Consumption = () => {
 
   if (error && !summary) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           <p>{error}</p>
 
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
             <button
               type="button"
               onClick={() => void loadConsumption()}
-              className="font-semibold underline"
+              className="inline-flex min-h-11 items-center rounded-md font-semibold underline underline-offset-4 transition-colors duration-200 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:hover:text-red-200 dark:focus-visible:ring-offset-gray-950 motion-reduce:transition-none"
             >
               Reintentar
             </button>
@@ -544,7 +583,7 @@ export const Consumption = () => {
                   `/homes/${homeId}/dashboard`,
                 )
               }
-              className="font-semibold underline"
+              className="inline-flex min-h-11 items-center rounded-md font-semibold underline underline-offset-4 transition-colors duration-200 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:hover:text-red-200 dark:focus-visible:ring-offset-gray-950 motion-reduce:transition-none"
             >
               Volver al hogar
             </button>
@@ -555,7 +594,7 @@ export const Consumption = () => {
   }
 
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0b1120]">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0b1120]">
       <div className="mx-auto max-w-7xl space-y-7 sh-page-enter">
 
         {/* ENCABEZADO */}
@@ -568,24 +607,24 @@ export const Consumption = () => {
                 `/homes/${homeId}/dashboard`,
               )
             }
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver al hogar
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             Consumo
             {home ? ` — ${home.name}` : ''}
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
             Monitorea el consumo energético de tu hogar.
           </p>
         </header>
 
         {/* SELECTOR HOY / MES / AÑO */}
 
-        <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151824]">
+        <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:shadow-black/20 sm:p-5">
 
           <div className="flex flex-col gap-5">
 
@@ -596,7 +635,7 @@ export const Consumption = () => {
                 onClick={() =>
                   handlePeriodChange('day')
                 }
-                className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+                className={`inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-1 motion-reduce:transition-none sm:px-5 ${
                   period === 'day'
                     ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
                     : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'
@@ -610,7 +649,7 @@ export const Consumption = () => {
                 onClick={() =>
                   handlePeriodChange('month')
                 }
-                className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+                className={`inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-1 motion-reduce:transition-none sm:px-5 ${
                   period === 'month'
                     ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
                     : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'
@@ -624,7 +663,7 @@ export const Consumption = () => {
                 onClick={() =>
                   handlePeriodChange('year')
                 }
-                className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
+                className={`inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-1 motion-reduce:transition-none sm:px-5 ${
                   period === 'year'
                     ? 'bg-white text-[#1866C1] shadow-sm dark:bg-[#1f2335] dark:text-blue-400'
                     : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'
@@ -637,18 +676,18 @@ export const Consumption = () => {
 
             {/* NAVEGACIÓN ENTRE PERIODOS */}
 
-            <div className="flex items-center justify-between gap-4 sm:justify-center">
+            <div className="flex items-center justify-between gap-3 sm:justify-center sm:gap-4">
 
               <button
                 type="button"
                 onClick={previousPeriod}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-lg text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-[#151824] dark:text-gray-300"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-gray-600 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-[#151824] dark:text-gray-300 dark:hover:bg-gray-800 motion-reduce:transition-none"
                 aria-label="Periodo anterior"
               >
                 ←
               </button>
 
-              <p className="min-w-52 text-center text-sm font-semibold capitalize text-[#1b254b] dark:text-white">
+              <p className="min-w-0 flex-1 text-center text-sm font-semibold capitalize text-[#1b254b] dark:text-white sm:min-w-52 sm:flex-none">
                 {formatSelectedDate(
                   period,
                   selectedDate,
@@ -658,7 +697,7 @@ export const Consumption = () => {
               <button
                 type="button"
                 onClick={nextPeriod}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-lg text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-[#151824] dark:text-gray-300"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-gray-600 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1]/40 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-[#151824] dark:text-gray-300 dark:hover:bg-gray-800 motion-reduce:transition-none"
                 aria-label="Periodo siguiente"
               >
                 →
@@ -673,7 +712,7 @@ export const Consumption = () => {
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
+            className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300 sm:p-5"
           >
             {error}
           </div>
@@ -681,8 +720,8 @@ export const Consumption = () => {
 
         {/* CONSUMO PRINCIPAL */}
 
-        <Card className="rounded-3xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-7">
+        <Card className="rounded-3xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+          <CardContent className="p-5 sm:p-7">
 
             <p className="text-sm font-semibold uppercase tracking-wide text-gray-400">
               {getConsumptionTitle(period)}
@@ -690,7 +729,7 @@ export const Consumption = () => {
 
             <div className="mt-3 flex items-end gap-2">
 
-              <p className="text-4xl font-bold text-[#1b254b] dark:text-white sm:text-5xl">
+              <p className="break-words text-4xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-5xl">
                 {summary?.readingsCount === 0
                   ? 'Sin datos'
                   : summary
@@ -714,7 +753,7 @@ export const Consumption = () => {
         </Card>
 
         {isGuest && (
-          <p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-300">
+          <p className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-300">
             Tu rol de Invitado permite consultar el consumo total del periodo. Las métricas y lecturas detalladas no están disponibles.
           </p>
         )}
@@ -723,14 +762,14 @@ export const Consumption = () => {
 
         {!isGuest && <section className="grid gap-4 sm:grid-cols-3">
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-5">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Potencia promedio
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
                 {summary?.averagePowerW !== null &&
                 summary?.averagePowerW !== undefined
                   ? summary.averagePowerW.toFixed(2)
@@ -741,14 +780,14 @@ export const Consumption = () => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-5">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Potencia máxima
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
                 {summary?.maxPowerW !== null &&
                 summary?.maxPowerW !== undefined
                   ? summary.maxPowerW.toFixed(2)
@@ -759,14 +798,14 @@ export const Consumption = () => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-5">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Dispositivos con lecturas
               </p>
 
-              <p className="mt-2 text-3xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
                 {summary?.devicesWithReadings ?? 'Sin datos'}
               </p>
 
@@ -777,9 +816,9 @@ export const Consumption = () => {
 
         {/* ESPACIO PARA LA GRÁFICA */}
 
-        {!isGuest && <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151824]">
+        {!isGuest && <section className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:shadow-black/20 sm:p-6">
 
-          <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+          <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
             {period === 'day'
               ? 'Consumo de hoy'
               : period === 'month'
@@ -791,72 +830,124 @@ export const Consumption = () => {
             Lecturas registradas durante el periodo seleccionado.
           </p>
 
-          <div className="mt-6 h-80">
+          <div className="mt-5 h-64 sm:mt-6 sm:h-80">
             {!hasChartData ? (
-              <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 px-5 text-center text-sm text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
+              <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
                 No hay lecturas registradas para el periodo seleccionado.
               </div>
             ) : period === 'day' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={todayChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" strokeOpacity={0.72} />
 
                   <XAxis
                     dataKey="label"
                     minTickGap={25}
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--border)' }}
                   />
 
-                  <YAxis />
+                  <YAxis
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={false}
+                  />
 
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={chartTooltipContentStyle}
+                    labelStyle={chartTooltipLabelStyle}
+                    itemStyle={chartTooltipItemStyle}
+                  />
 
                   <Line
                     type="monotone"
                     dataKey="power"
                     name="Potencia"
                     unit=" W"
-                    strokeWidth={2}
+                    stroke="#1866C1"
+                    strokeWidth={2.5}
                     dot={false}
+                    activeDot={{ r: 4, strokeWidth: 2, fill: 'var(--card)' }}
+                    isAnimationActive={!prefersReducedMotion}
+                    animationDuration={220}
+                    animationEasing="ease-out"
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : period === 'month' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" strokeOpacity={0.72} />
 
                   <XAxis
                     dataKey="label"
+                    minTickGap={10}
+                    interval="preserveStartEnd"
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--border)' }}
                   />
 
-                  <YAxis />
+                  <YAxis
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={false}
+                  />
 
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={chartTooltipContentStyle}
+                    labelStyle={chartTooltipLabelStyle}
+                    itemStyle={chartTooltipItemStyle}
+                  />
 
                   <Bar
                     dataKey="energy"
                     name="Consumo"
                     unit=" kWh"
+                    fill="#1866C1"
+                    radius={[5, 5, 0, 0]}
+                    maxBarSize={36}
+                    isAnimationActive={!prefersReducedMotion}
+                    animationDuration={220}
+                    animationEasing="ease-out"
                   />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={yearChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" strokeOpacity={0.72} />
 
                   <XAxis
                     dataKey="label"
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--border)' }}
                   />
 
-                  <YAxis />
+                  <YAxis
+                    tick={chartTickStyle}
+                    tickLine={false}
+                    axisLine={false}
+                  />
 
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={chartTooltipContentStyle}
+                    labelStyle={chartTooltipLabelStyle}
+                    itemStyle={chartTooltipItemStyle}
+                  />
 
                   <Bar
                     dataKey="energy"
                     name="Consumo"
                     unit=" kWh"
+                    fill="#1866C1"
+                    radius={[5, 5, 0, 0]}
+                    maxBarSize={36}
+                    isAnimationActive={!prefersReducedMotion}
+                    animationDuration={220}
+                    animationEasing="ease-out"
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -870,7 +961,7 @@ export const Consumption = () => {
         {!isGuest && <section>
 
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+            <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
               Dispositivos del hogar
             </h2>
 
@@ -880,26 +971,26 @@ export const Consumption = () => {
           </div>
 
           {deviceConsumptionCards.length === 0 ? (
-            <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400 sm:p-8">
               Este hogar no tiene dispositivos con información de consumo.
             </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {deviceConsumptionCards.map(
                 ({ device, todayConsumption, errorMessage }) => (
                   <Card
                     key={device.id}
-                    className="rounded-2xl border border-gray-100 dark:border-gray-800"
+                    className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800"
                   >
-                    <CardContent className="p-6">
+                    <CardContent className="p-5 sm:p-6">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-[#1b254b] dark:text-white">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="break-words text-lg font-semibold tracking-tight text-[#1b254b] dark:text-white">
                             {device.name}
                           </h3>
 
                           <span
-                            className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                            className={`mt-2 inline-flex min-h-6 shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold ${
                               device.connectivityStatus === 'ONLINE'
                                 ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300'
                                 : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
@@ -910,13 +1001,13 @@ export const Consumption = () => {
                         </div>
                       </div>
 
-                      <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 dark:border-gray-800 sm:mt-6 sm:gap-4 sm:pt-5">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                             Potencia actual
                           </p>
 
-                          <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
+                          <p className="mt-2 break-words text-xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-2xl">
                             {device.currentPowerW === null
                               ? 'Sin datos'
                               : `${device.currentPowerW} W`}
@@ -928,7 +1019,7 @@ export const Consumption = () => {
                             Consumo de hoy
                           </p>
 
-                          <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
+                          <p className="mt-2 break-words text-xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-2xl">
                             {errorMessage
                               ? 'No disponible'
                               : todayConsumption?.readingsCount === 0
