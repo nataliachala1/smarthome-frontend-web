@@ -236,8 +236,8 @@ export const AddDeviceByIpPage = () => {
 
   if (!homeId) {
     return (
-      <div className="p-6 sh-page-enter">
-        <p>
+      <div className="sh-page-enter">
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
           No se encontró el hogar.
         </p>
       </div>
@@ -246,8 +246,8 @@ export const AddDeviceByIpPage = () => {
 
   if (isLoadingHome) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Verificando permisos...
         </div>
       </div>
@@ -256,15 +256,15 @@ export const AddDeviceByIpPage = () => {
 
   if (!isOwner) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           No tienes permisos para agregar dispositivos a este hogar.
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a] sh-page-enter">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a] sh-page-enter">
       <div className="mx-auto max-w-2xl space-y-6">
 
         <header>
@@ -275,16 +275,16 @@ export const AddDeviceByIpPage = () => {
                 `/homes/${homeId}/devices/add`,
               )
             }
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             Agregar por IP
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400">
             Ingresa la dirección IP
             del dispositivo conectado
             a tu red.
@@ -292,14 +292,14 @@ export const AddDeviceByIpPage = () => {
         </header>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-5">
             {error}
           </div>
         )}
 
         {!identifiedDevice && (
-          <Card>
-            <CardContent className="p-6">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
               <Input
                 label="Dirección IP"
@@ -336,22 +336,22 @@ export const AddDeviceByIpPage = () => {
         )}
 
         {identifiedDevice && (
-          <Card>
-            <CardContent className="p-6">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 sh-animate-fade-in-up dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
-              <h2 className="text-xl font-semibold text-[#1b254b] dark:text-white">
+              <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
                 Dispositivo encontrado
               </h2>
 
-              <div className="mt-4 rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+              <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50 p-4 dark:border-gray-700 dark:bg-gray-900">
 
-                <p className="font-semibold text-[#1b254b] dark:text-white">
+                <p className="break-words font-semibold tracking-tight text-[#1b254b] dark:text-white">
                   {
                     identifiedDevice.model
                   }
                 </p>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">
                   IP:{' '}
                   {
                     identifiedDevice.wifiIp
@@ -378,11 +378,12 @@ export const AddDeviceByIpPage = () => {
                 />
               </div>
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-gray-800 sm:flex-row">
 
                 <Button
                   type="button"
                   variant="primary"
+                  className="w-full sm:w-auto"
                   disabled={
                     isProvisioning
                   }
@@ -398,6 +399,7 @@ export const AddDeviceByIpPage = () => {
                 <Button
                   type="button"
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   disabled={
                     isProvisioning
                   }

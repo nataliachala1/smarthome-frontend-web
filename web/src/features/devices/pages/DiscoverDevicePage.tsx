@@ -270,8 +270,8 @@ export const DiscoverDevicePage = () => {
 
   if (!homeId) {
     return (
-      <div className="p-6 sh-page-enter">
-        <p>
+      <div className="sh-page-enter">
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
           No se encontró el hogar.
         </p>
       </div>
@@ -280,8 +280,8 @@ export const DiscoverDevicePage = () => {
 
   if (isLoadingHome) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Verificando permisos...
         </div>
       </div>
@@ -290,15 +290,15 @@ export const DiscoverDevicePage = () => {
 
   if (!isOwner) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           No tienes permisos para agregar dispositivos a este hogar.
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a] sh-page-enter">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a] sh-page-enter">
       <div className="mx-auto max-w-4xl space-y-6">
 
         <header>
@@ -309,16 +309,16 @@ export const DiscoverDevicePage = () => {
                 `/homes/${homeId}/devices/add`,
               )
             }
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             Buscar dispositivos
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400">
             SmartHome buscará
             dispositivos compatibles
             conectados a tu red.
@@ -326,23 +326,23 @@ export const DiscoverDevicePage = () => {
         </header>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-5">
             {error}
           </div>
         )}
 
         {!selectedDevice && (
-          <Card>
-            <CardContent className="p-6">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                 <div>
-                  <h2 className="font-semibold text-[#1b254b] dark:text-white">
+                  <h2 className="font-semibold tracking-tight text-[#1b254b] dark:text-white">
                     Dispositivos encontrados
                   </h2>
 
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
                     Selecciona el dispositivo
                     que deseas vincular.
                   </p>
@@ -351,6 +351,7 @@ export const DiscoverDevicePage = () => {
                 <Button
                   type="button"
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   disabled={
                     isSearching
                   }
@@ -366,7 +367,7 @@ export const DiscoverDevicePage = () => {
               </div>
 
               {isSearching && (
-                <p className="mt-6 text-sm text-gray-500">
+                <p role="status" className="mt-6 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-200">
                   Buscando dispositivos...
                 </p>
               )}
@@ -374,13 +375,13 @@ export const DiscoverDevicePage = () => {
               {!isSearching &&
                 devices.length ===
                   0 && (
-                  <div className="mt-6 rounded-xl bg-gray-50 p-5 text-sm text-gray-500 dark:bg-gray-900">
+                  <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
                     No encontramos
                     dispositivos compatibles.
                   </div>
                 )}
 
-              <div className="mt-6 space-y-3">
+              <div className={devices.length > 0 ? 'mt-6 space-y-3' : 'hidden'}>
 
                 {devices.map(
                   (device) => (
@@ -388,15 +389,15 @@ export const DiscoverDevicePage = () => {
                       key={
                         device.manufacturerDeviceId
                       }
-                      className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700"
+                      className="flex min-w-0 flex-col gap-4 rounded-xl border border-slate-200/80 bg-white p-4 transition-[border-color,box-shadow] duration-200 hover:border-blue-200 hover:shadow-sm motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between dark:border-gray-700 dark:bg-[#151824] dark:hover:border-blue-900"
                     >
 
-                      <div>
-                        <p className="font-semibold text-[#1b254b] dark:text-white">
+                      <div className="min-w-0">
+                        <p className="break-words font-semibold tracking-tight text-[#1b254b] dark:text-white">
                           {device.model}
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">
                           IP: {device.ip}
                         </p>
                       </div>
@@ -404,6 +405,7 @@ export const DiscoverDevicePage = () => {
                       <Button
                         type="button"
                         variant="primary"
+                        className="w-full sm:w-auto"
                         disabled={
                           isIdentifying
                         }
@@ -429,22 +431,22 @@ export const DiscoverDevicePage = () => {
         )}
 
         {selectedDevice && (
-          <Card>
-            <CardContent className="p-6">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
 
-              <h2 className="text-xl font-semibold text-[#1b254b] dark:text-white">
+              <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
                 Dispositivo encontrado
               </h2>
 
-              <div className="mt-4 rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+              <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50 p-4 dark:border-gray-700 dark:bg-gray-900">
 
-                <p className="font-semibold text-[#1b254b] dark:text-white">
+                <p className="break-words font-semibold tracking-tight text-[#1b254b] dark:text-white">
                   {
                     selectedDevice.model
                   }
                 </p>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">
                   IP:{' '}
                   {
                     selectedDevice.wifiIp
@@ -471,17 +473,18 @@ export const DiscoverDevicePage = () => {
                 />
               </div>
 
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
                 Elige un nombre que te
                 permita reconocer fácilmente
                 este dispositivo.
               </p>
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-gray-800 sm:flex-row">
 
                 <Button
                   type="button"
                   variant="primary"
+                  className="w-full sm:w-auto"
                   disabled={
                     isProvisioning
                   }
@@ -497,6 +500,7 @@ export const DiscoverDevicePage = () => {
                 <Button
                   type="button"
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   disabled={
                     isProvisioning
                   }

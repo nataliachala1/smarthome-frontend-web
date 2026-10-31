@@ -328,6 +328,14 @@ textarea {
   transition-timing-function: ease-out;
 }
 
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 :where([role="alert"], [role="status"]) {
   animation: sh-fade-in .18s ease-out both;
 }
@@ -945,12 +953,12 @@ textarea {
 /* Dashboard: restrained entrance and hover feedback for interactive surfaces. */
 .sh-dashboard { --sh-dashboard-ease: cubic-bezier(.23, 1, .32, 1); }
 .sh-dashboard-enter {
-  animation: sh-dashboard-enter 300ms var(--sh-dashboard-ease) both;
+  animation: sh-dashboard-enter 220ms var(--sh-dashboard-ease) both;
 }
-.sh-dashboard > .sh-dashboard-enter:nth-child(2) { animation-delay: 45ms; }
-.sh-dashboard > .sh-dashboard-enter:nth-child(3) { animation-delay: 90ms; }
-.sh-dashboard > .sh-dashboard-enter:nth-child(4) { animation-delay: 135ms; }
-.sh-dashboard > .sh-dashboard-enter:nth-child(5) { animation-delay: 180ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(2) { animation-delay: 30ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(3) { animation-delay: 60ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(4) { animation-delay: 90ms; }
+.sh-dashboard > .sh-dashboard-enter:nth-child(5) { animation-delay: 120ms; }
 .sh-dashboard-interactive {
   transition:
     transform 180ms var(--sh-dashboard-ease),
@@ -1074,7 +1082,7 @@ textarea {
   .sh-login-page--fullscreen .sh-login-divider { margin: 12px 0 10px; }
   .sh-login-page--fullscreen .sh-login-register { font-size: 13px; }
   .sh-login-page--fullscreen .sh-login-secondary-links { gap: 4px 10px; margin-top: 8px; }
-  .sh-login-page--fullscreen .sh-login-secondary-links button { font-size: 11px; }
+  .sh-login-page--fullscreen .sh-login-secondary-links button { font-size: 12px; }
 }
 
 /* Registration keeps the same no-scroll viewport treatment as login. */

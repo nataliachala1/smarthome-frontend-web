@@ -165,7 +165,7 @@ export const Navbar = ({ onMenuClick, isNavigationOpen, menuButtonRef }: NavbarP
                 {initials || 'U'}
               </span>
               <span className="hidden max-w-40 truncate text-sm font-semibold sm:block">{displayName}</span>
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className={`hidden h-4 w-4 text-[#50658c] transition-transform sm:block ${isProfileMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" className={`hidden h-4 w-4 text-[#50658c] transition-transform motion-reduce:transition-none sm:block ${isProfileMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
               </svg>
             </button>

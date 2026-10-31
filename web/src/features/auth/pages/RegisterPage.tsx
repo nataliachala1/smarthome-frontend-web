@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../app/contexts/AuthContext';
 import { Button } from '../../../components/ui/Button';
@@ -126,7 +126,10 @@ export const RegisterPage = () => {
 
             <header className="sh-login-heading sh-register-heading sh-register-stagger">
               <h1>Crear cuenta</h1>
-              <p>Crea tu cuenta para administrar tus hogares y dispositivos inteligentes.</p>
+              <p>
+                Crea tu cuenta para administrar tus hogares y dispositivos inteligentes.{' '}
+                <Link className="sh-register-terms-link" to="/terms">Consulta los términos</Link>
+              </p>
             </header>
 
             <form onSubmit={handleSubmit} className="sh-login-fields sh-register-fields">

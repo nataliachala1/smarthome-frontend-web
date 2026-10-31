@@ -159,8 +159,8 @@ export const EditDevicePage = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivo...
         </div>
       </div>
@@ -168,8 +168,8 @@ export const EditDevicePage = () => {
   }
   if (!isOwner) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           No tienes permisos para editar este dispositivo.
         </div>
       </div>
@@ -178,8 +178,8 @@ export const EditDevicePage = () => {
 
   if (!device) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           {error || 'Dispositivo no encontrado.'}
         </div>
       </div>
@@ -187,7 +187,7 @@ export const EditDevicePage = () => {
   }
 
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a] sh-page-enter">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a] sh-page-enter">
       <div className="mx-auto max-w-3xl space-y-6">
         <header>
           <button
@@ -195,16 +195,16 @@ export const EditDevicePage = () => {
             onClick={() =>
               navigate(`/homes/${homeId}/devices/${deviceId}`)
             }
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver al dispositivo
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             Editar dispositivo
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
             Modifica la configuración del dispositivo.
           </p>
         </header>
@@ -212,14 +212,14 @@ export const EditDevicePage = () => {
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+            className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-5"
           >
             {error}
           </div>
         )}
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-6 space-y-5">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+          <CardContent className="space-y-5 p-5 sm:p-6">
             <Input
               label="Nombre del dispositivo"
               type="text"
@@ -241,7 +241,7 @@ export const EditDevicePage = () => {
                     e.target.value as 'WIFI' | 'BLUETOOTH',
                   )
                 }
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-[#151824]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,background-color] duration-200 focus:border-[#1866C1] focus:outline-none focus:ring-2 focus:ring-[#1866C1]/20 dark:border-gray-700 dark:bg-[#151824] dark:text-white dark:shadow-black/20 motion-reduce:transition-none"
               >
                 <option value="WIFI">WIFI</option>
                 <option value="BLUETOOTH">BLUETOOTH</option>
@@ -256,16 +256,17 @@ export const EditDevicePage = () => {
               <select
                 value={messagingProtocol}
                 onChange={() => setMessagingProtocol('MQTT')}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-[#151824]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm shadow-slate-900/5 transition-[border-color,box-shadow,background-color] duration-200 focus:border-[#1866C1] focus:outline-none focus:ring-2 focus:ring-[#1866C1]/20 dark:border-gray-700 dark:bg-[#151824] dark:text-white dark:shadow-black/20 motion-reduce:transition-none"
               >
                 <option value="MQTT">MQTT</option>
               </select>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-gray-800 sm:flex-row">
               <Button
                 type="button"
                 variant="primary"
+                className="w-full sm:w-auto"
                 disabled={isSaving}
                 onClick={() => void handleSubmit()}
               >
@@ -275,6 +276,7 @@ export const EditDevicePage = () => {
               <Button
                 type="button"
                 variant="secondary"
+                className="w-full sm:w-auto"
                 disabled={isSaving}
                 onClick={() =>
                   navigate(`/homes/${homeId}/devices/${deviceId}`)

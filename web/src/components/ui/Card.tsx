@@ -15,7 +15,7 @@ export const Card = ({ children, className = '', noPadding = false }: CardProps)
   return (
     <div
       className={`rounded-2xl border border-border bg-card text-card-foreground shadow-sm shadow-slate-900/5 dark:shadow-black/20 ${
-        !noPadding ? 'p-6' : ''
+        !noPadding ? 'p-5 sm:p-6' : ''
       } ${className}`}
     >
       {children}

@@ -11,7 +11,7 @@ import {
 } from '../../../shared/api/homes.api';
 
 const panelClass =
-  'rounded-2xl border border-[#e2e8f0] bg-white shadow-sm dark:border-slate-700 dark:bg-[#151824]';
+  'rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_6px_20px_rgba(26,65,119,0.045)] dark:border-slate-700 dark:bg-[#151824]';
 
 const roleLabel = (role: string) => {
   if (role === 'OWNER') return 'Propietario';
@@ -223,7 +223,7 @@ export const AccessPage = () => {
     <div className="mx-auto w-full max-w-[1000px] text-[#0f172a] dark:text-slate-100 sh-page-enter">
       <header className="mb-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#71819b] dark:text-slate-400">Hogares</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#0f172a] dark:text-white sm:text-[34px]">Accesos del hogar</h1>
+        <h1 className="mt-1 text-[28px] font-bold tracking-[-0.03em] text-[#0f172a] dark:text-white sm:text-[34px]">Accesos del hogar</h1>
         <p className="mt-1 text-[15px] leading-6 text-[#64748b] dark:text-slate-400">
           Comparte tu hogar y administra quién puede acceder.
         </p>
@@ -251,7 +251,7 @@ export const AccessPage = () => {
           <button
             type="button"
             onClick={() => void loadHomes()}
-            className="mt-4 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+            className="mt-4 min-h-11 rounded-lg bg-[#0d6efd] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 motion-reduce:transition-none"
           >
             Reintentar
           </button>
@@ -276,7 +276,7 @@ export const AccessPage = () => {
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-[#71819b] dark:text-slate-400">Hogar actual</p>
-                  <p className="truncate text-base font-semibold text-[#0f172a] dark:text-white">{selectedHome?.name ?? 'Selecciona un hogar'}</p>
+                  <p className="break-words text-base font-semibold text-[#0f172a] dark:text-white">{selectedHome?.name ?? 'Selecciona un hogar'}</p>
                   <p className="mt-0.5 text-xs text-[#64748b] dark:text-slate-400">Aquí puedes revisar y compartir el acceso.</p>
                 </div>
               </div>
@@ -292,7 +292,7 @@ export const AccessPage = () => {
                       localStorage.setItem('activeHomeId', event.target.value);
                       setSuccess('');
                     }}
-                    className="h-11 min-w-0 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 sm:min-w-48"
+                    className="h-11 w-full min-w-0 max-w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm text-[#334155] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 sm:w-auto sm:min-w-48"
                   >
                     {homes.map((home) => <option key={home.id} value={home.id}>{home.name}</option>)}
                   </select>
@@ -303,9 +303,9 @@ export const AccessPage = () => {
 
           <section className={`${panelClass} p-5 sm:p-6`} aria-labelledby="members-heading">
               <div className="flex flex-col gap-4 border-b border-[#edf1f5] pb-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+                <div className="min-w-0">
                   <h2 id="members-heading" className="text-xl font-bold text-[#0f172a] dark:text-white">Compartir acceso al hogar</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#64748b] dark:text-slate-400">
+                  <p className="mt-1 break-words text-sm leading-6 text-[#64748b] dark:text-slate-400">
                     Invita personas a usar {selectedHome?.name ?? 'este hogar'} y administra sus accesos.
                   </p>
                 </div>
@@ -318,7 +318,7 @@ export const AccessPage = () => {
                     setSuccess('');
                     setIsInviteOpen(true);
                   }}
-                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#0d6efd] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#0d6efd] px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 motion-reduce:transition-none"
                 >
                   <span aria-hidden="true" className="text-xl leading-none">+</span>
                   Invitar a una persona
@@ -333,14 +333,14 @@ export const AccessPage = () => {
               </div>
 
             {isLoadingMembers ? (
-              <div className="py-10 text-center text-sm text-[#64748b] dark:text-slate-400">Cargando accesos...</div>
+              <div role="status" className="py-10 text-center text-sm text-[#64748b] dark:text-slate-400">Cargando accesos...</div>
             ) : membersLoadError ? (
               <div role="alert" className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-red-200 px-5 py-8 text-center dark:border-red-900/50">
                 <p className="text-sm text-red-700 dark:text-red-300">{membersLoadError}</p>
                 <button
                   type="button"
                   onClick={() => void loadMembers(selectedHomeId)}
-                  className="mt-3 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0b5ed7]"
+                  className="mt-3 min-h-11 rounded-lg bg-[#0d6efd] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 motion-reduce:transition-none"
                 >
                   Reintentar
                 </button>
@@ -354,7 +354,7 @@ export const AccessPage = () => {
             ) : (
               <ul className="space-y-3">
                 {visibleMembers.map((member) => (
-                  <li key={member.id} className="flex flex-col gap-3 rounded-xl border border-[#e6ebf2] bg-[#f8fafc] p-4 dark:border-slate-700 dark:bg-slate-900/50 sm:flex-row sm:items-center">
+                  <li key={member.id} className="flex flex-col gap-3 rounded-xl border border-[#e6ebf2] bg-[#f8fafc] p-4 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#c9d9ef] hover:bg-[#f5f9ff] motion-reduce:transition-none dark:border-slate-700 dark:bg-slate-900/50 dark:hover:border-slate-600 dark:hover:bg-slate-800/70 sm:flex-row sm:items-center">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#d9f4e1] text-lg font-semibold text-[#258348] dark:bg-emerald-950/50 dark:text-emerald-300">
                       <PersonIcon />
                     </span>
@@ -375,7 +375,7 @@ export const AccessPage = () => {
                               void handleRoleChange(member, nextRole);
                             }
                           }}
-                          className="h-10 min-w-32 rounded-lg border border-[#dce4ef] bg-white px-2.5 text-sm text-[#334155] outline-none focus:border-[#1677f2] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                          className="h-11 min-w-32 rounded-lg border border-[#dce4ef] bg-white px-2.5 text-sm text-[#334155] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 motion-reduce:transition-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                         >
                           <option value="MEMBER">Miembro</option>
                           <option value="GUEST">Invitado</option>
@@ -385,7 +385,7 @@ export const AccessPage = () => {
                           disabled={busyMemberId === member.id}
                           onClick={() => void handleRevoke(member)}
                           aria-label={`Retirar acceso de ${roleLabel(member.role).toLowerCase()}`}
-                          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30"
+                          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-200 text-red-600 transition-colors duration-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30"
                         >
                           <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18m-2 0-.9 14H5.9L5 6m3 0V4h8v2m-7 4v6m4-6v6" />
@@ -421,16 +421,16 @@ export const AccessPage = () => {
           >
             <div className="mx-auto mb-5 h-1.5 w-14 rounded-full bg-[#d2d7df] sm:hidden" />
             <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <h2 id="invite-heading" className="text-xl font-bold text-[#0f172a] dark:text-white">Invitación a casa</h2>
-                <p className="mt-1 text-sm text-[#64748b] dark:text-slate-400">{selectedHome?.name}</p>
+                <p className="mt-1 break-words text-sm text-[#64748b] dark:text-slate-400">{selectedHome?.name}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsInviteOpen(false)}
                 disabled={isSaving}
                 aria-label="Cerrar invitación"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#64748b] hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#64748b] transition-colors duration-200 hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 disabled:opacity-50 motion-reduce:transition-none dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
               </button>
@@ -452,7 +452,7 @@ export const AccessPage = () => {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="nombre@ejemplo.com"
-                  className="h-12 w-full rounded-xl border border-[#cfd8e5] bg-white px-4 text-base text-[#0f172a] outline-none transition placeholder:text-[#94a3b8] focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 dark:border-slate-700 dark:bg-[#111827] dark:text-white dark:placeholder:text-slate-500"
+                  className="h-12 w-full rounded-xl border border-[#cfd8e5] bg-white px-4 text-base text-[#0f172a] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-[#94a3b8] focus:border-[#1677f2] focus:ring-2 focus:ring-[#1677f2]/15 motion-reduce:transition-none dark:border-slate-700 dark:bg-[#111827] dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
 
@@ -477,7 +477,7 @@ export const AccessPage = () => {
                         type="button"
                         aria-pressed={isSelected}
                         onClick={() => setRole(value)}
-                        className={`min-h-12 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 ${
+                        className={`min-h-12 rounded-xl border px-4 text-sm font-semibold transition-[border-color,background-color,box-shadow,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/30 motion-reduce:transition-none ${
                           isSelected
                             ? 'border-[#1677f2] bg-[#eaf4ff] text-[#1455a0] dark:bg-[#172b49] dark:text-[#bedaff]'
                             : 'border-[#cfd8e5] bg-white text-[#475569] hover:bg-[#f8fafc] dark:border-slate-700 dark:bg-[#111827] dark:text-slate-200'
@@ -500,14 +500,14 @@ export const AccessPage = () => {
                   type="button"
                   onClick={() => setIsInviteOpen(false)}
                   disabled={isSaving}
-                  className="h-11 rounded-xl border border-[#dce4ef] px-5 text-sm font-semibold text-[#475569] transition hover:bg-[#f8fafc] disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="h-11 rounded-xl border border-[#dce4ef] px-5 text-sm font-semibold text-[#475569] transition-colors duration-200 hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 disabled:opacity-50 motion-reduce:transition-none dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="h-11 rounded-xl bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#0b5ed7] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-11 rounded-xl bg-[#0d6efd] px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0b5ed7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
                 >
                   {isSaving ? 'Enviando...' : 'Enviar invitación'}
                 </button>

@@ -70,7 +70,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? t('common.expandNavigation') : t('common.collapseNavigation')}
             aria-expanded={!isCollapsed}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#e8f3ff] text-[#0877f9] transition-colors duration-200 hover:bg-[#dfedfc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/35 motion-reduce:transition-none dark:bg-slate-800 dark:hover:bg-slate-700"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#e8f3ff] text-[#0877f9] transition-[background-color,transform] duration-200 hover:bg-[#dfedfc] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/35 motion-reduce:transition-none motion-reduce:active:transform-none dark:bg-slate-800 dark:hover:bg-slate-700"
           >
             <svg aria-hidden="true" viewBox="0 0 64 64" className="h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M8 24L32 8L56 24V52C56 54.2091 54.2091 56 52 56H12C9.79086 56 8 54.2091 8 52V24Z" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
@@ -98,7 +98,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 onClick={onClose}
                 aria-label={isCollapsed ? t(opcion.clave) : undefined}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative flex min-h-14 items-center rounded-2xl px-4 py-3 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/30 motion-reduce:transition-none ${isCollapsed ? 'justify-center lg:px-0' : 'justify-start'} ${isActive ? 'bg-[#e8f2ff] font-semibold text-[#0877f9] before:absolute before:bottom-2.5 before:left-0 before:top-2.5 before:w-1 before:rounded-r-full before:bg-[#0877f9] dark:bg-[#172b49] dark:before:bg-[#75adff]' : 'font-medium text-[#526789] hover:bg-[#edf4fc] dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                className={`group relative flex min-h-14 items-center rounded-2xl px-4 py-3 transition-[background-color,color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/30 active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:transform-none ${isCollapsed ? 'justify-center lg:px-0' : 'justify-start'} ${isActive ? 'bg-[#e8f2ff] font-semibold text-[#0877f9] shadow-[0_3px_12px_rgba(8,119,249,0.055)] before:absolute before:bottom-2.5 before:left-0 before:top-2.5 before:w-1 before:rounded-r-full before:bg-[#0877f9] dark:bg-[#172b49] dark:before:bg-[#75adff] dark:shadow-none' : 'font-medium text-[#526789] hover:bg-[#edf4fc] dark:text-slate-400 dark:hover:bg-slate-800'}`}
               >
                 {opcion.icono(`h-6 w-6 shrink-0 ${isActive ? 'text-[#0877f9]' : 'text-[#526789] dark:text-slate-400'}`)}
 

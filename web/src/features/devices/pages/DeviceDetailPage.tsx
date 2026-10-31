@@ -203,8 +203,8 @@ export const DeviceDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:bg-[#151824] dark:text-gray-400">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-sm text-gray-500 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:text-gray-400">
           Cargando dispositivo...
         </div>
       </div>
@@ -213,8 +213,8 @@ export const DeviceDetailPage = () => {
 
   if (error && !device) {
     return (
-      <div className="p-6 sh-page-enter">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+      <div className="sh-page-enter">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm shadow-red-900/5 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300 sm:p-6">
           <p>{error}</p>
 
           <button
@@ -222,7 +222,7 @@ export const DeviceDetailPage = () => {
             onClick={() =>
               navigate(`/homes/${homeId}/devices`)
             }
-            className="mt-3 font-semibold underline"
+            className="mt-3 inline-flex min-h-11 items-center rounded-lg font-semibold underline underline-offset-4 transition-colors duration-200 hover:text-red-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:hover:text-red-200 dark:focus-visible:ring-offset-gray-950 motion-reduce:transition-none"
           >
             Volver a dispositivos
           </button>
@@ -236,8 +236,8 @@ export const DeviceDetailPage = () => {
   }
 
   return (
-    <div className="min-h-full bg-[#f4f7fe] p-6 dark:bg-[#0f111a] sh-page-enter">
-      <div className="mx-auto max-w-5xl space-y-7">
+    <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a] sh-page-enter">
+      <div className="mx-auto max-w-5xl space-y-6 sm:space-y-7">
 
         <header>
           <button
@@ -245,16 +245,16 @@ export const DeviceDetailPage = () => {
             onClick={() =>
               navigate(`/homes/${homeId}/devices`)
             }
-            className="mb-3 text-sm font-semibold text-[#1866C1] hover:underline"
+            className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#1866C1] transition-colors duration-200 hover:underline underline-offset-4 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1866C1] focus-visible:ring-offset-4 motion-reduce:transition-none"
           >
             ← Volver a dispositivos
           </button>
 
-          <h1 className="text-3xl font-bold text-[#1b254b] dark:text-white">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-3xl">
             {device.name}
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 break-words text-sm leading-6 text-gray-500 dark:text-gray-400">
             {home?.name}
           </p>
         </header>
@@ -262,7 +262,7 @@ export const DeviceDetailPage = () => {
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
+            className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 shadow-sm shadow-amber-900/5 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300 sm:p-5"
           >
             {error}
           </div>
@@ -270,37 +270,45 @@ export const DeviceDetailPage = () => {
 
         <section className="grid gap-4 md:grid-cols-3">
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-6">
-              <p className="text-sm text-gray-500">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Conectividad
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
+              <p className={`mt-2 text-2xl font-bold tracking-tight ${
+                device.connectivityStatus === 'ONLINE'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-500 dark:text-slate-300'
+              }`}>
                 {device.connectivityStatus}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-6">
-              <p className="text-sm text-gray-500">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Estado
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
+              <p className={`mt-2 text-2xl font-bold tracking-tight ${
+                device.isOn
+                  ? 'text-[#1866C1] dark:text-sky-300'
+                  : 'text-[#1b254b] dark:text-white'
+              }`}>
                 {device.isOn ? 'Encendido' : 'Apagado'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-            <CardContent className="p-6">
-              <p className="text-sm text-gray-500">
+          <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+            <CardContent className="p-5 sm:p-6">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Potencia actual
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-[#1b254b] dark:text-white">
+              <p className="mt-2 text-2xl font-bold tracking-tight text-[#1b254b] dark:text-white">
                 {device.currentPowerW === null
                   ? 'Sin datos'
                   : `${device.currentPowerW} W`}
@@ -310,21 +318,21 @@ export const DeviceDetailPage = () => {
 
         </section>
 
-        <Card className="rounded-2xl border border-gray-100 dark:border-gray-800">
-          <CardContent className="p-6">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
+          <CardContent className="p-5 sm:p-6">
 
-            <h2 className="text-xl font-bold text-[#1b254b] dark:text-white">
+            <h2 className="text-lg font-bold tracking-tight text-[#1b254b] dark:text-white sm:text-xl">
               Información del dispositivo
             </h2>
 
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div className="mt-5 grid gap-x-6 gap-y-5 sm:mt-6 sm:grid-cols-2">
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Nombre
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#1b254b] dark:text-white">
+                <p className="mt-1 break-words text-sm font-medium text-[#1b254b] dark:text-white">
                   {device.name}
                 </p>
               </div>
@@ -334,7 +342,7 @@ export const DeviceDetailPage = () => {
                   Estado del registro
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#1b254b] dark:text-white">
+                <p className="mt-1 break-words text-sm font-medium text-[#1b254b] dark:text-white">
                   {device.status}
                 </p>
               </div>
@@ -344,7 +352,7 @@ export const DeviceDetailPage = () => {
                   Identificador del fabricante
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#1b254b] dark:text-white">
+                <p className="mt-1 break-words text-sm font-medium text-[#1b254b] dark:text-white">
                   {device.manufacturerDeviceId || 'No disponible'}
                 </p>
               </div>
@@ -354,7 +362,7 @@ export const DeviceDetailPage = () => {
                   Transporte
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#1b254b] dark:text-white">
+                <p className="mt-1 break-words text-sm font-medium text-[#1b254b] dark:text-white">
                   {device.transportType || 'No disponible'}
                 </p>
               </div>
@@ -364,7 +372,7 @@ export const DeviceDetailPage = () => {
                   Protocolo
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#1b254b] dark:text-white">
+                <p className="mt-1 break-words text-sm font-medium text-[#1b254b] dark:text-white">
                   {device.messagingProtocol || 'No disponible'}
                 </p>
               </div>
@@ -374,41 +382,45 @@ export const DeviceDetailPage = () => {
           </CardContent>
         </Card>
 
-        <section className="grid gap-4 sm:grid-cols-2">
-
-                    {canControlDevice && (
-<Button
-            type="button"
-            variant="primary"
-            disabled={
-              isControlling ||
-              device.connectivityStatus !== 'ONLINE'
-            }
-            onClick={() => void handleControl()}
+        {(canControlDevice || isOwner) && (
+          <section
+            className={`grid gap-4 ${isOwner ? 'sm:grid-cols-2' : 'sm:max-w-md'}`}
           >
-            {isControlling
-              ? 'Enviando comando...'
-              : device.isOn
-                ? 'Apagar dispositivo'
-                : 'Encender dispositivo'}
-          </Button>
-          )}
+            {canControlDevice && (
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full"
+                disabled={
+                  isControlling ||
+                  device.connectivityStatus !== 'ONLINE'
+                }
+                onClick={() => void handleControl()}
+              >
+                {isControlling
+                  ? 'Enviando comando...'
+                  : device.isOn
+                    ? 'Apagar dispositivo'
+                    : 'Encender dispositivo'}
+              </Button>
+            )}
 
-                    {isOwner && (
-            <Button
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              navigate(
-                `/homes/${homeId}/devices/${device.id}/edit`,
-              )
-            }
-          >
-            Editar dispositivo
-          </Button>
-          )}
-
-        </section>
+            {isOwner && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() =>
+                  navigate(
+                    `/homes/${homeId}/devices/${device.id}/edit`,
+                  )
+                }
+              >
+                Editar dispositivo
+              </Button>
+            )}
+          </section>
+        )}
 
       </div>
     </div>

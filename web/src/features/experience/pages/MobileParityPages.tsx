@@ -59,13 +59,13 @@ const pageTitle: Record<string, { title: string; description: string }> = {
 };
 
 const contentClass = 'mx-auto w-full max-w-[1200px] text-[#0f172a] dark:text-slate-100 sh-page-enter';
-const panelClass = 'rounded-xl border border-[#e2e8f0] bg-white dark:border-slate-700 dark:bg-[#151824]';
+const panelClass = 'rounded-xl border border-[#e2e8f0] bg-white shadow-[0_6px_20px_rgba(26,65,119,0.045)] dark:border-slate-700 dark:bg-[#151824]';
 
 const PageHeading = ({ page }: { page: string }) => {
   const info = pageTitle[page] ?? pageTitle.profile;
   return (
-    <header className="mb-8">
-      <h1 className="text-3xl font-bold tracking-tight text-[#0f172a] dark:text-white sm:text-[34px]">{info.title}</h1>
+    <header className="mb-6 sm:mb-8">
+      <h1 className="text-[28px] font-bold tracking-[-0.03em] text-[#0f172a] dark:text-white sm:text-[34px]">{info.title}</h1>
       <p className="mt-1 text-[15px] leading-6 text-[#64748b] dark:text-slate-400">{info.description}</p>
     </header>
   );
@@ -84,7 +84,7 @@ const EmptyState = ({ icon, title, description, action }: {
     <h2 className="mt-5 text-xl font-semibold text-[#0f172a] dark:text-white">{title}</h2>
     <p className="mt-2 max-w-xl text-sm leading-6 text-[#64748b] dark:text-slate-400">{description}</p>
     {action && (
-      <Link to={action.to} className="mt-5 text-sm font-semibold text-[#0d6efd] hover:underline">
+      <Link to={action.to} className="mt-5 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-[#0d6efd] transition-colors duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 focus-visible:ring-offset-2 motion-reduce:transition-none">
         {action.label}
       </Link>
     )}
@@ -97,15 +97,15 @@ const PageLink = ({ icon, title, description, to }: {
   description: string;
   to: string;
 }) => (
-  <Link to={to} className="group flex min-h-[76px] items-center gap-3 border-b border-[#edf1f5] px-4 py-3 last:border-0 hover:bg-[#f8fafc] dark:border-slate-700 dark:hover:bg-slate-800/60 sm:px-5">
+  <Link to={to} className="group flex min-h-[76px] items-center gap-3 border-b border-[#edf1f5] px-4 py-3 transition-colors duration-200 last:border-0 hover:bg-[#f8fafc] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1677f2]/40 motion-reduce:transition-none dark:border-slate-700 dark:hover:bg-slate-800/60 sm:px-5">
     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f1f5f9] text-[#47617f] dark:bg-slate-800 dark:text-slate-300">
       <Icon name={icon} className="h-[18px] w-[18px]" />
     </span>
     <span className="min-w-0 flex-1">
       <span className="block text-sm font-semibold text-[#0f172a] dark:text-white">{title}</span>
-      <span className="mt-0.5 block text-xs leading-5 text-[#64748b] dark:text-slate-400">{description}</span>
+      <span className="mt-0.5 block break-words text-xs leading-5 text-[#64748b] dark:text-slate-400">{description}</span>
     </span>
-    <Icon name="chevron" className="h-4 w-4 shrink-0 text-[#94a3b8] transition-transform group-hover:translate-x-0.5" />
+    <Icon name="chevron" className="h-4 w-4 shrink-0 text-[#94a3b8] transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
   </Link>
 );
 
@@ -128,12 +128,19 @@ export const AlertsPage = () => {
     return () => { live = false; };
   }, []);
   return <div className={contentClass}><PageHeading page="alerts" />
-    {loading ? <p role="status" className={panelClass + ' p-5'}>Cargando notificaciones...</p>
-      : error ? <p role="alert" className={panelClass + ' p-5 text-red-700'}>{error}</p>
+    {loading ? <p role="status" className={panelClass + ' flex min-h-40 items-center justify-center p-5 text-center text-sm text-slate-500 dark:text-slate-400'}>Cargando notificaciones...</p>
+      : error ? <p role="alert" className={panelClass + ' border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300'}>{error}</p>
       : notifications.length === 0 ? <EmptyState icon="alert" title="No hay notificaciones" description="El backend no reporta notificaciones para tu cuenta." action={{ label: 'Ver notificaciones', to: '/notifications' }} />
-      : <section aria-label="Notificaciones" className={panelClass + ' divide-y divide-slate-100 dark:divide-slate-700'}>{notifications.map((item) => <article key={item.id} className="p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">{item.title}</h2><span className="text-xs text-slate-500">{new Date(item.createdAt).toLocaleString()}</span></div>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.message}</p><p className="mt-2 text-xs text-slate-500">{item.homeName || 'Hogar'} ? {item.priority} ? {item.status}</p>
+      : <section aria-label="Notificaciones" className={panelClass + ' divide-y divide-slate-100 dark:divide-slate-700'}>{notifications.map((item) => <article key={item.id} className="min-w-0 p-4 transition-colors duration-200 hover:bg-[#f8faff] motion-reduce:transition-none dark:hover:bg-slate-800/40 sm:p-5">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><h2 className="min-w-0 flex-1 break-words text-sm font-semibold leading-5 text-[#0f172a] dark:text-white">{item.title}</h2><span className="max-w-full rounded-full bg-[#f1f5f9] px-2.5 py-1 text-right text-[11px] font-medium leading-4 text-slate-500 dark:bg-slate-800 dark:text-slate-400">{new Date(item.createdAt).toLocaleString()}</span></div>
+        <p className="mt-2 break-words text-sm leading-6 text-slate-600 dark:text-slate-300">{item.message}</p>
+        <div className="mt-3 inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg bg-[#f7f9fc] px-2.5 py-1.5 text-xs leading-5 text-slate-500 dark:bg-slate-800/70 dark:text-slate-400">
+          <span className="break-words">{item.homeName ? `Hogar: ${item.homeName}` : 'Hogar'}</span>
+          <span aria-hidden="true" className="text-slate-300 dark:text-slate-600">·</span>
+          <span>Prioridad: {item.priority}</span>
+          <span aria-hidden="true" className="text-slate-300 dark:text-slate-600">·</span>
+          <span>Estado: {item.status}</span>
+        </div>
       </article>)}</section>}
   </div>;
 };
@@ -157,7 +164,7 @@ export const ProfilePage = () => {
       <Link
         to="/account/personal"
         aria-label={`Ver información de la cuenta de ${name}`}
-        className={`${panelClass} group mb-6 flex items-center gap-4 p-5 transition-colors hover:border-[#b8d2f5] hover:bg-[#fbfdff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 dark:hover:bg-slate-800/60 sm:p-6`}
+        className={`${panelClass} group mb-6 flex min-h-[88px] items-center gap-4 p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#b8d2f5] hover:bg-[#fbfdff] hover:shadow-[0_10px_24px_rgba(26,65,119,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1677f2]/40 motion-reduce:transition-none dark:hover:bg-slate-800/60 sm:p-6`}
       >
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#eff6ff] text-lg font-bold text-[#1677f2] dark:bg-[#172b49] dark:text-[#75adff]">
           {name.charAt(0).toUpperCase()}
@@ -166,7 +173,7 @@ export const ProfilePage = () => {
           <h2 className="truncate text-lg font-semibold text-[#0f172a] dark:text-white">{name}</h2>
           <p className="truncate text-sm text-[#64748b] dark:text-slate-400">{email}</p>
         </div>
-        <Icon name="chevron" className="h-5 w-5 shrink-0 text-[#94a3b8] transition-transform group-hover:translate-x-0.5" />
+        <Icon name="chevron" className="h-5 w-5 shrink-0 text-[#94a3b8] transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
       </Link>
       <section id="profile-settings" className="mt-8 scroll-mt-6">
         <Settings />
@@ -270,7 +277,7 @@ export const AccountPage = () => {
     return (
       <div className={contentClass}>
         <PageHeading page={currentPage} />
-        <section className={`${panelClass} space-y-4`}>
+        <section className={`${panelClass} space-y-4 p-5 sm:p-6`}>
           <form onSubmit={handleSaveProfile} className="max-w-xl space-y-3">
             <label className="block text-sm font-medium text-[#334155] dark:text-slate-200">
               Nombre
@@ -280,15 +287,15 @@ export const AccountPage = () => {
                 minLength={2}
                 maxLength={100}
                 required
-                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
+                className="mt-1.5 h-11 w-full rounded-lg border border-[#dfe7f2] bg-white px-3 text-sm text-[#18264a] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#0877f9] focus:ring-2 focus:ring-[#0877f9]/15 motion-reduce:transition-none dark:border-slate-600 dark:bg-[#172236] dark:text-slate-100"
               />
             </label>
-            {profileError && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{profileError}</p>}
-            {profileSuccess && <p role="status" className="text-sm text-emerald-600">{profileSuccess}</p>}
+            {profileError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{profileError}</p>}
+            {profileSuccess && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">{profileSuccess}</p>}
             <button
               type="submit"
               disabled={isSavingProfile}
-              className="rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0564d4] disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-11 rounded-lg bg-[#0877f9] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#0564d4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0877f9]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
             >
               {isSavingProfile ? 'Guardando…' : 'Guardar cambios'}
             </button>
@@ -304,7 +311,7 @@ export const AccountPage = () => {
               type="button"
               onClick={() => void handleDeactivateAccount()}
               disabled={isDeactivating}
-              className="mt-3 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
+              className="mt-3 min-h-11 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition-colors duration-200 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/35 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
             >
               {isDeactivating ? 'Desactivando…' : 'Desactivar cuenta'}
             </button>
@@ -369,8 +376,8 @@ export const HelpPage = () => {
         <h2 className="py-4 text-base font-semibold text-[#0f172a] dark:text-white">Preguntas frecuentes</h2>
         {faqItems.map(([question, answer], index) => (
           <div key={question} className="border-t border-[#edf1f5] dark:border-slate-700">
-            <button type="button" aria-expanded={openFaq === index} onClick={() => setOpenFaq(openFaq === index ? null : index)} className="flex min-h-14 w-full items-center justify-between gap-4 py-3 text-left text-sm font-medium text-[#0f172a] dark:text-slate-100">
-              {question}<Icon name="chevron" className={`h-4 w-4 shrink-0 text-[#64748b] transition-transform ${openFaq === index ? 'rotate-90' : ''}`} />
+            <button type="button" aria-expanded={openFaq === index} onClick={() => setOpenFaq(openFaq === index ? null : index)} className="flex min-h-14 w-full items-center justify-between gap-4 rounded-md py-3 text-left text-sm font-medium text-[#0f172a] transition-colors duration-200 hover:text-[#0877f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1677f2]/40 motion-reduce:transition-none dark:text-slate-100">
+              {question}<Icon name="chevron" className={`h-4 w-4 shrink-0 text-[#64748b] transition-transform duration-200 motion-reduce:transition-none ${openFaq === index ? 'rotate-90' : ''}`} />
             </button>
             {openFaq === index && <p className="pb-4 pr-8 text-sm leading-6 text-[#64748b] dark:text-slate-400">{answer}</p>}
           </div>
