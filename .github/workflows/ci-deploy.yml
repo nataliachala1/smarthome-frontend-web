@@ -1,0 +1,132 @@
+name: CI validate and publish main
+
+on:
+  push:
+    branches: [dev, qa, main]
+  pull_request:
+    branches: [dev, qa, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smarthome-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-policy:
+    name: Enforce dev to qa to main
+    if: ${{ github.event_name == 'pull_request' && (github.base_ref == 'qa' || github.base_ref == 'main') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release promotion PR
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          TARGET_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO" != "$TARGET_REPO" ]; then
+            echo "Release PR must originate in this repository."
+            exit 1
+          fi
+          if [ "$PR_BASE" = qa ] && [ "$PR_HEAD" = dev ]; then
+            echo "Allowed promotion dev -> qa"
+          elif [ "$PR_BASE" = main ] && [ "$PR_HEAD" = qa ]; then
+            echo "Allowed promotion qa -> main"
+          else
+            echo "Forbidden promotion: ${PR_HEAD} -> ${PR_BASE} (require dev -> qa -> main)"
+            exit 1
+          fi
+
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:contracts
+      - run: npm run build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build frontend image without publishing
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          load: true
+          push: false
+          tags: smarthome-frontend-web:ci
+      - name: Smoke test frontend container
+        shell: bash
+        run: |
+          docker run --detach --add-host backend=127.0.0.1 --name smarthome-frontend-web-ci --publish 127.0.0.1:18080:8080 smarthome-frontend-web:ci
+          trap 'docker rm --force smarthome-frontend-web-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 18); do
+            state="$(docker inspect --format '{{.State.Status}}' smarthome-frontend-web-ci)"
+            if [ "$state" != "running" ]; then docker logs smarthome-frontend-web-ci; exit 1; fi
+            health="$(docker inspect --format '{{.State.Health.Status}}' smarthome-frontend-web-ci)"
+            if [ "$health" = "healthy" ]; then break; fi
+            if [ "$health" = "unhealthy" ]; then docker logs smarthome-frontend-web-ci; exit 1; fi
+            sleep 5
+          done
+          if [ "$health" != "healthy" ]; then docker inspect smarthome-frontend-web-ci; docker logs smarthome-frontend-web-ci; exit 1; fi
+          curl --fail --silent --show-error http://127.0.0.1:18080/ --output /dev/null
+          curl --fail --silent --show-error http://127.0.0.1:18080/dashboard --output /dev/null
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'nataliachala1/smarthome-frontend-web'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/smarthome-frontend-web:main
+            ghcr.io/${{ github.repository_owner }}/smarthome-frontend-web:${{ github.sha }}
+
+  deploy:
+    if: ${{ false }} # Disabled: enable only after QA approval, backup/restore evidence and production environment review.
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Dokploy
+        env:
+          DOKPLOY_DEPLOY_WEBHOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK }}
+        run: |
+          test -n "$DOKPLOY_DEPLOY_WEBHOOK"
+          curl --fail --silent --show-error --request POST "$DOKPLOY_DEPLOY_WEBHOOK" --output /dev/null
+      - name: Verify deployment health
+        env:
+          DEPLOYMENT_HEALTH_URL: ${{ secrets.DEPLOYMENT_HEALTH_URL }}
+        run: |
+          test -n "$DEPLOYMENT_HEALTH_URL"
+          for attempt in $(seq 1 36); do
+            if curl --fail --silent "$DEPLOYMENT_HEALTH_URL" --output /dev/null; then exit 0; fi
+            sleep 10
+          done
+          echo "Deployment health check did not pass within 6 minutes."
+          exit 1
