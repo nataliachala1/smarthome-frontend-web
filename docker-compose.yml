@@ -1,0 +1,112 @@
+name: smarthome-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smarthome_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-smarthome}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  liquibase:
+    image: liquibase/liquibase:4.29
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /liquibase/project
+    volumes:
+      - ./smarthome-database-dev:/liquibase/project:ro
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-smarthome}
+      LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-smarthome_owner}
+      LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: changelog/changelog-master.yaml
+    command: ["--defaults-file=liquibase.properties", "update"]
+    restart: "no"
+
+  app-db-role:
+    image: postgres:16-alpine
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-smarthome_owner}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      PGDATABASE: ${POSTGRES_DB:-smarthome}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+      IOT_DB_PASSWORD: ${IOT_DB_PASSWORD:?Set IOT_DB_PASSWORD in .env}
+    volumes:
+      - ./smarthome-database-dev/scripts/create-app-role.sh:/scripts/create-app-role.sh:ro
+    entrypoint: ["sh", "/scripts/create-app-role.sh"]
+    restart: "no"
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+
+  backend:
+    build:
+      context: ./smarthome-backend-08-dev
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: postgresql://smarthome_app_local:${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-smarthome}
+      DATABASE_IOT_URL: postgresql://smarthome_ingest_local:${IOT_DB_PASSWORD:?Set IOT_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-smarthome}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      FRONTEND_URL: http://localhost:${WEB_PORT:-8080}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+      SMTP_FROM: ${SMTP_FROM:-Smart Home <noreply@smarthome.local>}
+      MQTT_BROKER_URL: mqtt://mosquitto:1883
+    depends_on:
+      app-db-role:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+
+volumes:
+  postgres_data:
