@@ -41,6 +41,7 @@ npm ci
 npm run lint
 npm run typecheck
 npm run test:contracts
+npm run test:cov
 npm run build
 ```
 
@@ -54,21 +55,21 @@ Desde la raíz:
 docker build -t smarthome-frontend-web -f web/Dockerfile web
 ```
 
-La imagen utiliza Nginx sin privilegios y expone el puerto 8080. `web/nginx.conf` define el fallback para rutas SPA y el proxy de `/api/`, `/health` y `/socket.io/` al servicio `backend:3000`. Por ello, arrancar el contenedor aislado no proporciona por sí solo un backend funcional.
+La imagen utiliza Nginx sin privilegios y expone el puerto 8080. `web/nginx.conf.template` define el fallback para rutas SPA y el proxy de `/api/`, `/health` y `/socket.io/` al servicio indicado en `BACKEND_UPSTREAM` (por defecto `backend:3000`). Por ello, arrancar el contenedor aislado no proporciona por sí solo un backend funcional.
 
-## Docker Compose integrado: atención a dependencias externas
+## Sistema completo con Docker Compose
 
-El `docker-compose.yml` de la raíz es una **referencia de laboratorio local**, no una pila autónoma incluida en este repositorio. Para utilizarlo deben existir las rutas externas que declara:
+Para levantar base de datos, migraciones, usuarios de prueba, backend y esta web con un solo comando, usar [smart-home-doc/deploy](https://github.com/Kevin-Stiven-Lopez-Amaya404/smart-home-doc/tree/main/deploy). Usuarios de prueba (contraseña `SmartHome#2026`): `admin@example.com`, `owner@example.com`, `member@example.com` y `guest@example.com`.
 
-- `./smarthome-backend-08-dev`
-- `./smarthome-database-dev`
-- `./docker/mosquitto.conf`
-
-No ejecutar `docker compose up --build` esperando que funcione desde un clon aislado. Una vez preparado el entorno integrado y un `.env` basado en `.env.example` con claves propias, se puede validar con `docker compose config` antes de iniciarlo. `docker compose down -v` **elimina los volúmenes locales** y sus datos.
+La imagen de esta web lee `BACKEND_UPSTREAM` (por defecto `backend:3000`) para el proxy de `/api/`, `/health` y `/socket.io/`. En producción se configura con el nombre del servicio backend del despliegue.
 
 ## Documentación central
 
-La documentación canónica está en [smart-home-doc](https://github.com/Kevin-Stiven-Lopez-Amaya404/smart-home-doc), especialmente [arquitectura web](https://github.com/Kevin-Stiven-Lopez-Amaya404/smart-home-doc/blob/main/docs/10-arquitectura/frontend-web.md). Los informes históricos de auditoría siguen disponibles en el historial y en esta rama de origen hasta que se completen las copias verificadas en el repositorio documental; no se deben borrar antes de ese traslado.
+La documentación canónica está en [smart-home-doc](https://github.com/Kevin-Stiven-Lopez-Amaya404/smart-home-doc), especialmente [arquitectura web](https://github.com/Kevin-Stiven-Lopez-Amaya404/smart-home-doc/blob/main/docs/10-arquitectura/web/README.md). Los informes históricos de auditoría siguen disponibles en el historial y en esta rama de origen hasta que se completen las copias verificadas en el repositorio documental; no se deben borrar antes de ese traslado.
+
+## Uso de inteligencia artificial
+
+Ver [AI_USAGE.md](AI_USAGE.md).
 
 ## Ramas y entregas
 
