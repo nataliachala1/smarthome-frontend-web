@@ -142,7 +142,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* ====================================== */}
-      {/* RUTAS PÚBLICAS                        */}
+      {/* PUBLIC ROUTES                         */}
       {/* ====================================== */}
 
       <Route
@@ -245,7 +245,7 @@ function AppRoutes() {
         />
 
         {/* ====================================== */}
-        {/* HOGARES                               */}
+        {/* HOMES                                 */}
         {/* ====================================== */}
 
         <Route
@@ -263,7 +263,7 @@ function AppRoutes() {
         />
 
         {/* ====================================== */}
-        {/* CONSUMO / ENERGÍA                     */}
+        {/* CONSUMPTION / ENERGY                  */}
         {/* ====================================== */}
 
         <Route
@@ -274,10 +274,10 @@ function AppRoutes() {
         />
 
         {/* ====================================== */}
-        {/* DISPOSITIVOS                          */}
+        {/* DEVICES                               */}
         {/* ====================================== */}
 
-        {/* Lista de dispositivos del hogar */}
+        {/* Device list of the home */}
         <Route
           path="homes/:homeId/devices"
           element={
@@ -285,7 +285,7 @@ function AppRoutes() {
           }
         />
 
-        {/* Pantalla: seleccionar método */}
+        {/* Screen: choose a method */}
         <Route
           path="homes/:homeId/devices/add"
           element={
@@ -293,7 +293,7 @@ function AppRoutes() {
           }
         />
 
-        {/* Pantalla: búsqueda automática */}
+        {/* Screen: automatic discovery */}
         <Route
           path="homes/:homeId/devices/add/discover"
           element={
@@ -303,7 +303,7 @@ function AppRoutes() {
 
         <Route path="homes/:homeId/devices/add/pairing" element={<ShellyPairingPage />} />
 
-        {/* Pantalla: agregar por IP */}
+        {/* Screen: add by IP */}
         <Route
           path="homes/:homeId/devices/add/ip"
           element={
@@ -356,13 +356,13 @@ function AppRoutes() {
         />
 
         {/* ====================================== */}
-        {/* CONFIGURACIÓN                         */}
+        {/* SETTINGS                              */}
         {/* ====================================== */}
 
         <Route path="profile/settings" element={<Navigate to="/profile#profile-settings" replace />} />
         <Route path="settings" element={<Navigate to="/profile#profile-settings" replace />} />
 
-        {/* Vistas web adaptadas desde la organización de la app móvil */}
+        {/* Web views adapted from the mobile app structure */}
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
         <Route path="access" element={<AccessPage />} />
@@ -373,7 +373,7 @@ function AppRoutes() {
       </Route>
 
       {/* ====================================== */}
-      {/* RUTA NO ENCONTRADA                    */}
+      {/* ROUTE NOT FOUND                       */}
       {/* ====================================== */}
 
       <Route
