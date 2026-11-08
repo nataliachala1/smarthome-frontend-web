@@ -116,7 +116,7 @@ export const Devices = () => {
 
 
   /*
-   * Cargar hogar + dispositivos
+   * Load home + devices
    */
   const loadDevicesPage =
     useCallback(
@@ -232,7 +232,7 @@ export const Devices = () => {
     );
 
   /*
-   * Carga inicial
+   * Initial load
    */
   useEffect(() => {
     void loadDevicesPage();
@@ -242,7 +242,7 @@ export const Devices = () => {
   }, [loadDevicesPage]);
 
   /*
-   * Actualizaciones en tiempo real
+   * Realtime updates
    */
   useEffect(() => {
     const socket =
@@ -356,7 +356,7 @@ export const Devices = () => {
     ]);
 
   /*
-   * Estadísticas
+   * Statistics
    */
   const onlineCount =
     devices.filter(
@@ -379,7 +379,7 @@ export const Devices = () => {
     ).length;
 
   /*
-   * Encender / apagar dispositivos
+   * Turn devices on / off
    */
   const handleControlDevice = async (device: Device) => {
     if (!homeId || !canControlDevice) {
@@ -457,8 +457,8 @@ export const Devices = () => {
   }
 
   /*
-   * Error que impide cargar
-   * completamente el hogar
+   * Error that prevents loading
+   * the whole home
    */
   if (
     error &&
@@ -491,7 +491,7 @@ export const Devices = () => {
   }
 
   /*
-   * Pantalla normal
+   * Normal screen
    */
   return (
     <div className="min-h-full bg-[#f4f7fe] dark:bg-[#0f111a]">
