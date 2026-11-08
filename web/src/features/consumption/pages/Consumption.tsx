@@ -506,11 +506,11 @@ export const Consumption = () => {
     setPeriod(newPeriod);
 
     /*
-     * Al cambiar de periodo volvemos al periodo actual.
+     * Changing the period goes back to the current period.
      *
-     * HOY -> hoy
-     * MES -> mes actual
-     * AÑO -> año actual
+     * TODAY -> today
+     * MONTH -> current month
+     * YEAR -> current year
      */
     setSelectedDate(new Date());
   };
@@ -683,7 +683,7 @@ export const Consumption = () => {
 
         <div className={activeEnergyView === 'planning' && !isGuest ? 'hidden' : 'space-y-7'}>
 
-        {/* SELECTOR HOY / MES / AÑO */}
+        {/* TODAY / MONTH / YEAR SELECTOR */}
 
         <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:shadow-black/20 sm:p-5">
 
@@ -735,7 +735,7 @@ export const Consumption = () => {
 
             </div>
 
-            {/* NAVEGACIÓN ENTRE PERIODOS */}
+            {/* NAVIGATION BETWEEN PERIODS */}
 
             <div className="flex items-center justify-between gap-3 sm:justify-center sm:gap-4">
 
@@ -779,7 +779,7 @@ export const Consumption = () => {
           </div>
         )}
 
-        {/* CONSUMO PRINCIPAL */}
+        {/* MAIN CONSUMPTION */}
 
         <Card className="rounded-3xl border border-slate-200/80 shadow-sm shadow-slate-900/5 dark:border-gray-800">
           <CardContent className="p-5 sm:p-7">
@@ -819,7 +819,7 @@ export const Consumption = () => {
           </p>
         )}
 
-        {/* MÉTRICAS */}
+        {/* METRICS */}
 
         {!isGuest && <section className="grid gap-4 sm:grid-cols-3">
 
@@ -875,7 +875,7 @@ export const Consumption = () => {
 
         </section>}
 
-        {/* ESPACIO PARA LA GRÁFICA */}
+        {/* CHART AREA */}
 
         {!isGuest && <section className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-gray-800 dark:bg-[#151824] dark:shadow-black/20 sm:p-6">
 
@@ -1017,7 +1017,7 @@ export const Consumption = () => {
 
         </section>}
 
-        {/* ESPACIO PARA DISPOSITIVOS */}
+        {/* DEVICES AREA */}
 
         {!isGuest && <section>
 
