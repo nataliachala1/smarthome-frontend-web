@@ -39,7 +39,7 @@ export const getRealtimeSocket = () => {
 
       // Keep one useful diagnostic per failed connection streak without flooding the console.
       // eslint-disable-next-line no-console
-      console.warn('Realtime: error de conexión.', error.message);
+      console.warn('Realtime: connection error.', error.message);
     });
     socket.io.on('reconnect_attempt', () => {
       if (!getCurrentToken()) {

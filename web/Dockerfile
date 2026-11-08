@@ -9,7 +9,10 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.30.6-alpine3.24
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# The nginx image renders /etc/nginx/templates/*.template into conf.d at start.
+# Production sets BACKEND_UPSTREAM to its own API service (for example in Dokploy).
+ENV BACKEND_UPSTREAM=backend:3000
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 8080

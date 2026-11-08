@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await authApi.logout();
     } catch {
-      // Si falla la petición al servidor, se limpia igualmente la sesión local.
+      // Even if the server request fails, the local session is cleared.
     } finally {
       clearLocalSession();
     }
@@ -174,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await authApi.logoutAll();
     } catch {
-      // Si falla la petición, se cierra la sesión local igualmente.
+      // Even if the request fails, the local session is closed.
     } finally {
       clearLocalSession();
     }
